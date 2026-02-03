@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import api from "../api/axios";
 import { useAuth } from "../auth/authContext";
 import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react"; 
 
 const Login = () => {
   const { login, isAuthenticated } = useAuth();
   const [cedula, setCedula] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -42,6 +44,10 @@ const Login = () => {
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <form
@@ -68,7 +74,7 @@ const Login = () => {
             placeholder="Cédula"
             value={cedula}
             onChange={(e) => setCedula(e.target.value)}
-            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring"
+            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-500"
             required
             min="1"
           />
@@ -76,19 +82,34 @@ const Login = () => {
 
         <div className="mb-6">
           <label className="block text-sm font-medium mb-1">Contraseña</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring"
-            required
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring focus:ring-blue-500"
+              required
+            />
+            
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+            >
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
+            </button>
+          </div>
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? "Ingresando..." : "Iniciar Sesión"}
         </button>
