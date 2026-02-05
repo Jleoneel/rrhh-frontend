@@ -1,5 +1,20 @@
 export default function Modal({ open, title, children, onClose }) {
   if (!open) return null;
+  // En tu Modal.jsx component, agrega tamaños:
+  const Modal = ({ open, onClose, children, size = "md" }) => {
+    const sizeClasses = {
+      sm: "max-w-md",
+      md: "max-w-lg",
+      lg: "max-w-2xl",
+      xl: "max-w-4xl",
+      full: "max-w-full mx-4",
+    };
+
+    return (
+      // ... tu código de modal existente
+      <div className={`${sizeClasses[size]} w-full`}>{/* contenido */}</div>
+    );
+  };
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
