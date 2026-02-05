@@ -37,5 +37,6 @@ export default function Dashboard() {
         <StatCard title="Rechazadas" value={resumen.rechazadas} />
       </div>
     </div>
+    
   );
 }

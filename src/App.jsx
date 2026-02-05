@@ -3,15 +3,16 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import MainLayout from "./components/Layout/MainLayout";
 import ProtectedRoute from "./auth/ProtectedRoute";
+import AccionesList from "./pages/Acciones/AccionesList";
 
 export default function App() {
   return (
     <Routes>
 
-      {/* 🔓 RUTA PÚBLICA */}
+      {/* RUTA PÚBLICA */}
       <Route path="/login" element={<Login />} />
 
-      {/* 🔐 RUTAS PROTEGIDAS */}
+      {/* RUTAS PROTEGIDAS */}
       <Route
         element={
           <ProtectedRoute>
@@ -20,9 +21,10 @@ export default function App() {
         }
       >
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/acciones" element={<AccionesList />} />
       </Route>
 
-      {/* 🚀 REDIRECCIÓN POR DEFECTO */}
+      //* REDIRECCION DE ERRORES 404
       <Route path="*" element={<Navigate to="/login" />} />
     </Routes>
   );

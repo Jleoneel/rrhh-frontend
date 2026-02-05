@@ -1,0 +1,92 @@
+import { useEffect, useState } from "react";
+import { useOutletContext } from "react-router-dom";
+
+import { getAcciones } from "../../services/acciones.service";
+import AccionesFilters from "../../components/actions/AccionesFilters";
+import AccionesTable from "../../components/actions/AccionesTable";
+import NuevaAccionModal from "../../components/actions/NuevaAccionModal";
+
+const initialFilters = {
+  estado: "",
+  tipo_accion: "",
+  cedula: "",
+  desde: "",
+  hasta: "",
+};
+
+export default function AccionesList() {
+  const { setHeaderConfig } = useOutletContext();
+
+  const [filters, setFilters] = useState(initialFilters);
+  const [acciones, setAcciones] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+
+  const fetchAcciones = async (currentFilters = filters) => {
+    setLoading(true);
+    try {
+      const data = await getAcciones(currentFilters);
+      setAcciones(data);
+    } catch (err) {
+      console.error("Error cargando acciones:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Configurar header del layout
+    setHeaderConfig({
+      title: "Acciones de Personal",
+      showNewAction: true,
+      onNewAction: () => setOpenModal(true),
+    });
+
+    fetchAcciones();
+
+    // Cleanup opcional: al salir, restablecer header
+    return () => {
+      setHeaderConfig({
+        title: "Dashboard",
+        showNewAction: false,
+        onNewAction: null,
+      });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleChange = (name, value) => {
+    setFilters((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleBuscar = (e) => {
+    e.preventDefault();
+    fetchAcciones(filters);
+  };
+
+  const handleLimpiar = () => {
+    setFilters(initialFilters);
+    fetchAcciones(initialFilters);
+  };
+
+  return (
+    <>
+      <div className="space-y-4">
+        <AccionesFilters
+          filters={filters}
+          onChange={handleChange}
+          onBuscar={handleBuscar}
+          onLimpiar={handleLimpiar}
+        />
+
+        {loading ? <p>Cargando acciones...</p> : <AccionesTable acciones={acciones} />}
+      </div>
+
+      <NuevaAccionModal
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+        onSuccess={fetchAcciones}
+      />
+    </>
+  );
+}
