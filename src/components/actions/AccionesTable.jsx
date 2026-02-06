@@ -166,12 +166,6 @@ export default function AccionesTable({ acciones, onView, onEdit, onDownload }) 
                             year: 'numeric'
                           })}
                         </span>
-                        <span className="text-xs text-gray-500">
-                          {new Date(accion.fecha_elaboracion).toLocaleTimeString('es-ES', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </span>
                       </div>
                     </td>
                     
@@ -183,9 +177,6 @@ export default function AccionesTable({ acciones, onView, onEdit, onDownload }) 
                       <div className="max-w-[200px]">
                         <div className="font-medium text-gray-900 truncate">
                           {accion.servidor}
-                        </div>
-                        <div className="text-xs text-gray-500 truncate">
-                          {accion.departamento || "Departamento no asignado"}
                         </div>
                       </div>
                     </td>

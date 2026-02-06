@@ -40,17 +40,17 @@ const STEPS = [
 const accionConfig = {
   "Incremento RMU": { propuesta: true },
   "Cambio Administrativo": { propuesta: true },
-  "Traslado": { propuesta: true },
+  Traslado: { propuesta: true },
   "Comisión de servicios": { propuesta: true },
-  "Ascenso": { propuesta: true },
-  "Reingreso": { propuesta: true },
-  "Reintegro": { propuesta: true },
-  "Otro": { propuesta: true, requiereDetalle: true },
+  Ascenso: { propuesta: true },
+  Reingreso: { propuesta: true },
+  Reintegro: { propuesta: true },
+  Otro: { propuesta: true, requiereDetalle: true },
   // Tipos que normalmente no cambian la situación (puedes ajustar)
-  "Licencia": { propuesta: false },
-  "Vacaciones": { propuesta: false },
-  "Sanciones": { propuesta: false },
-  "Destitución": { propuesta: false },
+  Licencia: { propuesta: false },
+  Vacaciones: { propuesta: false },
+  Sanciones: { propuesta: false },
+  Destitución: { propuesta: false },
   "Cesación de Funciones": { propuesta: false },
 };
 
@@ -58,7 +58,7 @@ const initialForm = {
   cedula: "",
   servidorNombre: "",
   tipoAccionNombre: "",
-  detalleTipoAccion: "", // cuando tipo = "Otro"
+  detalleTipoAccion: "",
   rigeDesde: "",
   rigeHasta: "",
 
@@ -153,9 +153,11 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
 
       setForm((prev) => ({
         ...prev,
+        servidorId: data.servidor_id,
+        puestoId: data.puesto_id,
         servidorNombre: data.nombres,
         situacionActual: actual,
-        situacionPropuesta: prev.situacionPropuesta || { ...actual }, // prefill propuesta
+        situacionPropuesta: prev.situacionPropuesta || { ...actual },
       }));
     } catch (err) {
       setForm((prev) => ({
@@ -208,8 +210,14 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
     try {
       const result = await crearAccion({
         cedula: form.cedula.trim(),
+        puestoId: form.puestoId || null,
         tipoAccionNombre: form.tipoAccionNombre,
-        // seguimos con placeholder por ahora (hasta tener PATCH/PUT)
+        tipoAccionOtroDetalle:
+          form.tipoAccionNombre === "Otro"
+            ? form.detalleTipoAccion.trim()
+            : null,
+        rigeDesde: form.rigeDesde,
+        rigeHasta: form.rigeHasta || null,
         motivo: "PENDIENTE",
       });
 
@@ -286,8 +294,8 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                           isActive
                             ? "border-blue-600 bg-blue-50 text-blue-600"
                             : isCompleted
-                            ? "border-green-500 bg-green-50 text-green-600"
-                            : "border-gray-300 bg-gray-50 text-gray-400"
+                              ? "border-green-500 bg-green-50 text-green-600"
+                              : "border-gray-300 bg-gray-50 text-gray-400"
                         }
                       `}
                     >
@@ -304,8 +312,8 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                           isActive
                             ? "text-blue-600"
                             : isCompleted
-                            ? "text-green-600"
-                            : "text-gray-500"
+                              ? "text-green-600"
+                              : "text-gray-500"
                         }
                       `}
                     >
@@ -349,7 +357,9 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-center">
                 <User className="h-5 w-5 text-blue-600 mr-2" />
-                <h3 className="font-medium text-blue-800">Información del Servidor</h3>
+                <h3 className="font-medium text-blue-800">
+                  Información del Servidor
+                </h3>
               </div>
               <p className="text-sm text-blue-600 mt-1">
                 Busque al servidor por cédula para autocompletar sus datos
@@ -366,7 +376,9 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
                     value={form.cedula}
-                    onChange={(e) => setForm((p) => ({ ...p, cedula: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((p) => ({ ...p, cedula: e.target.value }))
+                    }
                     onBlur={fetchSituacionActual}
                     className="w-full border border-gray-300 rounded-lg pl-10 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Ingrese la cédula"
@@ -408,7 +420,9 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
 
               {/* Servidor */}
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Servidor</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Servidor
+                </label>
                 <input
                   value={form.servidorNombre || ""}
                   readOnly
@@ -419,7 +433,9 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
             </div>
 
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <h3 className="font-medium text-gray-700 mb-4">Detalles de la Acción</h3>
+              <h3 className="font-medium text-gray-700 mb-4">
+                Detalles de la Acción
+              </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Tipo */}
@@ -428,7 +444,9 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                     Tipo de acción <span className="text-red-500">*</span>
                   </label>
                   {loadingTipos ? (
-                    <div className="text-sm text-gray-500 py-2">Cargando tipos...</div>
+                    <div className="text-sm text-gray-500 py-2">
+                      Cargando tipos...
+                    </div>
                   ) : (
                     <div className="relative">
                       <FileText className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -440,7 +458,9 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                             tipoAccionNombre: e.target.value,
                             // si cambian tipo, limpiamos detalle si no es "Otro"
                             detalleTipoAccion:
-                              e.target.value === "Otro" ? p.detalleTipoAccion : "",
+                              e.target.value === "Otro"
+                                ? p.detalleTipoAccion
+                                : "",
                           }))
                         }
                         className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
@@ -465,7 +485,9 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                     <input
                       type="date"
                       value={form.rigeDesde || ""}
-                      onChange={(e) => setForm((p) => ({ ...p, rigeDesde: e.target.value }))}
+                      onChange={(e) =>
+                        setForm((p) => ({ ...p, rigeDesde: e.target.value }))
+                      }
                       className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
@@ -481,7 +503,9 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                     <input
                       type="date"
                       value={form.rigeHasta || ""}
-                      onChange={(e) => setForm((p) => ({ ...p, rigeHasta: e.target.value }))}
+                      onChange={(e) =>
+                        setForm((p) => ({ ...p, rigeHasta: e.target.value }))
+                      }
                       className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
@@ -492,14 +516,18 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
               {form.tipoAccionNombre === "Otro" && (
                 <div className="mt-5">
                   <label className="block text-sm font-medium text-gray-700">
-                    Especifique el tipo de acción <span className="text-red-500">*</span>
+                    Especifique el tipo de acción{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <div className="relative mt-2">
                     <PencilLine className="absolute left-3 top-4 h-5 w-5 text-gray-400" />
                     <textarea
                       value={form.detalleTipoAccion}
                       onChange={(e) =>
-                        setForm((p) => ({ ...p, detalleTipoAccion: e.target.value }))
+                        setForm((p) => ({
+                          ...p,
+                          detalleTipoAccion: e.target.value,
+                        }))
                       }
                       rows={3}
                       className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
@@ -507,7 +535,8 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                     />
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    Este texto se usará en el documento cuando el tipo sea “Otro”.
+                    Este texto se usará en el documento cuando el tipo sea
+                    “Otro”.
                   </p>
                 </div>
               )}
@@ -521,7 +550,9 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-center">
                 <FileText className="h-5 w-5 text-blue-600 mr-2" />
-                <h3 className="font-medium text-blue-800">Motivación de la Acción</h3>
+                <h3 className="font-medium text-blue-800">
+                  Motivación de la Acción
+                </h3>
               </div>
               <p className="text-sm text-blue-600 mt-1">
                 Describa los motivos y fundamentos legales de esta acción
@@ -534,21 +565,24 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
               </label>
               <textarea
                 value={form.motivo}
-                onChange={(e) => setForm((p) => ({ ...p, motivo: e.target.value }))}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, motivo: e.target.value }))
+                }
                 rows={8}
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 placeholder="Escriba aquí la motivación detallada..."
               />
-              <p className="text-xs text-gray-500">
-                (Min 100 caracteres)
-              </p>
+              <p className="text-xs text-gray-500">(Min 100 caracteres)</p>
             </div>
 
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition">
               <Upload className="h-10 w-10 text-gray-400 mx-auto mb-3" />
-              <h4 className="font-medium text-gray-700 mb-1">Adjuntar Documentos</h4>
+              <h4 className="font-medium text-gray-700 mb-1">
+                Adjuntar Documentos
+              </h4>
               <p className="text-sm text-gray-500 mb-4">
-                Suba anexos o documentos de apoyo (se conectará al endpoint luego)
+                Suba anexos o documentos de apoyo (se conectará al endpoint
+                luego)
               </p>
               <button
                 type="button"
@@ -556,7 +590,9 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
               >
                 Seleccionar archivos
               </button>
-              <p className="text-xs text-gray-400 mt-3">Máximo 5 archivos • 10MB por archivo</p>
+              <p className="text-xs text-gray-400 mt-3">
+                Máximo 5 archivos • 10MB por archivo
+              </p>
             </div>
           </div>
         )}
@@ -570,15 +606,19 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                 <h3 className="font-medium text-blue-800">Situación Laboral</h3>
               </div>
               <p className="text-sm text-blue-600 mt-1">
-                Revise la situación actual y, si aplica, complete la situación propuesta
+                Revise la situación actual y, si aplica, complete la situación
+                propuesta
               </p>
             </div>
 
             {!form.situacionActual ? (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-                <div className="text-yellow-600 mb-2">⚠️ No hay datos cargados</div>
+                <div className="text-yellow-600 mb-2">
+                  ⚠️ No hay datos cargados
+                </div>
                 <p className="text-sm text-yellow-700 mb-4">
-                  Vuelva al paso 1 y busque un servidor para cargar su información
+                  Vuelva al paso 1 y busque un servidor para cargar su
+                  información
                 </p>
                 <button
                   type="button"
@@ -615,13 +655,41 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <InfoCard label="Unidad Administrativa" value={form.situacionActual.unidad_organica} icon={Building2} />
-                    <InfoCard label="Lugar de Trabajo" value={form.situacionActual.lugar_trabajo} icon={MapPin} />
-                    <InfoCard label="Denominación de Puesto" value={form.situacionActual.denominacion_puesto} icon={FileText} />
-                    <InfoCard label="Grupo Ocupacional" value={form.situacionActual.grupo_ocupacional} icon={Layers} />
-                    <InfoCard label="Grado" value={form.situacionActual.grado} icon={Hash} />
-                    <InfoCard label="Remuneración Mensual" value={form.situacionActual.rmu_puesto} icon={Wallet} />
-                    <InfoCard label="Partida Individual" value={form.situacionActual.partida_individual} icon={Hash} />
+                    <InfoCard
+                      label="Unidad Administrativa"
+                      value={form.situacionActual.unidad_organica}
+                      icon={Building2}
+                    />
+                    <InfoCard
+                      label="Lugar de Trabajo"
+                      value={form.situacionActual.lugar_trabajo}
+                      icon={MapPin}
+                    />
+                    <InfoCard
+                      label="Denominación de Puesto"
+                      value={form.situacionActual.denominacion_puesto}
+                      icon={FileText}
+                    />
+                    <InfoCard
+                      label="Grupo Ocupacional"
+                      value={form.situacionActual.grupo_ocupacional}
+                      icon={Layers}
+                    />
+                    <InfoCard
+                      label="Grado"
+                      value={form.situacionActual.grado}
+                      icon={Hash}
+                    />
+                    <InfoCard
+                      label="Remuneración Mensual"
+                      value={form.situacionActual.rmu_puesto}
+                      icon={Wallet}
+                    />
+                    <InfoCard
+                      label="Partida Individual"
+                      value={form.situacionActual.partida_individual}
+                      icon={Hash}
+                    />
                   </div>
                 </div>
 
@@ -651,7 +719,10 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                           onChange={(v) =>
                             setForm((p) => ({
                               ...p,
-                              situacionPropuesta: { ...p.situacionPropuesta, unidad_organica: v },
+                              situacionPropuesta: {
+                                ...p.situacionPropuesta,
+                                unidad_organica: v,
+                              },
                             }))
                           }
                         />
@@ -661,7 +732,10 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                           onChange={(v) =>
                             setForm((p) => ({
                               ...p,
-                              situacionPropuesta: { ...p.situacionPropuesta, lugar_trabajo: v },
+                              situacionPropuesta: {
+                                ...p.situacionPropuesta,
+                                lugar_trabajo: v,
+                              },
                             }))
                           }
                         />
@@ -671,7 +745,10 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                           onChange={(v) =>
                             setForm((p) => ({
                               ...p,
-                              situacionPropuesta: { ...p.situacionPropuesta, denominacion_puesto: v },
+                              situacionPropuesta: {
+                                ...p.situacionPropuesta,
+                                denominacion_puesto: v,
+                              },
                             }))
                           }
                         />
@@ -681,7 +758,10 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                           onChange={(v) =>
                             setForm((p) => ({
                               ...p,
-                              situacionPropuesta: { ...p.situacionPropuesta, grupo_ocupacional: v },
+                              situacionPropuesta: {
+                                ...p.situacionPropuesta,
+                                grupo_ocupacional: v,
+                              },
                             }))
                           }
                         />
@@ -691,7 +771,10 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                           onChange={(v) =>
                             setForm((p) => ({
                               ...p,
-                              situacionPropuesta: { ...p.situacionPropuesta, grado: v },
+                              situacionPropuesta: {
+                                ...p.situacionPropuesta,
+                                grado: v,
+                              },
                             }))
                           }
                         />
@@ -701,7 +784,10 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                           onChange={(v) =>
                             setForm((p) => ({
                               ...p,
-                              situacionPropuesta: { ...p.situacionPropuesta, rmu_puesto: v },
+                              situacionPropuesta: {
+                                ...p.situacionPropuesta,
+                                rmu_puesto: v,
+                              },
                             }))
                           }
                         />
@@ -711,7 +797,10 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                           onChange={(v) =>
                             setForm((p) => ({
                               ...p,
-                              situacionPropuesta: { ...p.situacionPropuesta, partida_individual: v },
+                              situacionPropuesta: {
+                                ...p.situacionPropuesta,
+                                partida_individual: v,
+                              },
                             }))
                           }
                         />
@@ -720,8 +809,8 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                   </div>
                 ) : (
                   <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-600">
-                    Este tipo de acción normalmente <b>no modifica</b> la situación laboral. Puedes
-                    continuar.
+                    Este tipo de acción normalmente <b>no modifica</b> la
+                    situación laboral. Puedes continuar.
                   </div>
                 )}
               </>
@@ -748,7 +837,10 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                 Información General
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <ReviewField label="Número de Acción" value={form.accionId || "-"} />
+                <ReviewField
+                  label="Número de Acción"
+                  value={form.accionId || "-"}
+                />
                 <ReviewField
                   label="Estado"
                   value={
@@ -759,12 +851,21 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                 />
                 <ReviewField label="Cédula" value={form.cedula} />
                 <ReviewField label="Servidor" value={form.servidorNombre} />
-                <ReviewField label="Tipo de Acción" value={form.tipoAccionNombre} />
+                <ReviewField
+                  label="Tipo de Acción"
+                  value={form.tipoAccionNombre}
+                />
                 {form.tipoAccionNombre === "Otro" && (
-                  <ReviewField label="Detalle (Otro)" value={form.detalleTipoAccion} />
+                  <ReviewField
+                    label="Detalle (Otro)"
+                    value={form.detalleTipoAccion}
+                  />
                 )}
                 <ReviewField label="RIGE desde" value={form.rigeDesde} />
-                <ReviewField label="RIGE hasta" value={form.rigeHasta || "No aplica"} />
+                <ReviewField
+                  label="RIGE hasta"
+                  value={form.rigeHasta || "No aplica"}
+                />
               </div>
             </div>
 
@@ -788,31 +889,81 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                 </h4>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <ReviewField label="Proceso Institucional" value={form.proceso_institucional} />
-                  <ReviewField label="Nivel de Gestión" value={form.nivel_gestion} />
+                  <ReviewField
+                    label="Proceso Institucional"
+                    value={form.proceso_institucional}
+                  />
+                  <ReviewField
+                    label="Nivel de Gestión"
+                    value={form.nivel_gestion}
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <ReviewField label="Unidad Administrativa (Actual)" value={form.situacionActual.unidad_organica} />
-                  <ReviewField label="Lugar de Trabajo (Actual)" value={form.situacionActual.lugar_trabajo} />
-                  <ReviewField label="Denominación (Actual)" value={form.situacionActual.denominacion_puesto} />
-                  <ReviewField label="Grupo ocupacional (Actual)" value={form.situacionActual.grupo_ocupacional} />
-                  <ReviewField label="Grado (Actual)" value={form.situacionActual.grado} />
-                  <ReviewField label="RMU (Actual)" value={form.situacionActual.rmu_puesto} />
-                  <ReviewField label="Partida (Actual)" value={form.situacionActual.partida_individual} />
+                  <ReviewField
+                    label="Unidad Administrativa (Actual)"
+                    value={form.situacionActual.unidad_organica}
+                  />
+                  <ReviewField
+                    label="Lugar de Trabajo (Actual)"
+                    value={form.situacionActual.lugar_trabajo}
+                  />
+                  <ReviewField
+                    label="Denominación (Actual)"
+                    value={form.situacionActual.denominacion_puesto}
+                  />
+                  <ReviewField
+                    label="Grupo ocupacional (Actual)"
+                    value={form.situacionActual.grupo_ocupacional}
+                  />
+                  <ReviewField
+                    label="Grado (Actual)"
+                    value={form.situacionActual.grado}
+                  />
+                  <ReviewField
+                    label="RMU (Actual)"
+                    value={form.situacionActual.rmu_puesto}
+                  />
+                  <ReviewField
+                    label="Partida (Actual)"
+                    value={form.situacionActual.partida_individual}
+                  />
                 </div>
 
                 {config.propuesta && form.situacionPropuesta && (
                   <div className="mt-6 border-t pt-4">
-                    <div className="font-semibold text-gray-800 mb-3">Situación Propuesta</div>
+                    <div className="font-semibold text-gray-800 mb-3">
+                      Situación Propuesta
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <ReviewField label="Unidad Administrativa (Prop.)" value={form.situacionPropuesta.unidad_organica} />
-                      <ReviewField label="Lugar de Trabajo (Prop.)" value={form.situacionPropuesta.lugar_trabajo} />
-                      <ReviewField label="Denominación (Prop.)" value={form.situacionPropuesta.denominacion_puesto} />
-                      <ReviewField label="Grupo ocupacional (Prop.)" value={form.situacionPropuesta.grupo_ocupacional} />
-                      <ReviewField label="Grado (Prop.)" value={form.situacionPropuesta.grado} />
-                      <ReviewField label="RMU (Prop.)" value={form.situacionPropuesta.rmu_puesto} />
-                      <ReviewField label="Partida (Prop.)" value={form.situacionPropuesta.partida_individual} />
+                      <ReviewField
+                        label="Unidad Administrativa (Prop.)"
+                        value={form.situacionPropuesta.unidad_organica}
+                      />
+                      <ReviewField
+                        label="Lugar de Trabajo (Prop.)"
+                        value={form.situacionPropuesta.lugar_trabajo}
+                      />
+                      <ReviewField
+                        label="Denominación (Prop.)"
+                        value={form.situacionPropuesta.denominacion_puesto}
+                      />
+                      <ReviewField
+                        label="Grupo ocupacional (Prop.)"
+                        value={form.situacionPropuesta.grupo_ocupacional}
+                      />
+                      <ReviewField
+                        label="Grado (Prop.)"
+                        value={form.situacionPropuesta.grado}
+                      />
+                      <ReviewField
+                        label="RMU (Prop.)"
+                        value={form.situacionPropuesta.rmu_puesto}
+                      />
+                      <ReviewField
+                        label="Partida (Prop.)"
+                        value={form.situacionPropuesta.partida_individual}
+                      />
                     </div>
                   </div>
                 )}
@@ -823,9 +974,12 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
               <div className="flex items-center">
                 <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
                 <div>
-                  <h4 className="font-medium text-green-800">¿Listo para finalizar?</h4>
+                  <h4 className="font-medium text-green-800">
+                    ¿Listo para finalizar?
+                  </h4>
                   <p className="text-sm text-green-600 mt-1">
-                    Esta acción se guardará como borrador y podrá editarla más tarde
+                    Esta acción se guardará como borrador y podrá editarla más
+                    tarde
                   </p>
                 </div>
               </div>

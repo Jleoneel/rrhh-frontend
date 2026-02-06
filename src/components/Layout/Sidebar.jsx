@@ -7,7 +7,7 @@ import {
   Users,
   Bell,
   HelpCircle,
-  ChevronRight,
+  ChevronLeft,
 } from "lucide-react";
 import LogoutButton from "./logoutButton";
 import { useAuth } from "../../auth/authContext";
@@ -70,7 +70,7 @@ export default function Sidebar() {
           className="p-1 hover:bg-gray-700 rounded-md"
           title={expanded ? "Contraer menú" : "Expandir menú"}
         >
-          <ChevronRight
+          <ChevronLeft
             className={`transition-transform ${expanded ? "" : "rotate-180"}`}
           />
         </button>
