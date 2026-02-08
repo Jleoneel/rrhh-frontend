@@ -17,7 +17,7 @@ export default function AccionesFilters({ filters, onChange, onBuscar, onLimpiar
               <input
                 value={filters.cedula}
                 onChange={(e) => onChange("cedula", e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="Ej: 1700000000"
               />
               <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -33,7 +33,7 @@ export default function AccionesFilters({ filters, onChange, onBuscar, onLimpiar
             <select
               value={filters.estado}
               onChange={(e) => onChange("estado", e.target.value)}
-              className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none"
+              className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-all appearance-none"
             >
               <option value="">Todos los estados</option>
               <option value="BORRADOR" className="text-gray-600">🟡 Borrador</option>
@@ -54,7 +54,7 @@ export default function AccionesFilters({ filters, onChange, onBuscar, onLimpiar
                 type="date"
                 value={filters.desde}
                 onChange={(e) => onChange("desde", e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-all"
               />
               <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             </div>
@@ -71,7 +71,7 @@ export default function AccionesFilters({ filters, onChange, onBuscar, onLimpiar
                 type="date"
                 value={filters.hasta}
                 onChange={(e) => onChange("hasta", e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-all"
               />
               <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             </div>
@@ -97,7 +97,7 @@ export default function AccionesFilters({ filters, onChange, onBuscar, onLimpiar
             <button
               type="button"
               onClick={onLimpiar}
-              className="flex items-center gap-2 px-3 py-2 border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 rounded-xl font-medium transition-all duration-300"
+              className="flex items-center gap-2 px-3 py-2 border-1 border-gray-300 text-gray-700 hover:bg-gray-100 hover:border-gray-100 rounded-xl font-medium transition-all duration-300"
             >
               <X size={18} />
               <span>Limpiar filtros</span>

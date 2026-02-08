@@ -257,7 +257,7 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
   return (
     <Modal open={open} onClose={handleClose} size="2xl">
       {/* Header */}
-      <div className="sticky top-0 bg-white border-b px-6 py-4">
+      <div className="sticky top-0 bg-white border-b border-gray-300 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-gray-800">
@@ -285,7 +285,7 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
               const isCompleted = step > s.id;
 
               return (
-                <div key={s.id} className="flex items-center flex-1">
+                <div key={s.id} className={`flex items-center ${index < STEPS.length - 1 ? "flex-1" : ""}`}>
                   <div className="flex flex-col items-center">
                     <div
                       className={`
@@ -380,7 +380,7 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                       setForm((p) => ({ ...p, cedula: e.target.value }))
                     }
                     onBlur={fetchSituacionActual}
-                    className="w-full border border-gray-300 rounded-lg pl-10 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg pl-10 pr-12 py-3 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-transparent"
                     placeholder="Ingrese la cédula"
                     maxLength={10}
                     inputMode="numeric"
@@ -463,7 +463,7 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                                 : "",
                           }))
                         }
-                        className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
+                        className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-3 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-transparent appearance-none"
                       >
                         {tipos.map((t) => (
                           <option key={t.id} value={t.nombre}>
@@ -488,7 +488,7 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                       onChange={(e) =>
                         setForm((p) => ({ ...p, rigeDesde: e.target.value }))
                       }
-                      className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-3 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -506,7 +506,7 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                       onChange={(e) =>
                         setForm((p) => ({ ...p, rigeHasta: e.target.value }))
                       }
-                      className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-3 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -530,7 +530,7 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                         }))
                       }
                       rows={3}
-                      className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-3 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-transparent resize-none"
                       placeholder="Ej.: Revisión por caso especial, etc."
                     />
                   </div>
@@ -569,7 +569,7 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                   setForm((p) => ({ ...p, motivo: e.target.value }))
                 }
                 rows={8}
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-transparent resize-none"
                 placeholder="Escriba aquí la motivación detallada..."
               />
               <p className="text-xs text-gray-500">(Min 100 caracteres)</p>
@@ -989,7 +989,7 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
       </div>
 
       {/* Footer */}
-      <div className="sticky bottom-0 bg-white border-t px-6 py-4">
+      <div className="sticky bottom-0 bg-white border-t border-gray-300 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <button
@@ -1097,7 +1097,7 @@ function EditableField({ label, value, onChange }) {
       <input
         value={value || ""}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full border border-gray-300 rounded-lg px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        className="w-full border border-gray-300 rounded-lg px-3 py-3 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-transparent"
         placeholder={label}
       />
       <p className="text-xs text-gray-400">

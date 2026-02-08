@@ -56,7 +56,7 @@ export default function Sidebar() {
           className={`flex items-center gap-3 ${!expanded && "justify-center"}`}
         >
           <div className="bg-blue-600 p-2 rounded-lg">
-            <Building2 size={expanded ? 24 : 28} />
+            <Building2 size={expanded ? 24 : 18} />
           </div>
           {expanded && (
             <div>
