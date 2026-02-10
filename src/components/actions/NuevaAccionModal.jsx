@@ -269,6 +269,7 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
       fetchSituacionActual();
     }
   };
+  
 
   // Validación Step 1
   const canGoStep2 = useMemo(() => {
@@ -557,7 +558,7 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
       className="max-h-[90vh]"
     >
       {/* Header */}
-      <div className="sticky top-0 bg-gradient-to-r from-gray-900 to-gray-800 text-white px-8 py-6 z-10">
+      <div className="sticky top-0 bg-gradient-to-r from-gray-900 to-gray-800 text-white px-8 py-6 z-10 rounded-md">
         {/* Progress Steps */}
         <div className="mt-8">
           <div className="flex items-center justify-between">
@@ -568,7 +569,7 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
               const isClickable = isCompleted;
 
               return (
-                <div key={s.id} className="flex items-center flex-1">
+                <div key={s.id} className={`flex items-center ${index < STEPS.length - 1 ? "flex-1" : ""}`}>
                   <button
                     type="button"
                     onClick={() => isClickable && setStep(s.id)}
@@ -637,7 +638,7 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
             })}
             <button
               onClick={handleClose}
-              className="p-2 hover:bg-white/10 rounded-xl transition-all hover:rotate-90"
+              className="absolute top-2 right-2 p-2 hover:bg-white/10 rounded-xl transition-all hover:rotate-90"
               aria-label="Cerrar"
             >
               <X className="h-5 w-5" />
@@ -707,7 +708,7 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                         setCedulaError(validateCedula(value));
                       }}
                       onKeyPress={handleCedulaKeyPress}
-                      className={`w-full border rounded-xl pl-12 pr-12 py-3.5 focus:outline-none focus:ring-2 transition-all ${
+                      className={`w-full border rounded-xl pl-12 pr-12 py-3.5 focus:outline-none focus:ring-1 transition-all ${
                         cedulaError
                           ? "border-red-300 focus:ring-red-500 bg-red-50"
                           : "border-gray-300 focus:ring-blue-500 focus:border-transparent"
@@ -802,7 +803,7 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 focus-ring-1">
                 {/* Tipo */}
                 <SelectPremium
                   options={tipos.map((t) => ({
@@ -867,7 +868,7 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                       onChange={(e) =>
                         setForm((p) => ({ ...p, rigeDesde: e.target.value }))
                       }
-                      className="w-full border border-gray-300 rounded-xl pl-12 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full border border-gray-300 rounded-xl pl-12 pr-4 py-3.5 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -885,7 +886,7 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                       onChange={(e) =>
                         setForm((p) => ({ ...p, rigeHasta: e.target.value }))
                       }
-                      className="w-full border border-gray-300 rounded-xl pl-12 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full border border-gray-300 rounded-xl pl-12 pr-4 py-3.5 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -909,7 +910,7 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                         }))
                       }
                       rows={3}
-                      className="w-full border border-blue-300 rounded-xl pl-12 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white"
+                      className="w-full border border-blue-300 rounded-xl pl-12 pr-4 py-3.5 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-transparent resize-none bg-white"
                       placeholder="Ej.: Revisión por caso especial, cambio de denominación, etc."
                     />
                   </div>
@@ -959,7 +960,7 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                       setForm((p) => ({ ...p, motivo: e.target.value }))
                     }
                     rows={8}
-                    className="w-full border border-gray-300 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    className="w-full border border-gray-300 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-transparent resize-none"
                     placeholder="Describa aquí los motivos específicos de esta acción de personal..."
                   />
                   <div className="flex items-center justify-between mt-2">
@@ -1561,7 +1562,7 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                                     },
                                   }))
                                 }
-                                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-transparent"
                                 placeholder="Ej: 1234-567-..."
                               />
                             </div>

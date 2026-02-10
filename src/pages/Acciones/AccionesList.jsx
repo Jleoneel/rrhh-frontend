@@ -69,6 +69,40 @@ export default function AccionesList() {
     fetchAcciones(initialFilters);
   };
 
+  const handleDownload = async (accion) => {
+  try {
+    const response = await fetch(
+      `http://localhost:3001/api/acciones/${accion.id}/pdf`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Error al generar el PDF");
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `accion_personal_${accion.id}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error(error);
+    alert("No se pudo descargar el PDF");
+  }
+};
+
+
   return (
     <>
       <div className="space-y-4">
@@ -79,7 +113,14 @@ export default function AccionesList() {
           onLimpiar={handleLimpiar}
         />
 
-        {loading ? <p>Cargando acciones...</p> : <AccionesTable acciones={acciones} />}
+{loading ? (
+  <p>Cargando acciones...</p>
+) : (
+  <AccionesTable
+    acciones={acciones}
+    onDownload={handleDownload}
+  />
+)}
       </div>
 
       <NuevaAccionModal
