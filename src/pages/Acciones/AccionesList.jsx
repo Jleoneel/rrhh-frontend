@@ -5,6 +5,7 @@ import { getAcciones } from "../../services/acciones.service";
 import AccionesFilters from "../../components/actions/AccionesFilters";
 import AccionesTable from "../../components/actions/AccionesTable";
 import NuevaAccionModal from "../../components/actions/NuevaAccionModal";
+import AnexosModal from "../../components/actions/AnexosModal";
 
 const initialFilters = {
   estado: "",
@@ -21,6 +22,8 @@ export default function AccionesList() {
   const [acciones, setAcciones] = useState([]);
   const [loading, setLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
+  const [openAnexos, setOpenAnexos] = useState(false);
+  const [accionSel, setAccionSel] = useState(null);
 
   const fetchAcciones = async (currentFilters = filters) => {
     setLoading(true);
@@ -70,38 +73,42 @@ export default function AccionesList() {
   };
 
   const handleDownload = async (accion) => {
-  try {
-    const response = await fetch(
-      `http://localhost:3001/api/acciones/${accion.id}/pdf`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+    try {
+      const response = await fetch(
+        `http://localhost:3001/api/acciones/${accion.id}/pdf`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         },
+      );
+
+      if (!response.ok) {
+        throw new Error("Error al generar el PDF");
       }
-    );
 
-    if (!response.ok) {
-      throw new Error("Error al generar el PDF");
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `accion_personal_${accion.id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+      alert("No se pudo descargar el PDF");
     }
+  };
 
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `accion_personal_${accion.id}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-
-    window.URL.revokeObjectURL(url);
-  } catch (error) {
-    console.error(error);
-    alert("No se pudo descargar el PDF");
-  }
-};
-
+  const handleOpenAnexos = (accion) => {
+    setAccionSel(accion);
+    setOpenAnexos(true);
+  };
 
   return (
     <>
@@ -113,20 +120,26 @@ export default function AccionesList() {
           onLimpiar={handleLimpiar}
         />
 
-{loading ? (
-  <p>Cargando acciones...</p>
-) : (
-  <AccionesTable
-    acciones={acciones}
-    onDownload={handleDownload}
-  />
-)}
+        {loading ? (
+          <p>Cargando acciones...</p>
+        ) : (
+          <AccionesTable
+            acciones={acciones}
+            onDownload={handleDownload}
+            onAnexos={handleOpenAnexos}
+          />
+        )}
       </div>
 
       <NuevaAccionModal
         open={openModal}
         onClose={() => setOpenModal(false)}
         onSuccess={fetchAcciones}
+      />
+      <AnexosModal
+        open={openAnexos}
+        onClose={() => setOpenAnexos(false)}
+        accion={accionSel}
       />
     </>
   );

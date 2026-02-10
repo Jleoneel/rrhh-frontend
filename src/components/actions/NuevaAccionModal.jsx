@@ -74,7 +74,6 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
   const [loadingServ, setLoadingServ] = useState(false);
   const [error, setError] = useState("");
   const [cedulaError, setCedulaError] = useState("");
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [catUnidades, setCatUnidades] = useState([]);
   const [catDenoms, setCatDenoms] = useState([]);
   const [catEscalas, setCatEscalas] = useState([]);
@@ -335,62 +334,6 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
   const prev = () => {
     setError("");
     setStep((s) => Math.max(1, s - 1));
-  };
-
-  const handleFileUpload = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length > 5) {
-      setError("Máximo 5 archivos permitidos");
-      return;
-    }
-
-    setUploadProgress(0);
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-
-          setForm((prevForm) => ({
-            ...prevForm,
-            documentos: [
-              ...prevForm.documentos,
-              ...files
-                .filter(
-                  (file) =>
-                    !prevForm.documentos.some(
-                      (doc) => doc.nombre === file.name,
-                    ),
-                )
-                .map((file) => ({
-                  nombre: file.name,
-                  tamaño: file.size,
-                  tipo: file.type,
-                  archivo: file,
-                })),
-            ],
-          }));
-
-          Swal.fire({
-            toast: true,
-            text: `Archivos cargados exitosamente (${files.length})`,
-            icon: "success",
-            showConfirmButton: false,
-            timer: 1500,
-            position: "top-end",
-          });
-
-          return 100;
-        }
-        return prev + 10;
-      });
-    }, 100);
-  };
-
-  const removeDocument = (index) => {
-    setForm((prev) => ({
-      ...prev,
-      documentos: prev.documentos.filter((_, i) => i !== index),
-    }));
   };
 
   const finish = async () => {
@@ -981,106 +924,6 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
                   </div>
                 </div>       
               </div>
-            </div>
-
-            {/* Card Documentos */}
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-2xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-blue-100 rounded-xl">
-                    <Upload className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900">
-                      Documentos de Apoyo
-                    </h3>
-                    <p className="text-gray-600 text-sm mt-1">
-                      Adjunte documentos relacionados con esta acción
-                    </p>
-                  </div>
-                </div>
-                <div className="text-sm text-gray-500">
-                  {form.documentos.length}/5 archivos
-                </div>
-              </div>
-
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors mb-6">
-                <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h4 className="font-bold text-gray-700 text-lg mb-2">
-                  Arrastra y suelta archivos aquí
-                </h4>
-                <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                  O haz clic para seleccionar archivos desde tu computadora
-                </p>
-
-                <label className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors cursor-pointer">
-                  <Upload className="h-5 w-5" />
-                  Seleccionar archivos
-                  <input
-                    type="file"
-                    multiple
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  />
-                </label>
-
-                <p className="text-xs text-gray-400 mt-4">
-                  Formatos: PDF, Word, JPG, PNG • Máximo 5 archivos • 10MB por
-                  archivo
-                </p>
-              </div>
-
-              {/* Progress Bar */}
-              {uploadProgress > 0 && uploadProgress < 100 && (
-                <div className="mb-6">
-                  <div className="flex justify-between text-sm text-gray-600 mb-2">
-                    <span>Subiendo archivos...</span>
-                    <span>{uploadProgress}%</span>
-                  </div>
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-300"
-                      style={{ width: `${uploadProgress}%` }}
-                    ></div>
-                  </div>
-                </div>
-              )}
-
-              {/* Lista de documentos */}
-              {form.documentos.length > 0 && (
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-gray-700">
-                    Archivos seleccionados:
-                  </h4>
-                  {form.documentos.map((doc, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50"
-                    >
-                      <div className="flex items-center gap-3">
-                        <FileText className="h-5 w-5 text-gray-400" />
-                        <div>
-                          <p className="font-medium text-gray-800">
-                            {doc.nombre}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {(doc.tamaño / 1024 / 1024).toFixed(2)} MB
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeDocument(index)}
-                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg"
-                        title="Eliminar archivo"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
         )}
