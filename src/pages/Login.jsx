@@ -68,18 +68,15 @@ const Login = () => {
       {/* Panel izquierdo - Branding institucional */}
       <div className="hidden md:flex md:w-2/5 bg-gradient-to-b from-blue-700 to-blue-800 p-8 flex-col justify-between text-white">
         <div>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-white/20 rounded-lg">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2  rounded-lg">
               <img 
-                src="/msp.jpg" 
+                src="/msp1.png" 
                 alt="Logo MSP" 
-                className="h-12 w-auto"
+                className="h-15 w-auto"
               />
             </div>
-            <div>
-              <h2 className="text-xl font-bold">MINISTERIO</h2>
-              <h3 className="text-lg">SALUD PÚBLICA</h3>
-            </div>
+
           </div>
           
           <h1 className="text-3xl font-bold mb-4">Sistema de Talento Humano</h1>

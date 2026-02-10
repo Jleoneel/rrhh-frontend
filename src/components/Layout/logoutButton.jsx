@@ -78,7 +78,7 @@ export default function LogoutButton({ expanded = true }) {
         title="Cerrar sesión"
       >
         <LogOut size={20} />
-        <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold animate-pulse">
+        <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold ">
           !
         </div>
       </button>
