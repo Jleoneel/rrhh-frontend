@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "../pages/Login";
 import Dashboard from "../pages/Dashboard";
+import GestionUsuarios from "../components/usuarios/GestionFirmantes";
 import ProtectedRoute from "../auth/ProtectedRoute";
 
 const AppRouter = () => {
@@ -14,6 +15,7 @@ const AppRouter = () => {
           element={
             <ProtectedRoute>
               <Dashboard />
+              <GestionUsuarios/>
             </ProtectedRoute>
           }
         />

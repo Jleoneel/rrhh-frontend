@@ -4,6 +4,7 @@ import Dashboard from "./pages/Dashboard";
 import MainLayout from "./components/Layout/MainLayout";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import AccionesList from "./pages/Acciones/AccionesList";
+import GestionUsuarios from "./components/usuarios/GestionFirmantes";
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
       >
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/acciones" element={<AccionesList />} />
+        <Route path="/GestionUsuarios" element={<GestionUsuarios />} />
       </Route>
 
       //* REDIRECCION DE ERRORES 404

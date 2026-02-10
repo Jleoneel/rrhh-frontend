@@ -25,6 +25,7 @@ export const crearAccion = async ({
   rigeDesde,
   rigeHasta = null,
   motivo,
+  presentoDeclaracionJurada = false,
 }) => {
   const payload = {
     cedula,
@@ -34,15 +35,14 @@ export const crearAccion = async ({
     rigeDesde,
     rigeHasta,
     motivo,
+    presentoDeclaracionJurada,
   };
 
   const res = await api.post("/acciones", payload);
   return res.data;
 };
 
-/**
- * Obtener situación propuesta (Step 3)
- */
+ // Obtener situación propuesta (Step 3)
 export const getSituacionPropuesta = async (accionId) => {
   const res = await api.get(`/acciones/${accionId}/propuesta`);
   return res.data;
