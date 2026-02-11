@@ -4,9 +4,8 @@ import { useOutletContext } from "react-router-dom";
 import { getAcciones } from "../../services/acciones.service";
 import AccionesFilters from "../../components/actions/AccionesFilters";
 import AccionesTable from "../../components/actions/AccionesTable";
-import NuevaAccionModal from "../../components/actions/NuevaAccionModal";
+import NuevaAccionModal from "../../components/actions/Modales/NuevaAccionModal";
 import AnexosModal from "../../components/actions/AnexosModal";
-
 const initialFilters = {
   estado: "",
   tipo_accion: "",
@@ -24,6 +23,8 @@ export default function AccionesList() {
   const [openModal, setOpenModal] = useState(false);
   const [openAnexos, setOpenAnexos] = useState(false);
   const [accionSel, setAccionSel] = useState(null);
+  const [openEditModal, setOpenEditModal] = useState(false);
+  const [selectedAccionId, setSelectedAccionId] = useState(null); //
 
   const fetchAcciones = async (currentFilters = filters) => {
     setLoading(true);
@@ -60,6 +61,12 @@ export default function AccionesList() {
 
   const handleChange = (name, value) => {
     setFilters((prev) => ({ ...prev, [name]: value }));
+  };
+  
+    // Función para editar 
+  const handleEdit = (accion) => {
+    setSelectedAccionId(accion.id);
+    setOpenEditModal(true);
   };
 
   const handleBuscar = (e) => {
@@ -127,6 +134,7 @@ export default function AccionesList() {
             acciones={acciones}
             onDownload={handleDownload}
             onAnexos={handleOpenAnexos}
+            onEdit={handleEdit}
           />
         )}
       </div>
@@ -135,6 +143,16 @@ export default function AccionesList() {
         open={openModal}
         onClose={() => setOpenModal(false)}
         onSuccess={fetchAcciones}
+      />
+          <NuevaAccionModal
+        open={openEditModal}
+        onClose={() => {
+          setOpenEditModal(false);
+          setSelectedAccionId(null);
+        }}
+        onSuccess={fetchAcciones}
+        mode="edit" 
+        accionId={selectedAccionId} 
       />
       <AnexosModal
         open={openAnexos}

@@ -18,6 +18,7 @@ export default function AccionesTable({
   onDownload,
   onAnexos,
 }) {
+
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
@@ -244,6 +245,18 @@ export default function AccionesTable({
                           </button>
                         )}
 
+                        {/* Botón Anexos separado */}
+                        <button
+                          onClick={() => onAnexos?.(accion)}
+                          className="p-2 flex items-center gap-2  py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg transition-colors group"
+                          title="Gestionar anexos"
+                        >
+                          <Paperclip
+                            size={18}
+                            className="group-hover:rotate-12 transition-transform"
+                          />
+                        </button>
+
                         {/* Botón Descargar PDF */}
                         <button
                           onClick={() => onDownload && onDownload(accion)}
@@ -253,23 +266,10 @@ export default function AccionesTable({
                           <Download size={18} />
                         </button>
 
-                        {/* Botón Anexos separado - Estilo consistente */}
-                        <button
-                          onClick={() => onAnexos?.(accion)}
-                          className="flex items-center gap-2 px-3 py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg transition-colors group"
-                          title="Gestionar anexos"
-                        >
-                          <Paperclip
-                            size={16}
-                            className="group-hover:rotate-12 transition-transform"
-                          />
-                          <span className="text-sm font-medium">Anexos</span>
-                        </button>
-
-                        {/* Menú de 3 puntos (opcional ahora) */}
+                        {/* Menú de 3 puntos (opcional ahora)
                         <button className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors">
                           <MoreVertical size={18} />
-                        </button>
+                        </button> */}
                       </div>
                     </td>
                   </tr>
