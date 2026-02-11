@@ -365,7 +365,7 @@ export default function NuevaAccionModal({ open, onClose, onSuccess }) {
               <li>Enviar a revisión cuando esté lista</li>
             </ul>
           </div>
-          <div class="mt-3 p-2 bg-${form.presentoDeclaracionJurada ? "green" : "red"}-50 border border-${form.presentoDeclaracionJurada ? "green" : "red"}-200 rounded">
+          <div class="text-blue-500 mt-3 p-2 bg-${form.presentoDeclaracionJurada ? "green" : "red"}-50 border border-${form.presentoDeclaracionJurada ? "green" : "red"}-200 rounded">
             <p class="text-sm"><span class="font-bold">Declaración jurada:</span> ${form.presentoDeclaracionJurada ? "SÍ presentó" : "NO presentó"}</p>
           </div>
         </div>
