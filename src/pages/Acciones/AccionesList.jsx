@@ -6,6 +6,7 @@ import AccionesFilters from "../../components/actions/AccionesFilters";
 import AccionesTable from "../../components/actions/AccionesTable";
 import NuevaAccionModal from "../../components/actions/Modales/NuevaAccionModal";
 import AnexosModal from "../../components/actions/AnexosModal";
+
 const initialFilters = {
   estado: "",
   tipo_accion: "",
@@ -16,7 +17,7 @@ const initialFilters = {
 
 export default function AccionesList() {
   const { setHeaderConfig } = useOutletContext();
-
+  const [user, setUser] = useState(null);
   const [filters, setFilters] = useState(initialFilters);
   const [acciones, setAcciones] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -24,7 +25,7 @@ export default function AccionesList() {
   const [openAnexos, setOpenAnexos] = useState(false);
   const [accionSel, setAccionSel] = useState(null);
   const [openEditModal, setOpenEditModal] = useState(false);
-  const [selectedAccionId, setSelectedAccionId] = useState(null); //
+  const [selectedAccionId, setSelectedAccionId] = useState(null);
 
   const fetchAcciones = async (currentFilters = filters) => {
     setLoading(true);
@@ -39,6 +40,14 @@ export default function AccionesList() {
   };
 
   useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      try {
+        setUser(JSON.parse(userData));
+      } catch (e) {
+        console.error("Error parsing user from localStorage:", e);
+      }
+    }
     // Configurar header del layout
     setHeaderConfig({
       title: "Acciones de Personal",
@@ -62,8 +71,8 @@ export default function AccionesList() {
   const handleChange = (name, value) => {
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
-  
-    // Función para editar 
+
+  // Función para editar
   const handleEdit = (accion) => {
     setSelectedAccionId(accion.id);
     setOpenEditModal(true);
@@ -117,6 +126,9 @@ export default function AccionesList() {
     setOpenAnexos(true);
   };
 
+  const esAsistenteUATH =
+    user?.cargo_id === "78de3b9c-a2f4-41ed-9823-bb72ee56d1f4";
+
   return (
     <>
       <div className="space-y-4">
@@ -135,6 +147,7 @@ export default function AccionesList() {
             onDownload={handleDownload}
             onAnexos={handleOpenAnexos}
             onEdit={handleEdit}
+            esAsistenteUATH={esAsistenteUATH} // ← Pasa esta prop
           />
         )}
       </div>
@@ -144,16 +157,18 @@ export default function AccionesList() {
         onClose={() => setOpenModal(false)}
         onSuccess={fetchAcciones}
       />
-          <NuevaAccionModal
+
+      <NuevaAccionModal
         open={openEditModal}
         onClose={() => {
           setOpenEditModal(false);
           setSelectedAccionId(null);
         }}
         onSuccess={fetchAcciones}
-        mode="edit" 
-        accionId={selectedAccionId} 
+        mode="edit"
+        accionId={selectedAccionId}
       />
+
       <AnexosModal
         open={openAnexos}
         onClose={() => setOpenAnexos(false)}

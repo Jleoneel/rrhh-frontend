@@ -17,6 +17,7 @@ export default function AccionesTable({
   onEdit,
   onDownload,
   onAnexos,
+  esAsistenteUATH,
 }) {
 
   const [selectedRows, setSelectedRows] = useState(new Set());
@@ -235,7 +236,7 @@ export default function AccionesTable({
                         </button>
 
                         {/* Botón Editar (solo en BORRADOR) */}
-                        {accion.estado === "BORRADOR" && (
+                        {accion.estado === "BORRADOR" && esAsistenteUATH && (
                           <button
                             onClick={() => onEdit && onEdit(accion)}
                             className="p-2 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-lg transition-colors"
