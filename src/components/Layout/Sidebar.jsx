@@ -32,7 +32,7 @@ export default function Sidebar() {
     },
     {
       title: "Usuarios",
-      path: "/Usuarios",
+      path: "/GestionUsuarios",
       icon: <Users size={20} />,
     },
     {

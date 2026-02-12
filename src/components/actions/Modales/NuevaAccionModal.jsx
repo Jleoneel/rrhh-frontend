@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import Modal from "../../ui/Modal";
 import api from "../../../api/axios";
-import { getTiposAccion } from "../../../services/tiposAccion.service";
-import { crearAccion } from "../../../services/acciones.service";
+import { getTiposAccion } from "../../../hooks/tiposAccion.service";
+import { crearAccion } from "../../../hooks/acciones.service";
 import Swal from "sweetalert2";
-import SelectPremium from "../../ui/selectPremiun";
+import SelectPremium from "../../../components/Layout/selectPremiun";
 import {
   User,
   FileText,

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
-
-import { getAcciones } from "../../services/acciones.service";
+import { getAcciones } from "../../hooks/acciones.service";
 import AccionesFilters from "../../components/actions/AccionesFilters";
 import AccionesTable from "../../components/actions/AccionesTable";
 import NuevaAccionModal from "../../components/actions/Modales/NuevaAccionModal";

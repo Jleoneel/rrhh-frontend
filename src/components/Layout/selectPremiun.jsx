@@ -1,4 +1,3 @@
-// src/components/ui/SelectPremium.jsx
 import React from 'react';
 import Select from 'react-select';
 import { ChevronDown, Search, X } from 'lucide-react';
