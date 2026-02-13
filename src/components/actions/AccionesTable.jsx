@@ -1,11 +1,4 @@
-import {
-  Eye,
-  Edit,
-  Filter,
-  Download,
-  Paperclip,
-  FileText,
-} from "lucide-react";
+import { Eye, Edit, Filter, Download, Paperclip, FileText } from "lucide-react";
 import EstadoBadge from "./EstadoBadge";
 import { useState } from "react";
 import VerAccionModal from "../../components/actions/Modales/VerAccionModal";
@@ -132,7 +125,11 @@ export default function AccionesTable({
                   { key: "fecha_elaboracion", label: "Fecha", sortable: true },
                   { key: "cedula", label: "Cédula", sortable: true },
                   { key: "servidor", label: "Servidor", sortable: true },
-                  { key: "tipo_accion", label: "Tipo de acción", sortable: true },
+                  {
+                    key: "tipo_accion",
+                    label: "Tipo de acción",
+                    sortable: true,
+                  },
                   { key: "estado", label: "Estado", sortable: true },
                   { key: "actions", label: "Acciones", sortable: false },
                 ].map((column) => (
@@ -263,14 +260,16 @@ export default function AccionesTable({
                             />
                           </button>
 
-                          {/* Botón Descargar PDF */}
-                          <button
-                            onClick={() => onDownload && onDownload(accion)}
-                            className="p-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-lg transition-colors"
-                            title="Descargar PDF"
-                          >
-                            <Download size={18} />
-                          </button>
+                          {/* Botón Descargar PDF (solo asistente UATH) */}
+                          {esAsistenteUATH && (
+                            <button
+                              onClick={() => onDownload && onDownload(accion)}
+                              className="p-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-lg transition-colors"
+                              title="Descargar PDF"
+                            >
+                              <Download size={18} />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -287,7 +286,8 @@ export default function AccionesTable({
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="text-sm text-gray-600">
                 Mostrando{" "}
-                <span className="font-semibold">{sortedAcciones.length}</span> de{" "}
+                <span className="font-semibold">{sortedAcciones.length}</span>{" "}
+                de{" "}
                 <span className="font-semibold">{sortedAcciones.length}</span>{" "}
                 acciones
               </div>

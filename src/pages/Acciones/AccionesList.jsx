@@ -108,7 +108,9 @@ export default function AccionesList() {
 
       const a = document.createElement("a");
       a.href = url;
-      a.download = `accion_personal_${accion.id}.pdf`;
+      console.log(accion);
+
+      a.download = `Accion_Personal_${accion.codigo_elaboracion}.pdf`;
       document.body.appendChild(a);
       a.click();
       a.remove();
