@@ -4,7 +4,7 @@ import { getAcciones } from "../../hooks/acciones.service";
 import AccionesFilters from "../../components/actions/AccionesFilters";
 import AccionesTable from "../../components/actions/AccionesTable";
 import NuevaAccionModal from "../../components/actions/Modales/NuevaAccionModal";
-import AnexosModal from "../../components/actions/AnexosModal";
+import AnexosModal from "../../components/actions/Modales/AnexosModal";
 
 const initialFilters = {
   estado: "",
