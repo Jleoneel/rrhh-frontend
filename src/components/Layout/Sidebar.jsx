@@ -10,7 +10,7 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import LogoutButton from "./logoutButton";
-import { useAuth } from "../../auth/authContext";
+import { useAuth } from "../../auth/AuthContext";
 import { useState } from "react";
 
 export default function Sidebar() {

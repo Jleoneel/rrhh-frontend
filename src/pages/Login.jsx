@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
-import { useAuth } from "../auth/authContext";
+import { useAuth } from "../auth/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { User, LockKeyhole, Eye, EyeOff } from "lucide-react";
 import Swal from "sweetalert2";
@@ -11,7 +11,6 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   // Redirigir si ya está autenticado
@@ -23,7 +22,6 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
 
     try {

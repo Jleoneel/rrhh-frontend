@@ -1,4 +1,4 @@
-import { useAuth } from "../../auth/authContext";
+import { useAuth } from "../../auth/AuthContext";
 import { 
   PlusCircle, 
   Bell, 

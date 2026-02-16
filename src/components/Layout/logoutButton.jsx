@@ -1,5 +1,5 @@
 import { LogOut } from "lucide-react";
-import { useAuth } from "../../auth/authContext";
+import { useAuth } from "../../auth/AuthContext";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
