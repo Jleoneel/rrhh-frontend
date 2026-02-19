@@ -94,21 +94,17 @@ export default function AccionesTable({
                 <span className="hidden md:inline">Ordenar</span>
               </button>
 
-              <button className="flex items-center gap-2 px-4 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg transition-colors">
-                <Download size={18} />
-                <span className="hidden md:inline">Exportar</span>
-              </button>
             </div>
           </div>
         </div>
 
         {/* Tabla */}
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        <div className="overflow-x-auto scrollbar-thin ">
+      <table className="min-w-[900px] w-full table-fixed">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-4">
-                  <div className="flex items-center">
+                <th className="w-10 px-4 py-2">
+                  <div className="flex items-center justify-center">
                     <input
                       type="checkbox"
                       checked={
@@ -122,6 +118,7 @@ export default function AccionesTable({
                 </th>
 
                 {[
+                  { key: "codigo_elaboracion", label: "Código", sortable: true },
                   { key: "fecha_elaboracion", label: "Fecha", sortable: true },
                   { key: "cedula", label: "Cédula", sortable: true },
                   { key: "servidor", label: "Servidor", sortable: true },
@@ -135,9 +132,8 @@ export default function AccionesTable({
                 ].map((column) => (
                   <th
                     key={column.key}
-                    className={`px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider ${
-                      column.sortable ? "cursor-pointer hover:bg-gray-100" : ""
-                    }`}
+                    className={`px-4 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider ${column.sortable ? "cursor-pointer hover:bg-gray-100" : ""
+                      }`}
                     onClick={() => column.sortable && handleSort(column.key)}
                   >
                     <div className="flex items-center gap-1">
@@ -175,11 +171,10 @@ export default function AccionesTable({
                   return (
                     <tr
                       key={accion.id}
-                      className={`hover:bg-gray-50 transition-colors ${
-                        isSelected ? "bg-blue-50" : ""
-                      }`}
+                      className={`hover:bg-gray-50 transition-colors ${isSelected ? "bg-blue-50" : ""
+                        }`}
                     >
-                      <td className="px-6 py-4">
+                      <td className="w-10 px-4 py-2 ">
                         <input
                           type="checkbox"
                           checked={isSelected}
@@ -187,8 +182,15 @@ export default function AccionesTable({
                           className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
                       </td>
+                      <td className="px-6 py-4 ">
+                        <div className="max-w-[100px]">
+                          <div className="font-medium text-black-1000 text-xs break-words ">
+                            {accion.codigo_elaboracion}
+                          </div>
+                        </div>
+                      </td>
 
-                      <td className="px-6 py-4">
+                      <td className="px-2 py-3">
                         <div className="flex flex-col">
                           <span className="font-medium text-gray-900">
                             {new Date(
@@ -202,60 +204,60 @@ export default function AccionesTable({
                         </div>
                       </td>
 
-                      <td className="px-6 py-4">
+                      <td className="px-1 py-1">
                         <div className="font-mono text-gray-800">
                           {accion.cedula}
                         </div>
                       </td>
 
-                      <td className="px-6 py-4">
-                        <div className="max-w-[200px]">
-                          <div className="font-medium text-gray-900 truncate">
+                      <td className="px-1 py-4">
+                        <div className="max-w-[180px]">
+                          <div className="font-medium text-gray-900 text-sm ">
                             {accion.servidor}
                           </div>
                         </div>
                       </td>
 
-                      <td className="px-6 py-4">
-                        <span className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                      <td className="px-4 py-4">
+                        <span className="px-2 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
                           {accion.tipo_accion}
                         </span>
                       </td>
 
-                      <td className="px-6 py-4">
+                      <td className="px-2 py-4">
                         <EstadoBadge estado={accion.estado} />
                       </td>
 
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
+                      <td className="px-2 py-4">
+                        <div className="flex items-center gap-1">
                           {/* Botón Ver - SIEMPRE VISIBLE */}
                           <button
                             onClick={() => handleView(accion)}
-                            className="p-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors"
+                            className="p-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors"
                             title="Ver detalles"
                           >
-                            <Eye size={18} />
+                            <Eye size={15} />
                           </button>
 
                           {/* Botón Editar (solo en BORRADOR y asistente UATH) */}
                           {accion.estado === "BORRADOR" && esAsistenteUATH && (
                             <button
                               onClick={() => onEdit && onEdit(accion)}
-                              className="p-2 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-lg transition-colors"
+                              className="p-1.5 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-lg transition-colors"
                               title="Editar"
                             >
-                              <Edit size={18} />
+                              <Edit size={15} />
                             </button>
                           )}
 
                           {/* Botón Anexos */}
                           <button
                             onClick={() => onAnexos?.(accion)}
-                            className="p-2 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg transition-colors group"
+                            className="p-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg transition-colors group"
                             title="Gestionar anexos"
                           >
                             <Paperclip
-                              size={18}
+                              size={15}
                               className="group-hover:rotate-12 transition-transform"
                             />
                           </button>
@@ -264,10 +266,10 @@ export default function AccionesTable({
                           {esAsistenteUATH && (
                             <button
                               onClick={() => onDownload && onDownload(accion)}
-                              className="p-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-lg transition-colors"
+                              className="p-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-lg transition-colors"
                               title="Descargar PDF"
                             >
-                              <Download size={18} />
+                              <Download size={15} />
                             </button>
                           )}
                         </div>

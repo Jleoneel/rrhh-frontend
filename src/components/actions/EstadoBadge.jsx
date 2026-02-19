@@ -1,12 +1,12 @@
 import { Clock, CheckCircle, AlertCircle, XCircle, FileEdit } from "lucide-react";
 
-export default function EstadoBadge({ estado, showIcon = true, size = "md" }) {
+export default function EstadoBadge({ estado, showIcon = true, size = "sm" }) {
   const config = {
     BORRADOR: {
       bg: "bg-gray-100",
       text: "text-gray-800",
       border: "border-gray-300",
-      icon: <FileEdit size={14} />,
+      icon: <FileEdit size={12} />,
       label: "Borrador",
       color: "#6b7280"
     },
@@ -14,7 +14,7 @@ export default function EstadoBadge({ estado, showIcon = true, size = "md" }) {
       bg: "bg-yellow-50",
       text: "text-yellow-800",
       border: "border-yellow-200",
-      icon: <Clock size={14} />,
+      icon: <Clock size={12} />,
       label: "En Firma",
       color: "#f59e0b"
     },
@@ -22,7 +22,7 @@ export default function EstadoBadge({ estado, showIcon = true, size = "md" }) {
       bg: "bg-green-50",
       text: "text-green-800",
       border: "border-green-200",
-      icon: <CheckCircle size={14} />,
+      icon: <CheckCircle size={12} />,
       label: "Aprobado",
       color: "#10b981"
     },
@@ -30,7 +30,7 @@ export default function EstadoBadge({ estado, showIcon = true, size = "md" }) {
       bg: "bg-red-50",
       text: "text-red-800",
       border: "border-red-200",
-      icon: <XCircle size={14} />,
+      icon: <XCircle size={12} />,
       label: "Rechazado",
       color: "#ef4444"
     }

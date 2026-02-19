@@ -18,7 +18,6 @@ export default function Sidebar() {
   const location = useLocation();
   const [expanded, setExpanded] = useState(true);
 
-
   const menuItems = [
     {
       title: "Dashboard",
@@ -55,9 +54,13 @@ export default function Sidebar() {
         <div
           className={`flex items-center gap-3 ${!expanded && "justify-center"}`}
         >
-          <div className="bg-blue-600 p-2 rounded-lg">
-            <Building2 size={expanded ? 24 : 18} />
-          </div>
+            <img
+              src="/msp2.png"
+              alt="Logo"
+              className={`${expanded ? "w-10 h-10" : "w-5 h-5"} object-contain`}
+            />
+
+
           {expanded && (
             <div>
               <h1 className="font-bold text-lg">Talento Humano</h1>

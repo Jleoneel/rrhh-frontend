@@ -32,7 +32,7 @@ export default function GraficoEstadoDonut({ data }) {
         opacity: animacion ? 1 : 0,
       }}
     >
-      <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+      <div className="flex flex-col md:flex-row \-center justify-between gap-6">
         {/* Donut Chart */}
         <div className="relative w-48 h-48">
           <svg className="w-full h-full" viewBox="0 0 200 200">
