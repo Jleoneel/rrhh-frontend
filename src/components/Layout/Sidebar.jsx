@@ -5,8 +5,6 @@ import {
   FileText,
   Settings,
   Users,
-  Bell,
-  HelpCircle,
   ChevronLeft,
 } from "lucide-react";
 import LogoutButton from "./logoutButton";
@@ -17,6 +15,8 @@ export default function Sidebar() {
   const { user: Firmante } = useAuth();
   const location = useLocation();
   const [expanded, setExpanded] = useState(true);
+  const puedeVerUsuarios = Firmante?.cargo_nombre === "ADMINISTRADOR DEL SISTEMA";
+
 
   const menuItems = [
     {
@@ -29,11 +29,11 @@ export default function Sidebar() {
       path: "/acciones",
       icon: <FileText size={20} />,
     },
-    {
+    ...(puedeVerUsuarios ? [{
       title: "Usuarios",
       path: "/GestionUsuarios",
       icon: <Users size={20} />,
-    },
+    }]: []),
     {
       title: "Configuración",
       path: "/configuracion",
@@ -165,10 +165,7 @@ export default function Sidebar() {
             <LogoutButton expanded={true} />
           </div>
         ) : (
-          <div className="flex flex-col items-center space-y-4">
-            <button className="p-2 hover:bg-gray-700 rounded-md" title="Ayuda">
-              <HelpCircle size={20} />
-            </button>
+          <div className="flex flex-col items-center space-y-4">           
             <LogoutButton expanded={false} />
           </div>
         )}

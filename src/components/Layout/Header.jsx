@@ -41,10 +41,6 @@ export default function Header({
           <div className="flex items-center gap-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-              <div className="flex items-center gap-1 text-sm text-gray-500">
-                <ChevronDown size={12} className="rotate-270" />
-                <span className="font-medium text-gray-700">{title}</span>
-              </div>
             </div>
             
             {showSearch && (
@@ -74,7 +70,8 @@ export default function Header({
               </button>
             )}
             
-            {/* Notificaciones */}
+            
+            {/* Notificaciones 
             {showNotifications && (
               <div className="relative group">
                 <button className="relative p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
@@ -86,7 +83,7 @@ export default function Header({
                   )}
                 </button>
                 
-                {/* Dropdown de notificaciones */}
+                {/* Dropdown de notificaciones 
                 <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                   <div className="p-4 border-b">
                     <h3 className="font-semibold text-gray-900">Notificaciones</h3>
@@ -115,7 +112,7 @@ export default function Header({
                   </div>
                 </div>
               </div>
-            )}
+            )}*/}
             
             {/* Botón Nueva Acción */}
             {showNewAction && isUATH && (
@@ -145,7 +142,6 @@ export default function Header({
                   {user?.cargo_nombre || "Rol no asignado"}
                 </p>
               </div>
-              <ChevronDown size={18} className="text-gray-500 hidden md:block" />
             </div>
           </div>
         </div>

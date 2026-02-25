@@ -4,6 +4,8 @@ import Modal from "../../ui/Modal";
 import api from "../../../api/axios";
 import EstadoBadge from "../EstadoBadge";
 import useFirmasAccion from "../../../hooks/UseFirmas";
+import NotificacionModal from "./NotificacionModal";
+import { getNotificacionByAccion } from "../../../hooks/notificaciones.service";
 import Swal from "sweetalert2";
 import {
   X,
@@ -18,7 +20,10 @@ import {
   Paperclip,
   Building2,
   Calendar,
-  Hash,
+  Trash2,
+  Bell,
+  Mail,
+  PenTool,
 } from "lucide-react";
 
 export default function VerAccionModal({ open, accion, onClose, onChanged }) {
@@ -29,6 +34,11 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
   const [loadingAnexos, setLoadingAnexos] = useState(false);
   const [detalleAccion, setDetalleAccion] = useState(null);
   const [loadingDetalle, setLoadingDetalle] = useState(false);
+
+  // Estados para notificación
+  const [notificacion, setNotificacion] = useState(null);
+  const [loadingNotificacion, setLoadingNotificacion] = useState(false);
+  const [openNotificacionModal, setOpenNotificacionModal] = useState(false);
 
   //HOOK DE FIRMAS
   const {
@@ -52,6 +62,21 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
     if (!pendiente || !user?.cargo_id) return false;
     return pendiente.cargo_id === user.cargo_id;
   }, [pendiente, user]);
+
+const puedeNotificar = useMemo(() => {
+  if (!user?.cargo_id) return false;
+
+  const estadoActual = (detalleAccion || accion)?.estado;
+
+  if (estadoActual !== "APROBADO") return false;
+
+  const cargosPermitidos = [
+    "ASISTENTE DE LA UATH",
+    "RESPONSABLE DE LA UATH",
+  ];
+
+  return cargosPermitidos.includes(user.cargo_nombre);
+}, [user, detalleAccion, accion]);  
 
   const progreso = useMemo(() => {
     const total = firmas.length || 0;
@@ -96,6 +121,28 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
 
     cargarAnexos();
   }, [open, accionId]);
+
+  // Cargar notificación
+  useEffect(() => {
+    if (!open || !accionId) return;
+    const cargarNotificacion = async () => {
+      setLoadingNotificacion(true);
+      try {
+        const data = await getNotificacionByAccion(accionId);
+        setNotificacion(data);
+      } catch { setNotificacion(null); }
+      finally { setLoadingNotificacion(false); }
+    };
+    cargarNotificacion();
+  }, [open, accionId]);
+
+  // Handler para éxito de notificación
+  const handleNotificacionSuccess = async () => {
+    try {
+      const data = await getNotificacionByAccion(accionId);
+      setNotificacion(data);
+    } catch { setNotificacion(null); }
+  };
 
   const handleDownloadFirmado = (archivo_path) => {
     if (!archivo_path) return;
@@ -175,6 +222,43 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
       });
     }
   };
+
+const handleDeleteFirmado = async (firmaId) => {
+  const result = await Swal.fire({
+    title: "¿Eliminar documento firmado?",
+    text: "Esta acción no se puede deshacer",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar"
+  });
+
+  if (result.isConfirmed) {
+    try {
+
+await api.delete(`/firmas/acciones/${accionId}/firmas/${firmaId}`);
+      await refreshFirmas();
+      if (onChanged) await onChanged();
+      Swal.fire({
+        toast: true,
+        icon: "success",
+        title: "Documento eliminado",
+        showConfirmButton: false,
+        timer: 1500,
+        position: "top-end"
+      });
+    } catch (e) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: e.response?.data?.message || "No se pudo eliminar el documento",
+      });
+    }
+  }
+};
+
 
   const handleDownloadAnexo = async (anexoId) => {
     try {
@@ -462,6 +546,7 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
                         onDownload={() =>
                           handleDownloadFirmado(f.documento_path)
                         }
+                        onDelete={handleDeleteFirmado}
                       />
                     ))
                 ) : (
@@ -576,14 +661,25 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
       {/* Footer */}
       <div className="sticky bottom-0 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-8 py-5 rounded-b-xl">
         <div className="flex items-center justify-between">
-          <button
-            type="button"
-            onClick={handleClose}
-            className="px-5 py-2.5 border-2 border-gray-300 text-gray-700 hover:bg-gray-200 hover:border-gray-400 rounded-xl font-medium transition-all flex items-center gap-2"
-          >
-            <X size={18} />
-            Cerrar
-          </button>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="px-5 py-2.5 border-2 border-gray-300 text-gray-700 hover:bg-gray-200 hover:border-gray-400 rounded-xl font-medium transition-all flex items-center gap-2"
+            >
+              <X size={18} />
+              Cerrar
+            </button>
+            {puedeNotificar && (
+  <button
+    onClick={() => setOpenNotificacionModal(true)}
+    className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all flex items-center gap-2"
+  >
+    <Bell size={18} />
+    {notificacion ? "Ver Notificación" : "Registrar Notificación"}
+  </button>
+)}
+          </div>
 
           <div className="flex items-center gap-2 text-sm text-gray-600 bg-white/60 px-4 py-2 rounded-lg">
             <CheckCircle2 className="h-4 w-4 text-green-600" />
@@ -591,6 +687,15 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
           </div>
         </div>
       </div>
+
+      {/* Modal de Notificación */}
+      <NotificacionModal
+        open={openNotificacionModal}
+        onClose={() => setOpenNotificacionModal(false)}
+        accionId={accionId}
+        notificacionExistente={notificacion}
+        onSuccess={handleNotificacionSuccess}
+      />
     </Modal>
   );
 }
@@ -610,7 +715,7 @@ function MiniInfo({ icon: Icon, label, value }) {
   );
 }
 
-function FirmaRow({ firma, isPending, onDownload }) {
+function FirmaRow({ firma, isPending, onDownload, onDelete }) {
   const isFirmado = firma.estado === "FIRMADO";
 
   return (
@@ -684,15 +789,26 @@ function FirmaRow({ firma, isPending, onDownload }) {
       </div>
 
       {/* Botón de descarga */}
-      {isFirmado && firma.documento_path && (
-        <button
-          onClick={onDownload}
-          className="p-2.5 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg text-gray-700 hover:text-blue-600 transition-colors flex-shrink-0"
-          title="Ver PDF firmado"
-        >
-          <Download size={18} />
-        </button>
-      )}
+      
+{isFirmado && firma.documento_path && (
+  <div className="flex gap-2">
+    <button
+      onClick={onDownload}
+      className="p-2.5 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg text-gray-700 hover:text-blue-600 transition-colors flex-shrink-0"
+      title="Ver PDF firmado"
+    >
+      <Download size={18} />
+    </button>
+    <button
+      onClick={() => onDelete(firma.id)}
+      className="p-2.5 bg-white hover:bg-red-50 border border-gray-200 rounded-lg text-gray-700 hover:text-red-600 transition-colors flex-shrink-0"
+      title="Eliminar documento"
+    >
+      <Trash2 size={18} />
+    </button>
+  </div>
+)}
+
     </div>
   );
 }
