@@ -39,7 +39,7 @@ export default function Sidebar() {
       path: "/configuracion",
       icon: <Settings size={20} />,
       submenu: [
-        { title: "Perfil", path: "/configuracion/perfil" },
+        { title: "Adjuntar distributivo", path: "/configuracion/perfil" },
         { title: "Permisos", path: "/configuracion/permisos" },
       ],
     },
