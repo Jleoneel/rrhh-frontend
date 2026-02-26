@@ -35,13 +35,13 @@ export default function Sidebar() {
       icon: <Users size={20} />,
     }]: []),
     {
-      title: "Configuración",
-      path: "/configuracion",
+      title: "Adjuntar Distributivo",
+      path: "/configuracion/perfil",
       icon: <Settings size={20} />,
-      submenu: [
-        { title: "Adjuntar distributivo", path: "/configuracion/perfil" },
-        { title: "Permisos", path: "/configuracion/permisos" },
-      ],
+      // submenu: [
+      //   { title: "Adjuntar distributivo", path: "/configuracion/perfil" },
+      //   { title: "Permisos", path: "/configuracion/permisos" },
+      // ],
     },
   ];
 

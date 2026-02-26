@@ -28,7 +28,6 @@ export default function App() {
         <Route path="/configuracion/perfil" element={<Distributivo />} />
       </Route>
 
-      //* REDIRECCION DE ERRORES 404
       <Route path="*" element={<Navigate to="/login" />} />
     </Routes>
   );

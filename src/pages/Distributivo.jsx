@@ -190,7 +190,7 @@ export default function AdjuntarDistributivo() {
                 <input
                   ref={inputRef}
                   type="file"
-                  accept=".xlsx"
+                  accept=".xls"
                   className="hidden"
                   onChange={(e) => setFile(e.target.files?.[0] || null)}
                 />
@@ -355,14 +355,6 @@ export default function AdjuntarDistributivo() {
                 icon={Layers}
                 color="green"
               />
-            </div>
-
-            {/* Botón de descarga de log (opcional - si tuvieras endpoint) */}
-            <div className="flex justify-end">
-              <button className="px-4 py-2.5 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl transition-all flex items-center gap-2 text-sm">
-                <Download className="h-4 w-4" />
-                Descargar log de errores
-              </button>
             </div>
           </div>
         )}
