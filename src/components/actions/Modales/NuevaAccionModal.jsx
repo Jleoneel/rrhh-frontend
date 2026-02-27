@@ -206,9 +206,13 @@ export default function NuevaAccionModal({
         ] = await Promise.all([
           api.get("/catalogos/unidades-organicas").catch(() => ({ data: [] })),
           api.get("/catalogos/denominaciones").catch(() => ({ data: [] })),
-          api.get("/catalogos/escalas-ocupacionales").catch(() => ({ data: [] })),
+          api
+            .get("/catalogos/escalas-ocupacionales")
+            .catch(() => ({ data: [] })),
           api.get("/catalogos/lugares-trabajo").catch(() => ({ data: [] })),
-          api.get("/catalogos/procesos-institucionales").catch(() => ({ data: [] })),
+          api
+            .get("/catalogos/procesos-institucionales")
+            .catch(() => ({ data: [] })),
           api.get("/catalogos/niveles-gestion").catch(() => ({ data: [] })),
         ]);
 
@@ -623,13 +627,16 @@ export default function NuevaAccionModal({
         rigeHasta: form.rigeHasta || null,
         motivo: form.motivo.trim() === "" ? null : form.motivo.trim(),
         presentoDeclaracionJurada: form.presentoDeclaracionJurada,
+        procesoInstitucionalId:
+          form.situacionActual?.proceso_institucional_id ?? null,
       };
 
       // 2. Construir datos de propuesta
       const datosPropuesta =
         form.tipoAccion?.requiere_propuesta && form.situacionPropuesta
           ? {
-              proceso_institucional_id: form.proceso_institucional_id,
+              proceso_institucional_id:
+  form.situacionPropuesta?.proceso_institucional_id ?? null,
               nivel_gestion_id: form.nivel_gestion_id,
               unidad_organica_id:
                 form.situacionPropuesta.unidad_organica_id || null,
@@ -653,7 +660,7 @@ export default function NuevaAccionModal({
         if (datosPropuesta) {
           try {
             await api.put(`/acciones/${result.accion_id}/propuesta`, {
-              proceso_institucional: datosPropuesta.proceso_institucional_id,
+              proceso_institucional_id: datosPropuesta.proceso_institucional_id,
               nivel_gestion: datosPropuesta.nivel_gestion_id,
               unidad_organica_id: datosPropuesta.unidad_organica_id,
               denominacion_puesto_id: datosPropuesta.denominacion_puesto_id,
@@ -1370,11 +1377,33 @@ export default function NuevaAccionModal({
                                 <p className="text-sm text-gray-300">
                                   Proceso Institucional
                                 </p>
-                                <p className="text-lg font-bold mt-1">
-                                  {form.situacionActual
-                                    ?.proceso_institucional ||
-                                    "No especificado"}
-                                </p>
+                                <div className="mt-1">
+                                  <SelectPremium
+                                    options={catProcesos.map((x) => ({
+                                      value: x.id,
+                                      label: x.nombre,
+                                    }))}
+                                    value={getSelectValue(
+                                      catProcesos,
+                                      form.situacionActual
+                                        ?.proceso_institucional_id,
+                                    )}
+                                    onChange={(opt) =>
+                                      setForm((p) => ({
+                                        ...p,
+                                        situacionActual: {
+                                          ...p.situacionActual,
+                                          proceso_institucional_id:
+                                            opt?.value ?? null,
+                                          proceso_institucional:
+                                            opt?.label ?? null,
+                                        },
+                                      }))
+                                    }
+                                    placeholder="Seleccione..."
+                                    isSearchable
+                                  />
+                                </div>
                               </div>
                             </div>
                             <p className="text-xs text-gray-400">
@@ -1459,12 +1488,17 @@ export default function NuevaAccionModal({
                               }))}
                               value={getSelectValue(
                                 catProcesos,
-                                form.proceso_institucional_id,
+                                form.situacionPropuesta
+                                  ?.proceso_institucional_id,
                               )}
                               onChange={(opt) =>
                                 setForm((p) => ({
                                   ...p,
-                                  proceso_institucional_id: opt?.value ?? null,
+                                  situacionPropuesta: {
+                                    ...p.situacionPropuesta,
+                                    proceso_institucional_id:
+                                      opt?.value ?? null,
+                                  },
                                 }))
                               }
                             />
@@ -2084,7 +2118,9 @@ export default function NuevaAccionModal({
                           </p>
                           <p className="text-lg font-bold text-blue-900">
                             {catProcesos.find(
-                              (p) => p.id === form.proceso_institucional_id,
+                              (p) =>
+                                p.id ===
+                                form.situacionActual?.proceso_institucional_id,
                             )?.nombre || "No especificado"}
                           </p>
                         </div>
@@ -2094,7 +2130,8 @@ export default function NuevaAccionModal({
                           </p>
                           <p className="text-lg font-bold text-blue-900">
                             {catNiveles.find(
-                              (n) => n.id === form.nivel_gestion_id,
+                              (n) =>
+                                n.id === form.situacionActual?.nivel_gestion_id,
                             )?.nombre || "No especificado"}
                           </p>
                         </div>

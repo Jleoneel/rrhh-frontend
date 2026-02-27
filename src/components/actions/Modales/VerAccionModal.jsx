@@ -547,6 +547,7 @@ await api.delete(`/firmas/acciones/${accionId}/firmas/${firmaId}`);
                           handleDownloadFirmado(f.documento_path)
                         }
                         onDelete={handleDeleteFirmado}
+                          user={user}
                       />
                     ))
                 ) : (
@@ -715,8 +716,11 @@ function MiniInfo({ icon: Icon, label, value }) {
   );
 }
 
-function FirmaRow({ firma, isPending, onDownload, onDelete }) {
+function FirmaRow({ firma, isPending, onDownload, onDelete, user }) {
   const isFirmado = firma.estado === "FIRMADO";
+  const puedeEliminar = user?.cargo_id === firma.cargo_id;
+
+
 
   return (
     <div
@@ -790,8 +794,10 @@ function FirmaRow({ firma, isPending, onDownload, onDelete }) {
 
       {/* Botón de descarga */}
       
+
 {isFirmado && firma.documento_path && (
   <div className="flex gap-2">
+    {/* Botón Descargar - visible para todos */}
     <button
       onClick={onDownload}
       className="p-2.5 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg text-gray-700 hover:text-blue-600 transition-colors flex-shrink-0"
@@ -799,13 +805,17 @@ function FirmaRow({ firma, isPending, onDownload, onDelete }) {
     >
       <Download size={18} />
     </button>
-    <button
-      onClick={() => onDelete(firma.id)}
-      className="p-2.5 bg-white hover:bg-red-50 border border-gray-200 rounded-lg text-gray-700 hover:text-red-600 transition-colors flex-shrink-0"
-      title="Eliminar documento"
-    >
-      <Trash2 size={18} />
-    </button>
+
+    {/* Botón Eliminar - solo para quien firmó */}
+    {puedeEliminar && (
+      <button
+        onClick={() => onDelete(firma.id)}
+        className="p-2.5 bg-white hover:bg-red-50 border border-gray-200 rounded-lg text-gray-700 hover:text-red-600 transition-colors flex-shrink-0"
+        title="Eliminar documento"
+      >
+        <Trash2 size={18} />
+      </button>
+    )}
   </div>
 )}
 

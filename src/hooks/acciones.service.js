@@ -26,7 +26,11 @@ export const crearAccion = async ({
   rigeHasta = null,
   motivo,
   presentoDeclaracionJurada = false,
+  procesoInstitucionalId = null,
+
 }) => {
+  const procesoId = procesoInstitucionalId  || null;
+
   const payload = {
     cedula,
     puestoId,
@@ -36,6 +40,7 @@ export const crearAccion = async ({
     rigeHasta,
     motivo,
     presentoDeclaracionJurada,
+    procesoInstitucionalId: procesoId,
   };
 
   const res = await api.post("/acciones", payload);
@@ -45,6 +50,26 @@ export const crearAccion = async ({
  // Obtener situación propuesta (Step 3)
 export const getSituacionPropuesta = async (accionId) => {
   const res = await api.get(`/acciones/${accionId}/propuesta`);
+  return res.data;
+};
+/**
+ * Actualizar acción principal (BORRADOR)
+ */
+export const updateAccion = async (accionId, data) => {
+  const payload = {
+    tipoAccionNombre: data.tipoAccionNombre,
+    tipoAccionOtroDetalle: data.tipoAccionOtroDetalle,
+    rigeDesde: data.rigeDesde,
+    rigeHasta: data.rigeHasta,
+    motivo: data.motivo,
+    presentoDeclaracionJurada: data.presentoDeclaracionJurada,
+
+    // 🔥 ESTA ES LA CLAVE
+    procesoInstitucionalId:
+      data.situacionActual?.proceso_institucional_id ?? null,
+  };
+
+  const res = await api.put(`/acciones/${accionId}`, payload);
   return res.data;
 };
 

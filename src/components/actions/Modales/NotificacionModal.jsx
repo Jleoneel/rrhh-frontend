@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Modal from "../../ui/Modal";
 import { registrarNotificacion } from "../../../hooks/notificaciones.service";
+import { useAuth } from "../../../auth/AuthContext";
 import Swal from "sweetalert2";
 import {
   Bell,
@@ -25,6 +26,7 @@ export default function NotificacionModal({
   notificacionExistente, 
   onSuccess 
 }) {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [modoEdicion, setModoEdicion] = useState(false);
   const [formData, setFormData] = useState({
@@ -48,16 +50,17 @@ export default function NotificacionModal({
       setModoEdicion(true);
     } else {
       // Resetear formulario si no hay notificación existente
+      // Auto-completar con datos del usuario logeado
       setFormData({
         fecha: "",
         hora: "",
         medio: "",
-        nombre: "",
-        puesto: "",
+        nombre: user?.nombre || "",
+        puesto: user?.cargo_nombre || "",
       });
       setModoEdicion(false);
     }
-  }, [notificacionExistente, open]);
+  }, [notificacionExistente, open, user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -84,7 +87,8 @@ export default function NotificacionModal({
     try {
       await registrarNotificacion({ 
         ...formData, 
-        accion_id: accionId 
+        accion_id: accionId, 
+        id: notificacionExistente ?.id || null
       });
       
       Swal.fire({
@@ -213,7 +217,7 @@ export default function NotificacionModal({
                     name="fecha"
                     value={formData.fecha}
                     onChange={handleChange}
-                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-transparent transition-all"
                     required
                   />
                 </div>
@@ -231,7 +235,7 @@ export default function NotificacionModal({
                     name="hora"
                     value={formData.hora}
                     onChange={handleChange}
-                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-transparent transition-all"
                     required
                   />
                 </div>
@@ -249,7 +253,7 @@ export default function NotificacionModal({
                   value={formData.medio}
                   onChange={handleChange}
                   placeholder="Ej: Correo electrónico institucional, Oficio físico, Sistema de notificaciones"
-                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-transparent transition-all"
                   required
                 />
               </div>
@@ -263,8 +267,8 @@ export default function NotificacionModal({
                 <User className="h-5 w-5 text-purple-600" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Datos del Notificado</h3>
-                <p className="text-sm text-gray-500">Información de la persona que recibe la notificación</p>
+                <h3 className="text-lg font-semibold text-gray-900">Datos del Responsable</h3>
+                <p className="text-sm text-gray-500">Información de la persona que notifica</p>
               </div>
             </div>
 
@@ -281,7 +285,7 @@ export default function NotificacionModal({
                   value={formData.nombre}
                   onChange={handleChange}
                   placeholder="Ej: Juan Pérez García"
-                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-transparent transition-all"
                   required
                 />
               </div>
@@ -298,7 +302,7 @@ export default function NotificacionModal({
                   value={formData.puesto}
                   onChange={handleChange}
                   placeholder="Ej: Analista de Recursos Humanos"
-                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-transparent transition-all"
                   required
                 />
               </div>

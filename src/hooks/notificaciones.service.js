@@ -4,9 +4,10 @@ import api from "../api/axios";
  * Registrar notificación al servidor público de la acción de personal
  */
 export const registrarNotificacion = async (data) => {
-  const { accion_id, fecha, hora, medio, nombre, puesto } = data;
+  const {id, accion_id, fecha, hora, medio, nombre, puesto } = data;
   
   const payload = {
+    id,
     accion_id,
     fecha,
     hora,
