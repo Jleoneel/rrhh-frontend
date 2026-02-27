@@ -27,6 +27,7 @@ import {
 import api from "../../api/axios";
 import Swal from "sweetalert2";
 import Modal from "../ui/Modal";
+import { useOutletContext } from "react-router-dom";
 
 const Badge = ({ children, variant = "default" }) => {
   const variants = {
@@ -37,7 +38,9 @@ const Badge = ({ children, variant = "default" }) => {
     warning: "bg-amber-100 text-amber-800 border border-amber-200",
   };
   return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${variants[variant]}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${variants[variant]}`}
+    >
       {children}
     </span>
   );
@@ -64,7 +67,9 @@ const StatCard = ({ label, value, icon: Icon, color = "blue", trend }) => {
             </p>
           )}
         </div>
-        <div className={`p-4 bg-gradient-to-br ${colors[color]} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+        <div
+          className={`p-4 bg-gradient-to-br ${colors[color]} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}
+        >
           <Icon className="h-6 w-6 text-white" />
         </div>
       </div>
@@ -80,12 +85,14 @@ const FirmanteRow = ({ firmante, onEdit, onToggleActive, onDisable }) => {
           <div className="relative">
             <div
               className={`p-3 rounded-xl transition-all duration-300 ${
-                firmante.activo 
-                  ? "bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-200" 
+                firmante.activo
+                  ? "bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-200"
                   : "bg-gray-200"
               }`}
             >
-              <UserCheck className={`h-5 w-5 ${firmante.activo ? "text-white" : "text-gray-500"}`} />
+              <UserCheck
+                className={`h-5 w-5 ${firmante.activo ? "text-white" : "text-gray-500"}`}
+              />
             </div>
             {firmante.activo && (
               <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white shadow-sm" />
@@ -93,12 +100,16 @@ const FirmanteRow = ({ firmante, onEdit, onToggleActive, onDisable }) => {
           </div>
 
           <div>
-            <p className="font-semibold text-gray-900 text-lg">{firmante.nombre}</p>
+            <p className="font-semibold text-gray-900 text-lg">
+              {firmante.nombre}
+            </p>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-sm text-gray-600 font-mono bg-gray-100 px-2 py-0.5 rounded-lg">
                 {firmante.cedula}
               </span>
-              <span className="text-xs text-gray-400">ID: {firmante.id?.slice(0, 8)}...</span>
+              <span className="text-xs text-gray-400">
+                ID: {firmante.id?.slice(0, 8)}...
+              </span>
             </div>
           </div>
         </div>
@@ -138,13 +149,17 @@ const FirmanteRow = ({ firmante, onEdit, onToggleActive, onDisable }) => {
           <button
             onClick={onToggleActive}
             className={`p-2.5 rounded-xl transition-all duration-200 hover:scale-110 shadow-sm hover:shadow-md ${
-              firmante.activo 
-                ? "bg-orange-50 text-orange-600 hover:bg-orange-100" 
+              firmante.activo
+                ? "bg-orange-50 text-orange-600 hover:bg-orange-100"
                 : "bg-green-50 text-green-600 hover:bg-green-100"
             }`}
             title={firmante.activo ? "Desactivar" : "Activar"}
           >
-            {firmante.activo ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            {firmante.activo ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
           </button>
 
           <button
@@ -171,6 +186,8 @@ export default function GestionFirmantesUATH() {
   const [modalMode, setModalMode] = useState("crear");
   const [editando, setEditando] = useState(null);
 
+  const { setHeaderConfig } = useOutletContext();
+
   const [form, setForm] = useState({
     cedula: "",
     nombre: "",
@@ -191,7 +208,9 @@ export default function GestionFirmantesUATH() {
       console.error("Error cargando firmantes:", error);
       Swal.fire({
         title: "Error",
-        text: error.response?.data?.message || "No se pudieron cargar los firmantes UATH",
+        text:
+          error.response?.data?.message ||
+          "No se pudieron cargar los firmantes UATH",
         icon: "error",
         confirmButtonColor: "#3b82f6",
         background: "#ffffff",
@@ -201,6 +220,22 @@ export default function GestionFirmantesUATH() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    setHeaderConfig({
+      title: "Gestión de usuario UATH",
+      showNewAction: false,
+      onNewAction: null,
+    });
+
+    return () => {
+      setHeaderConfig({
+        title: "Dashboard",
+        showNewAction: false,
+        onNewAction: null,
+      });
+    };
+  }, [setHeaderConfig]);
 
   const validarCedula = (cedula) => /^\d{10}$/.test(cedula);
 
@@ -276,7 +311,7 @@ export default function GestionFirmantesUATH() {
 
         Swal.fire({
           toast: true,
-          text: "✓ Firmante UATH creado exitosamente",
+          text: "✓ Usuario UATH creado exitosamente",
           icon: "success",
           showConfirmButton: false,
           timer: 2000,
@@ -292,7 +327,7 @@ export default function GestionFirmantesUATH() {
 
         Swal.fire({
           toast: true,
-          text: "✓ Firmante actualizado correctamente",
+          text: "✓ Usuario UATH actualizado correctamente",
           icon: "success",
           showConfirmButton: false,
           timer: 2000,
@@ -307,7 +342,7 @@ export default function GestionFirmantesUATH() {
     } catch (error) {
       Swal.fire({
         title: "Error",
-        text: error.response?.data?.message || "Error guardando firmante",
+        text: error.response?.data?.message || "Error guardando usuario UATH",
         icon: "error",
         confirmButtonColor: "#3b82f6",
         background: "#ffffff",
@@ -318,9 +353,9 @@ export default function GestionFirmantesUATH() {
 
   const toggleActivo = async (f) => {
     const confirm = await Swal.fire({
-      title: f.activo ? "¿Desactivar firmante?" : "¿Activar firmante?",
-      text: f.activo 
-        ? "No podrá iniciar sesión ni realizar acciones en el sistema." 
+      title: f.activo ? "¿Desactivar usuario UATH?" : "¿Activar usuario UATH?",
+      text: f.activo
+        ? "No podrá iniciar sesión ni realizar acciones en el sistema."
         : "Podrá acceder al sistema y realizar acciones nuevamente.",
       icon: "question",
       showCancelButton: true,
@@ -338,7 +373,7 @@ export default function GestionFirmantesUATH() {
       await api.put(`/firmantes/${f.id}`, { activo: !f.activo });
       Swal.fire({
         toast: true,
-        text: `✓ Firmante ${!f.activo ? "activado" : "desactivado"} correctamente`,
+        text: `✓ Usuario UATH ${!f.activo ? "activado" : "desactivado"} correctamente`,
         icon: "success",
         showConfirmButton: false,
         timer: 2000,
@@ -361,7 +396,7 @@ export default function GestionFirmantesUATH() {
 
   const desactivarComoEliminar = async (f) => {
     const confirm = await Swal.fire({
-      title: "¿Desactivar firmante?",
+      title: "¿Desactivar usuario UATH?",
       html: `
         <div class="text-left">
           <div class="flex items-center gap-3 p-4 bg-amber-50 rounded-xl border border-amber-200 mb-4">
@@ -390,7 +425,7 @@ export default function GestionFirmantesUATH() {
       await api.put(`/firmantes/${f.id}`, { activo: false });
       Swal.fire({
         toast: true,
-        text: "✓ Firmante desactivado permanentemente",
+        text: "✓ Usuario UATH desactivado permanentemente",
         icon: "success",
         showConfirmButton: false,
         timer: 2000,
@@ -445,7 +480,7 @@ export default function GestionFirmantesUATH() {
                 </div>
                 <div>
                   <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
-                    Firmantes UATH
+                    GESTION DE USUARIOS UATH
                   </h1>
                   <div className="flex items-center gap-2 mt-2">
                     <Badge variant="info">
@@ -472,24 +507,24 @@ export default function GestionFirmantesUATH() {
 
           {/* Stats Cards - Mejoradas */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <StatCard 
-              label="Total Firmantes" 
-              value={stats.total} 
-              icon={Users} 
+            <StatCard
+              label="Total Firmantes"
+              value={stats.total}
+              icon={Users}
               color="blue"
               trend="Registros históricos"
             />
-            <StatCard 
-              label="Activos" 
-              value={stats.activos} 
-              icon={UserCheck} 
+            <StatCard
+              label="Activos"
+              value={stats.activos}
+              icon={UserCheck}
               color="green"
               trend="Pueden crear acciones"
             />
-            <StatCard 
-              label="Inactivos" 
-              value={stats.inactivos} 
-              icon={EyeOff} 
+            <StatCard
+              label="Inactivos"
+              value={stats.inactivos}
+              icon={EyeOff}
               color="red"
               trend="Sin acceso al sistema"
             />
@@ -542,7 +577,9 @@ export default function GestionFirmantesUATH() {
                 <Loader2 className="h-12 w-12 text-blue-600 animate-spin mx-auto mb-4" />
                 <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
               </div>
-              <p className="text-gray-600 font-medium text-lg">Cargando firmantes...</p>
+              <p className="text-gray-600 font-medium text-lg">
+                Cargando firmantes...
+              </p>
               <p className="text-sm text-gray-400 mt-2">Por favor espere</p>
             </div>
           ) : firmantesFiltrados.length === 0 ? (
@@ -550,7 +587,9 @@ export default function GestionFirmantesUATH() {
               <div className="inline-flex p-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl mb-6">
                 <Users className="h-16 w-16 text-gray-400" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-700 mb-3">No hay firmantes</h3>
+              <h3 className="text-2xl font-bold text-gray-700 mb-3">
+                No hay firmantes
+              </h3>
               <p className="text-gray-500 mb-8 max-w-md mx-auto">
                 {search || filterActivo !== "todos"
                   ? "No se encontraron firmantes con los filtros aplicados. Prueba con otros criterios de búsqueda."
@@ -604,15 +643,30 @@ export default function GestionFirmantesUATH() {
               <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-t border-gray-200">
                 <div className="flex items-center justify-between text-sm text-gray-600">
                   <span>
-                    Mostrando <span className="font-semibold text-gray-900">{firmantesFiltrados.length}</span> de{" "}
-                    <span className="font-semibold text-gray-900">{firmantes.length}</span> firmantes
+                    Mostrando{" "}
+                    <span className="font-semibold text-gray-900">
+                      {firmantesFiltrados.length}
+                    </span>{" "}
+                    de{" "}
+                    <span className="font-semibold text-gray-900">
+                      {firmantes.length}
+                    </span>{" "}
+                    USUARIOS
                   </span>
                   <div className="flex items-center gap-4">
-                    <button className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50" disabled>
+                    <button
+                      className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
+                      disabled
+                    >
                       Anterior
                     </button>
-                    <span className="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-medium">1</span>
-                    <button className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50" disabled>
+                    <span className="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-medium">
+                      1
+                    </span>
+                    <button
+                      className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
+                      disabled
+                    >
                       Siguiente
                     </button>
                   </div>
@@ -629,28 +683,39 @@ export default function GestionFirmantesUATH() {
           <div className="flex items-center justify-between mb-8">
             <div>
               <div className="flex items-center gap-4 mb-3">
-                <div className={`p-3 rounded-xl ${
-                  modalMode === "crear" ? "bg-blue-100" : "bg-amber-100"
-                }`}>
+                <div
+                  className={`p-3 rounded-xl ${
+                    modalMode === "crear" ? "bg-blue-100" : "bg-amber-100"
+                  }`}
+                >
                   {modalMode === "crear" ? (
-                    <UserPlus className={`h-6 w-6 ${
-                      modalMode === "crear" ? "text-blue-600" : "text-amber-600"
-                    }`} />
+                    <UserPlus
+                      className={`h-6 w-6 ${
+                        modalMode === "crear"
+                          ? "text-blue-600"
+                          : "text-amber-600"
+                      }`}
+                    />
                   ) : (
                     <Edit className="h-6 w-6 text-amber-600" />
                   )}
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900">
-                  {modalMode === "crear" ? "Nuevo Firmante UATH" : "Editar Firmante"}
+                  {modalMode === "crear"
+                    ? "Nuevo Usuario UATH"
+                    : "Editar Usuario UATH"}
                 </h2>
               </div>
               <p className="text-gray-600 ml-16">
-                Rol: <span className="font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg ml-2">ASISTENTE DE LA UATH</span>
+                Rol:{" "}
+                <span className="font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg ml-2">
+                  ASISTENTE DE LA UATH
+                </span>
               </p>
             </div>
 
-            <button 
-              onClick={() => setModalOpen(false)} 
+            <button
+              onClick={() => setModalOpen(false)}
               className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
             >
               <X className="h-5 w-5 text-gray-500" />
@@ -674,7 +739,9 @@ export default function GestionFirmantesUATH() {
                       }))
                     }
                     className={`w-full border-2 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono transition-all ${
-                      modalMode === "editar" ? "bg-gray-100 border-gray-200" : "border-gray-300"
+                      modalMode === "editar"
+                        ? "bg-gray-100 border-gray-200"
+                        : "border-gray-300"
                     }`}
                     placeholder="1234567890"
                     disabled={modalMode === "editar"}
@@ -693,7 +760,12 @@ export default function GestionFirmantesUATH() {
                 <input
                   type="text"
                   value={form.nombre}
-                  onChange={(e) => setForm((prev) => ({ ...prev, nombre: e.target.value.toUpperCase() }))}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      nombre: e.target.value.toUpperCase(),
+                    }))
+                  }
                   className="w-full border-2 border-gray-300 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="NOMBRES APELLIDOS"
                 />
@@ -710,25 +782,32 @@ export default function GestionFirmantesUATH() {
                   <input
                     type="password"
                     value={form.password}
-                    onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((prev) => ({ ...prev, password: e.target.value }))
+                    }
                     className="w-full border-2 border-gray-300 rounded-xl pl-11 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="••••••••"
                   />
                 </div>
                 <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
                   <AlertCircle className="h-4 w-4" />
-                  El firmante podrá cambiar su contraseña después del primer inicio de sesión
+                  El firmante podrá cambiar su contraseña después del primer
+                  inicio de sesión
                 </p>
               </div>
             )}
 
             {modalMode === "editar" && (
               <div className="space-y-3">
-                <label className="block text-sm font-semibold text-gray-700">Estado de la cuenta</label>
+                <label className="block text-sm font-semibold text-gray-700">
+                  Estado de la cuenta
+                </label>
                 <div className="grid grid-cols-2 gap-4">
                   <button
                     type="button"
-                    onClick={() => setForm((prev) => ({ ...prev, activo: true }))}
+                    onClick={() =>
+                      setForm((prev) => ({ ...prev, activo: true }))
+                    }
                     className={`py-5 rounded-xl border-2 transition-all duration-300 ${
                       form.activo
                         ? "border-green-500 bg-gradient-to-br from-green-50 to-green-100 text-green-700 shadow-lg scale-105"
@@ -736,15 +815,21 @@ export default function GestionFirmantesUATH() {
                     }`}
                   >
                     <div className="flex flex-col items-center gap-2">
-                      <CheckCircle className={`h-8 w-8 ${form.activo ? "text-green-600" : "text-gray-400"}`} />
+                      <CheckCircle
+                        className={`h-8 w-8 ${form.activo ? "text-green-600" : "text-gray-400"}`}
+                      />
                       <span className="font-semibold">Activo</span>
-                      <span className="text-xs opacity-75">Puede iniciar sesión</span>
+                      <span className="text-xs opacity-75">
+                        Puede iniciar sesión
+                      </span>
                     </div>
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => setForm((prev) => ({ ...prev, activo: false }))}
+                    onClick={() =>
+                      setForm((prev) => ({ ...prev, activo: false }))
+                    }
                     className={`py-5 rounded-xl border-2 transition-all duration-300 ${
                       !form.activo
                         ? "border-red-500 bg-gradient-to-br from-red-50 to-red-100 text-red-700 shadow-lg scale-105"
@@ -752,9 +837,13 @@ export default function GestionFirmantesUATH() {
                     }`}
                   >
                     <div className="flex flex-col items-center gap-2">
-                      <XCircle className={`h-8 w-8 ${!form.activo ? "text-red-600" : "text-gray-400"}`} />
+                      <XCircle
+                        className={`h-8 w-8 ${!form.activo ? "text-red-600" : "text-gray-400"}`}
+                      />
                       <span className="font-semibold">Inactivo</span>
-                      <span className="text-xs opacity-75">Acceso bloqueado</span>
+                      <span className="text-xs opacity-75">
+                        Acceso bloqueado
+                      </span>
                     </div>
                   </button>
                 </div>

@@ -25,7 +25,7 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/acciones" element={<AccionesList />} />
         <Route path="/GestionUsuarios" element={<GestionUsuarios />} />
-        <Route path="/configuracion/perfil" element={<Distributivo />} />
+        <Route path="/AdjuntarDistributivo" element={<Distributivo />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/login" />} />

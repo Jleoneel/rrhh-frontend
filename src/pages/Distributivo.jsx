@@ -1,6 +1,8 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { useOutletContext } from "react-router-dom";
+
 import {
   Upload,
   FileSpreadsheet,
@@ -71,6 +73,25 @@ export default function AdjuntarDistributivo() {
   const [loading, setLoading] = useState(false);
   const [sync, setSync] = useState(null);
   const [filasExcel, setFilasExcel] = useState(null);
+  const { setHeaderConfig } = useOutletContext();
+
+  // Configurar el header al cargar la página
+  useEffect(() => {
+    setHeaderConfig({
+      title: "Carga de Distributivo",
+      showNewAction: false,
+      onNewAction: null,
+    });
+
+    // Limpiar al desmontar
+    return () => {
+      setHeaderConfig({
+        title: "Dashboard",
+        showNewAction: false,
+        onNewAction: null,
+      });
+    };
+  }, [setHeaderConfig]);
 
   const pickFile = () => {
     inputRef.current?.click();
@@ -157,10 +178,10 @@ export default function AdjuntarDistributivo() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+        {/* Header de la página - Título visible pero el del layout ya está configurado */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-3">
-            <div className="p-4 bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl shadow-xl shadow-purple-200">
+            <div className="p-4 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-xl shadow-blue-200">
               <HardDrive className="h-8 w-8 text-white" />
             </div>
             <div>
@@ -168,7 +189,7 @@ export default function AdjuntarDistributivo() {
                 Carga de Distributivo
               </h1>
               <div className="flex items-center gap-2 mt-2">
-                <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium border border-purple-200">
+                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium border border-blue-200">
                   <FileSpreadsheet className="inline h-4 w-4 mr-1" />
                   Archivo .xlsx
                 </span>
@@ -190,7 +211,7 @@ export default function AdjuntarDistributivo() {
                 <input
                   ref={inputRef}
                   type="file"
-                  accept=".xls"
+                  accept=".xlsx, .xls"
                   className="hidden"
                   onChange={(e) => setFile(e.target.files?.[0] || null)}
                 />
@@ -198,7 +219,7 @@ export default function AdjuntarDistributivo() {
                 <button
                   type="button"
                   onClick={pickFile}
-                  className="px-6 py-3.5 bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 rounded-xl transition-all flex items-center gap-2 font-medium shadow-sm hover:shadow"
+                  className="px-6 py-3.5 bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 rounded-xl transition-all flex items-center gap-2 font-medium shadow-sm hover:shad"
                 >
                   <Upload className="h-5 w-5" />
                   Seleccionar archivo
@@ -238,7 +259,7 @@ export default function AdjuntarDistributivo() {
                   type="button"
                   onClick={handleUpload}
                   disabled={loading || !file}
-                  className="px-6 py-3.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl hover:from-purple-700 hover:to-purple-800 shadow-lg hover:shadow-xl transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium min-w-[200px] justify-center"
+                  className="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium min-w-[200px] justify-center"
                 >
                   {loading ? (
                     <>

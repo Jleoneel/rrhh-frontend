@@ -36,7 +36,7 @@ export default function Sidebar() {
     }]: []),
     {
       title: "Adjuntar Distributivo",
-      path: "/configuracion/perfil",
+      path: "/AdjuntarDistributivo",
       icon: <Settings size={20} />,
       // submenu: [
       //   { title: "Adjuntar distributivo", path: "/configuracion/perfil" },
