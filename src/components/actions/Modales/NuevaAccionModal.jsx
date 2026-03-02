@@ -125,6 +125,10 @@ export default function NuevaAccionModal({
         const { accion, propuesta } = data;
 
         // Actualizar el form con los datos de la acción
+        // Incluimos proceso_institucional y nivel_gestion en situacionActual para que se muestren en los selects
+        const procesoId = propuesta?.proceso_institucional_id ?? null;
+        const nivelId = propuesta?.nivel_gestion_id ?? null;
+
         setForm((p) => ({
           ...p,
           accionId: accion.id,
@@ -141,11 +145,19 @@ export default function NuevaAccionModal({
           detalleTipoAccion: accion.tipo_accion_otro_detalle || "",
           numeroElaboracion: accion.numero_elaboracion || null,
 
-          proceso_institucional_id: propuesta?.proceso_institucional_id ?? null,
-          nivel_gestion_id: propuesta?.nivel_gestion_id ?? null,
+          proceso_institucional_id: procesoId,
+          nivel_gestion_id: nivelId,
+
+          situacionActual: {
+            ...(p.situacionActual || {}),
+            proceso_institucional_id: procesoId,
+            nivel_gestion_id: nivelId,
+          },
 
           situacionPropuesta: propuesta
             ? {
+                proceso_institucional_id: propuesta.proceso_institucional_id ?? procesoId,
+                nivel_gestion_id: propuesta?.nivel_gestion_id ?? nivelId,
                 unidad_organica_id: propuesta.unidad_organica_id ?? null,
                 denominacion_puesto_id:
                   propuesta.denominacion_puesto_id ?? null,
@@ -629,6 +641,8 @@ export default function NuevaAccionModal({
         presentoDeclaracionJurada: form.presentoDeclaracionJurada,
         procesoInstitucionalId:
           form.situacionActual?.proceso_institucional_id ?? null,
+        nivelGestionId: form.situacionActual?.nivel_gestion_id ?? null,
+
       };
 
       // 2. Construir datos de propuesta
@@ -1417,13 +1431,36 @@ export default function NuevaAccionModal({
                                 <Building2 className="h-5 w-5" />
                               </div>
                               <div>
-                                <p className="text-sm text-blue-300">
+                                <p className="text-sm text-gray-300">
                                   Nivel de Gestión
                                 </p>
-                                <p className="text-lg font-bold mt-1">
-                                  {form.situacionActual?.nivel_gestion ||
-                                    "No especificado"}
-                                </p>
+                                <div className="mt-1">
+                                  <SelectPremium
+                                    options={catNiveles.map((x) => ({
+                                      value: x.id,
+                                      label: x.nombre,
+                                    }))}
+                                    value={getSelectValue(
+                                      catNiveles,
+                                      form.situacionActual
+                                        ?.nivel_gestion_id,
+                                    )}
+                                    onChange={(opt) =>
+                                      setForm((p) => ({
+                                        ...p,
+                                        situacionActual: {
+                                          ...p.situacionActual,
+                                          nivel_gestion_id:
+                                            opt?.value ?? null,
+                                          nivel_gestion:
+                                            opt?.label ?? null,
+                                        },
+                                      }))
+                                    }
+                                    placeholder="Seleccione..."
+                                    isSearchable
+                                  />
+                                </div>
                               </div>
                             </div>
                             <p className="text-xs text-blue-400">

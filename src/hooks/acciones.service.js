@@ -27,6 +27,7 @@ export const crearAccion = async ({
   motivo,
   presentoDeclaracionJurada = false,
   procesoInstitucionalId = null,
+  nivelGestionId = null,
 
 }) => {
   const procesoId = procesoInstitucionalId  || null;
@@ -41,6 +42,7 @@ export const crearAccion = async ({
     motivo,
     presentoDeclaracionJurada,
     procesoInstitucionalId: procesoId,
+    nivelGestionId: nivelGestionId,
   };
 
   const res = await api.post("/acciones", payload);
@@ -67,6 +69,7 @@ export const updateAccion = async (accionId, data) => {
     // 🔥 ESTA ES LA CLAVE
     procesoInstitucionalId:
       data.situacionActual?.proceso_institucional_id ?? null,
+    nivelGestionId: data.situacionActual?.nivel_gestion_id ?? null,
   };
 
   const res = await api.put(`/acciones/${accionId}`, payload);
