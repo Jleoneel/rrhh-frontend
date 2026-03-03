@@ -8,13 +8,14 @@ export const AuthProvider = ({ children }) => {
   );
   const [token, setToken] = useState(localStorage.getItem("token"));
 
+  // Guardar token y usuario en el localStorage y actualizar el estado
   const login = (token, firmante) => {
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(firmante));
     setToken(token);
     setUser(firmante);
   };
-
+  // Eliminar token y usuario del localStorage y actualizar el estado
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");

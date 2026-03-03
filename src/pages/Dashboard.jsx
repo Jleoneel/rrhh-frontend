@@ -148,7 +148,7 @@ export default function Dashboard() {
             </p>
             {resumen.aprobadas === 0 && (
               <p className="text-orange-600 mt-1">
-                ⚠️ No hay acciones aprobadas aún.
+                No hay acciones aprobadas aún.
               </p>
             )}
           </div>
@@ -160,13 +160,13 @@ export default function Dashboard() {
         <h2 className="text-xl font-semibold mb-4">Resumen Ejecutivo</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-4 bg-blue-50 rounded-lg">
-            <h3 className="font-medium text-blue-800 mb-1">📈 Productividad</h3>
+            <h3 className="font-medium text-blue-800 mb-1">Productividad</h3>
             <p className="text-sm text-blue-700">
               {porcentajeAprobadas}% de las acciones han sido procesadas.
             </p>
           </div>
           <div className="p-4 bg-green-50 rounded-lg">
-            <h3 className="font-medium text-green-800 mb-1">⚡ Velocidad</h3>
+            <h3 className="font-medium text-green-800 mb-1">Velocidad</h3>
             <p className="text-sm text-green-700">
               {resumen.en_revision === 0
                 ? "Sin pendientes"

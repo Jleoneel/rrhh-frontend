@@ -1,6 +1,5 @@
 export default function Modal({ open, title, children, onClose }) {
   if (!open) return null;
-  // En tu Modal.jsx component, agrega tamaños:
   const Modal = ({ open, onClose, children, size = "md" }) => {
     const sizes = {
       sm: "max-w-md",
@@ -12,7 +11,6 @@ export default function Modal({ open, title, children, onClose }) {
     };
 
     return (
-      // ... tu código de modal existente
       <div className={`${sizeClasses[size]} w-full`}>{/* contenido */}</div>
     );
   };

@@ -19,6 +19,7 @@ import Swal from "sweetalert2";
 
 const API = "http://localhost:3001/api";
 
+// Función para formatear bytes a KB o MB
 function formatBytes(bytes = 0) {
   const mb = bytes / 1024 / 1024;
   if (mb >= 1) return `${mb.toFixed(2)} MB`;
@@ -26,6 +27,7 @@ function formatBytes(bytes = 0) {
   return `${kb.toFixed(0)} KB`;
 }
 
+// Función para obtener el ícono según la extensión del archivo
 function getFileIcon(filename = "") {
   const ext = filename.split(".").pop()?.toLowerCase() || "";
 
@@ -37,6 +39,7 @@ function getFileIcon(filename = "") {
   return <FileArchive className="h-5 w-5 text-gray-500" />;
 }
 
+// Componente principal del modal de anexos
 export default function AnexosModal({ open, onClose, accion, maxFiles = 5 }) {
   const accionId = accion?.id;
   const canEdit = accion?.estado === "BORRADOR";
@@ -89,6 +92,7 @@ export default function AnexosModal({ open, onClose, accion, maxFiles = 5 }) {
     }
   }, [open, accionId]);
 
+  // Manejo de selección de archivos
   const handleFileSelect = (filesList) => {
     const files = Array.from(filesList || []);
     if (!files.length) return;
@@ -156,6 +160,7 @@ export default function AnexosModal({ open, onClose, accion, maxFiles = 5 }) {
     }
   };
 
+  // Eliminar un archivo seleccionado antes de subir
   const removeSelected = (index) => {
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
@@ -221,6 +226,7 @@ export default function AnexosModal({ open, onClose, accion, maxFiles = 5 }) {
     }
   };
 
+  // Eliminar un anexo guardado
   const onDeleteAnexo = async (anexoId) => {
     if (!canEdit) return;
 

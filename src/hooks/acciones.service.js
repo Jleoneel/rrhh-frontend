@@ -1,8 +1,6 @@
 import api from "../api/axios";
 
-/**
- * Listar acciones (tabla principal)
- */
+//* Servicio para manejar acciones de personal */
 export const getAcciones = async (filters = {}) => {
   const params = Object.fromEntries(
     Object.entries(filters).filter(
@@ -14,9 +12,7 @@ export const getAcciones = async (filters = {}) => {
   return response.data;
 };
 
-/**
- * Crear acción de personal (BORRADOR)
- */
+//crear acción principal (BORRADOR)
 export const crearAccion = async ({
   cedula,
   puestoId = null,
