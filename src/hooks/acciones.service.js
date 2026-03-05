@@ -61,8 +61,6 @@ export const updateAccion = async (accionId, data) => {
     rigeHasta: data.rigeHasta,
     motivo: data.motivo,
     presentoDeclaracionJurada: data.presentoDeclaracionJurada,
-
-    // 🔥 ESTA ES LA CLAVE
     procesoInstitucionalId:
       data.situacionActual?.proceso_institucional_id ?? null,
     nivelGestionId: data.situacionActual?.nivel_gestion_id ?? null,

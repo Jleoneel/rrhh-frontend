@@ -1,5 +1,6 @@
 import { useAuth } from "../../auth/AuthContext";
 import { PlusCircle, Calendar } from "lucide-react";
+import { FirmaNotificacionesBell } from "../Layout/FirmaNotificacionesBell";
 
 export default function Header({ 
   title, 
@@ -28,7 +29,10 @@ export default function Header({
                 <span className="font-semibold hidden sm:inline">Nueva acción</span>
               </button>
             )}
-            
+
+            {/* 🔔 Notificaciones de firma */}
+            <FirmaNotificacionesBell />
+
             {/* Perfil del usuario */}
             <div className="flex items-center gap-3 pl-3 border-l border-gray-300">
               <div className="relative">

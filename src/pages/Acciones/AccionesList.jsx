@@ -5,6 +5,7 @@ import AccionesFilters from "../../components/actions/AccionesFilters";
 import AccionesTable from "../../components/actions/AccionesTable";
 import NuevaAccionModal from "../../components/actions/Modales/NuevaAccionModal";
 import AnexosModal from "../../components/actions/Modales/AnexosModal";
+import Swal from "sweetalert2"; // Importar SweetAlert2
 
 const initialFilters = {
   estado: "",
@@ -32,7 +33,11 @@ export default function AccionesList() {
       const data = await getAcciones(currentFilters);
       setAcciones(data);
     } catch (err) {
-      console.error("Error cargando acciones:", err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudieron cargar las acciones. Intente nuevamente.',
+      });
     } finally {
       setLoading(false);
     }
@@ -45,9 +50,9 @@ export default function AccionesList() {
         setUser(JSON.parse(userData));
       } catch (e) {
         console.error("Error parsing user from localStorage:", e);
+        // Opcional: mostrar SweetAlert también
       }
     }
-    // Configurar header del layout
     setHeaderConfig({
       title: "Acciones de Personal",
       showNewAction: true,
@@ -56,7 +61,6 @@ export default function AccionesList() {
 
     fetchAcciones();
 
-    // Cleanup opcional: al salir, restablecer header
     return () => {
       setHeaderConfig({
         title: "Dashboard",
@@ -71,7 +75,6 @@ export default function AccionesList() {
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Función para editar
   const handleEdit = (accion) => {
     setSelectedAccionId(accion.id);
     setOpenEditModal(true);
@@ -96,7 +99,7 @@ export default function AccionesList() {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        },
+        }
       );
 
       if (!response.ok) {
@@ -108,17 +111,29 @@ export default function AccionesList() {
 
       const a = document.createElement("a");
       a.href = url;
-      console.log(accion);
-
       a.download = `Accion_Personal_${accion.codigo_elaboracion}.pdf`;
       document.body.appendChild(a);
       a.click();
       a.remove();
 
       window.URL.revokeObjectURL(url);
+      
+      // Opcional: mostrar éxito
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: 'Descarga iniciada',
+        text: 'El PDF se está descargando.',
+        timer: 2000,
+        showConfirmButton: false
+      });
     } catch (error) {
-      console.error(error);
-      alert("No se pudo descargar el PDF");
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo descargar el PDF',
+      });
     }
   };
 
@@ -148,7 +163,7 @@ export default function AccionesList() {
             onDownload={handleDownload}
             onAnexos={handleOpenAnexos}
             onEdit={handleEdit}
-            esAsistenteUATH={esAsistenteUATH} // ← Pasa esta prop
+            esAsistenteUATH={esAsistenteUATH}
           />
         )}
       </div>
