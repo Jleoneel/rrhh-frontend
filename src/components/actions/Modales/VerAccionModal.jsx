@@ -122,27 +122,40 @@ const puedeNotificar = useMemo(() => {
     cargarAnexos();
   }, [open, accionId]);
 
-  // Cargar notificación
-  useEffect(() => {
-    if (!open || !accionId) return;
-    const cargarNotificacion = async () => {
-      setLoadingNotificacion(true);
-      try {
-        const data = await getNotificacionByAccion(accionId);
-        setNotificacion(data);
-      } catch { setNotificacion(null); }
-      finally { setLoadingNotificacion(false); }
-    };
-    cargarNotificacion();
-  }, [open, accionId]);
+  // Cargar notificación — SOLO si está APROBADO
+useEffect(() => {
+  if (!open || !accionId) return;
 
-  // Handler para éxito de notificación
-  const handleNotificacionSuccess = async () => {
+  // ← Aquí está el fix: no consultar si no está aprobado
+  const estadoActual = (detalleAccion || accion)?.estado;
+  if (estadoActual !== "APROBADO") return;
+
+  const cargarNotificacion = async () => {
+    setLoadingNotificacion(true);
     try {
       const data = await getNotificacionByAccion(accionId);
       setNotificacion(data);
-    } catch { setNotificacion(null); }
+    } catch {
+      setNotificacion(null);
+    } finally {
+      setLoadingNotificacion(false);
+    }
   };
+
+  cargarNotificacion();
+}, [open, accionId, detalleAccion, accion]); // ← agrega detalleAccion y accion como dependencias
+
+const handleNotificacionSuccess = async () => {
+  const estadoActual = (detalleAccion || accion)?.estado;
+  if (estadoActual !== "APROBADO") return;
+
+  try {
+    const data = await getNotificacionByAccion(accionId);
+    setNotificacion(data);
+  } catch {
+    setNotificacion(null);
+  }
+};
 
   const handleDownloadFirmado = (archivo_path) => {
     if (!archivo_path) return;

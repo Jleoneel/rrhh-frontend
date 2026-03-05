@@ -126,49 +126,49 @@ export default function NuevaAccionModal({
 
         // Actualizar el form con los datos de la acción
         // Incluimos proceso_institucional y nivel_gestion en situacionActual para que se muestren en los selects
-        const procesoId = propuesta?.proceso_institucional_id ?? null;
-        const nivelId = propuesta?.nivel_gestion_id ?? null;
+        // ✅ Separar los IDs de actual y propuesta
+const procesoActualId = accion.proceso_institucional_id ?? null;
+const nivelActualId = accion.nivel_gestion_id ?? null;
 
-        setForm((p) => ({
-          ...p,
-          accionId: accion.id,
-          cedula: accion.cedula || "",
-          servidorNombre: accion.servidor_nombre || "",
-          rigeDesde: accion.rige_desde
-            ? String(accion.rige_desde).slice(0, 10)
-            : "",
-          rigeHasta: accion.rige_hasta
-            ? String(accion.rige_hasta).slice(0, 10)
-            : "",
-          motivo: accion.motivo || "",
-          presentoDeclaracionJurada: accion.presento_declaracion_jurada ?? null,
-          detalleTipoAccion: accion.tipo_accion_otro_detalle || "",
-          numeroElaboracion: accion.numero_elaboracion || null,
+const procesoPropuestaId = propuesta?.proceso_institucional_id ?? null;
+const nivelPropuestaId = propuesta?.nivel_gestion_id ?? null;
 
-          proceso_institucional_id: procesoId,
-          nivel_gestion_id: nivelId,
+setForm((p) => ({
+  ...p,
+  accionId: accion.id,
+  cedula: accion.cedula || "",
+  servidorNombre: accion.servidor_nombre || "",
+  rigeDesde: accion.rige_desde ? String(accion.rige_desde).slice(0, 10) : "",
+  rigeHasta: accion.rige_hasta ? String(accion.rige_hasta).slice(0, 10) : "",
+  motivo: accion.motivo || "",
+  presentoDeclaracionJurada: accion.presento_declaracion_jurada ?? null,
+  detalleTipoAccion: accion.tipo_accion_otro_detalle || "",
+  numeroElaboracion: accion.numero_elaboracion || null,
 
-          situacionActual: {
-            ...(p.situacionActual || {}),
-            proceso_institucional_id: procesoId,
-            nivel_gestion_id: nivelId,
-          },
+  // ← Actual usa los de accion_personal
+  proceso_institucional_id: procesoActualId,
+  nivel_gestion_id: nivelActualId,
 
-          situacionPropuesta: propuesta
-            ? {
-                proceso_institucional_id: propuesta.proceso_institucional_id ?? procesoId,
-                nivel_gestion_id: propuesta?.nivel_gestion_id ?? nivelId,
-                unidad_organica_id: propuesta.unidad_organica_id ?? null,
-                denominacion_puesto_id:
-                  propuesta.denominacion_puesto_id ?? null,
-                escala_ocupacional_id: propuesta.escala_ocupacional_id ?? null,
-                lugar_trabajo: propuesta.lugar_trabajo || "",
-                grado: propuesta.grado ?? null,
-                rmu_puesto: propuesta.rmu_puesto ?? null,
-                partida_individual: propuesta.partida_individual || null,
-              }
-            : null,
-        }));
+  situacionActual: {
+    ...(p.situacionActual || {}),
+    proceso_institucional_id: procesoActualId, // ← de accion_personal
+    nivel_gestion_id: nivelActualId,           // ← de accion_personal
+  },
+
+  situacionPropuesta: propuesta
+    ? {
+        proceso_institucional_id: procesoPropuestaId, // ← de propuesta
+        nivel_gestion_id: nivelPropuestaId,           // ← de propuesta
+        unidad_organica_id: propuesta.unidad_organica_id ?? null,
+        denominacion_puesto_id: propuesta.denominacion_puesto_id ?? null,
+        escala_ocupacional_id: propuesta.escala_ocupacional_id ?? null,
+        lugar_trabajo: propuesta.lugar_trabajo || "",
+        grado: propuesta.grado ?? null,
+        rmu_puesto: propuesta.rmu_puesto ?? null,
+        partida_individual: propuesta.partida_individual || null,
+      }
+    : null,
+}));
 
         // Guardar el nombre del tipo para resolverlo cuando tipos estén cargados
         if (accion.tipo_accion_nombre) {
@@ -307,38 +307,54 @@ export default function NuevaAccionModal({
   };
 
   const cargarSituacionActual = async (cedula) => {
-    try {
-      const { data } = await api.get(`/servidores/${cedula}/situacion-actual`);
-      const actual = {
-        unidad_organica_id: data.unidad_organica_id,
-        unidad_organica: data.unidad_organica,
-        denominacion_puesto_id: data.denominacion_puesto_id,
-        denominacion_puesto: data.denominacion_puesto,
-        escala_ocupacional_id: data.escala_ocupacional_id,
-        grupo_ocupacional: data.grupo_ocupacional,
-        lugar_trabajo: data.lugar_trabajo,
-        grado: data.grado,
-        rmu_puesto: data.rmu_puesto,
-        partida_individual: data.partida_individual,
-        proceso_institucional: data.proceso_institucional,
-        nivel_gestion: data.nivel_gestion,
-        proceso_institucional_id: data.proceso_institucional_id,
-        nivel_gestion_id: data.nivel_gestion_id,
-      };
+  try {
+    const { data } = await api.get(`/servidores/${cedula}/situacion-actual`);
+    const actual = {
+      unidad_organica_id: data.unidad_organica_id,
+      unidad_organica: data.unidad_organica,
+      denominacion_puesto_id: data.denominacion_puesto_id,
+      denominacion_puesto: data.denominacion_puesto,
+      escala_ocupacional_id: data.escala_ocupacional_id,
+      grupo_ocupacional: data.grupo_ocupacional,
+      lugar_trabajo: data.lugar_trabajo,
+      grado: data.grado,
+      rmu_puesto: data.rmu_puesto,
+      partida_individual: data.partida_individual,
+      proceso_institucional: data.proceso_institucional,
+      nivel_gestion: data.nivel_gestion,
+      proceso_institucional_id: data.proceso_institucional_id,
+      nivel_gestion_id: data.nivel_gestion_id,
+    };
 
-      setForm((prev) => ({
+    setForm((prev) => {
+      // En modo edit: respetar los IDs que ya vienen de la acción guardada
+      // En modo create: usar los que vienen del servidor
+      const procesoId = mode === "edit"
+        ? (prev.proceso_institucional_id ?? data.proceso_institucional_id)
+        : data.proceso_institucional_id;
+
+      const nivelId = mode === "edit"
+        ? (prev.nivel_gestion_id ?? data.nivel_gestion_id)
+        : data.nivel_gestion_id;
+
+      return {
         ...prev,
         servidorId: data.servidor_id,
         puestoId: data.puesto_id,
-        situacionActual: actual,
-        proceso_institucional_id:
-          prev.proceso_institucional_id || data.proceso_institucional_id,
-        nivel_gestion_id: prev.nivel_gestion_id || data.nivel_gestion_id,
-      }));
-    } catch (err) {
-      console.error("Error cargando situación actual:", err);
-    }
-  };
+        situacionActual: {
+          ...actual,
+          // ← Sobrescribir con los valores correctos según el modo
+          proceso_institucional_id: procesoId,
+          nivel_gestion_id: nivelId,
+        },
+        proceso_institucional_id: procesoId,
+        nivel_gestion_id: nivelId,
+      };
+    });
+  } catch (err) {
+    console.error("Error cargando situación actual:", err);
+  }
+};
 
   const validateCedula = (cedula) => {
     if (!cedula) return "La cédula es requerida";
@@ -674,7 +690,7 @@ export default function NuevaAccionModal({
         if (datosPropuesta) {
           try {
             await api.put(`/acciones/${result.accion_id}/propuesta`, {
-              proceso_institucional_id: datosPropuesta.proceso_institucional_id,
+              proceso_institucional: datosPropuesta.proceso_institucional_id,
               nivel_gestion: datosPropuesta.nivel_gestion_id,
               unidad_organica_id: datosPropuesta.unidad_organica_id,
               denominacion_puesto_id: datosPropuesta.denominacion_puesto_id,
