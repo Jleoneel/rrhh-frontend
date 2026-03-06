@@ -667,7 +667,7 @@ setForm((p) => ({
           ? {
               proceso_institucional_id:
   form.situacionPropuesta?.proceso_institucional_id ?? null,
-              nivel_gestion_id: form.nivel_gestion_id,
+              nivel_gestion_id: form.situacionPropuesta?.nivel_gestion_id ?? null,
               unidad_organica_id:
                 form.situacionPropuesta.unidad_organica_id || null,
               denominacion_puesto_id:
@@ -1566,13 +1566,16 @@ setForm((p) => ({
                                 label: x.nombre,
                               }))}
                               value={getSelectValue(
-                                catNiveles,
-                                form.nivel_gestion_id,
+                                catNiveles, form.situacionPropuesta?.nivel_gestion_id,
                               )}
                               onChange={(opt) =>
                                 setForm((p) => ({
                                   ...p,
-                                  nivel_gestion_id: opt?.value ?? null,
+                                  situacionPropuesta: {
+                                    ...p.situacionPropuesta,
+                                    nivel_gestion_id:
+                                      opt?.value ?? null,
+                                  },
                                 }))
                               }
                             />
@@ -2347,7 +2350,7 @@ setForm((p) => ({
                                 value={
                                   catProcesos.find(
                                     (p) =>
-                                      p.id === form.proceso_institucional_id,
+                                      p.id === form.situacionPropuesta?.proceso_institucional_id,
                                   )?.nombre || "No especificado"
                                 }
                                 highlight
@@ -2357,7 +2360,7 @@ setForm((p) => ({
                                 label="Nivel de Gestión"
                                 value={
                                   catNiveles.find(
-                                    (n) => n.id === form.nivel_gestion_id,
+                                    (n) => n.id === form.situacionPropuesta?.nivel_gestion_id,
                                   )?.nombre || "No especificado"
                                 }
                                 highlight
