@@ -5,7 +5,7 @@ import AccionesFilters from "../../components/actions/AccionesFilters";
 import AccionesTable from "../../components/actions/AccionesTable";
 import NuevaAccionModal from "../../components/actions/Modales/NuevaAccionModal";
 import AnexosModal from "../../components/actions/Modales/AnexosModal";
-import Swal from "sweetalert2"; // Importar SweetAlert2
+import Swal from "sweetalert2";
 
 const initialFilters = {
   estado: "",
@@ -50,7 +50,6 @@ export default function AccionesList() {
         setUser(JSON.parse(userData));
       } catch (e) {
         console.error("Error parsing user from localStorage:", e);
-        // Opcional: mostrar SweetAlert también
       }
     }
     setHeaderConfig({
@@ -68,7 +67,6 @@ export default function AccionesList() {
         onNewAction: null,
       });
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleChange = (name, value) => {

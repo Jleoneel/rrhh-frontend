@@ -14,7 +14,7 @@ export default function AccionesTable({
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [sortConfig, setSortConfig] = useState({
     key: "codigo_elaboracion",
-    direction: "desc", // ← por defecto mayor a menor
+    direction: "desc",
   });
   const [viewOpen, setViewOpen] = useState(false);
   const [selectedAccion, setSelectedAccion] = useState(null);

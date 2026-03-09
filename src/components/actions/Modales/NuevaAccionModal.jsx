@@ -123,52 +123,50 @@ export default function NuevaAccionModal({
       try {
         const { data } = await api.get(`/acciones/${accionId}`);
         const { accion, propuesta } = data;
+        const procesoActualId = accion.proceso_institucional_id ?? null;
+        const nivelActualId = accion.nivel_gestion_id ?? null;
+        const procesoPropuestaId = propuesta?.proceso_institucional_id ?? null;
+        const nivelPropuestaId = propuesta?.nivel_gestion_id ?? null;
 
-        // Actualizar el form con los datos de la acción
-        // Incluimos proceso_institucional y nivel_gestion en situacionActual para que se muestren en los selects
-        // ✅ Separar los IDs de actual y propuesta
-const procesoActualId = accion.proceso_institucional_id ?? null;
-const nivelActualId = accion.nivel_gestion_id ?? null;
+        setForm((p) => ({
+          ...p,
+          accionId: accion.id,
+          cedula: accion.cedula || "",
+          servidorNombre: accion.servidor_nombre || "",
+          rigeDesde: accion.rige_desde
+            ? String(accion.rige_desde).slice(0, 10)
+            : "",
+          rigeHasta: accion.rige_hasta
+            ? String(accion.rige_hasta).slice(0, 10)
+            : "",
+          motivo: accion.motivo || "",
+          presentoDeclaracionJurada: accion.presento_declaracion_jurada ?? null,
+          detalleTipoAccion: accion.tipo_accion_otro_detalle || "",
+          numeroElaboracion: accion.numero_elaboracion || null,
+          proceso_institucional_id: procesoActualId,
+          nivel_gestion_id: nivelActualId,
 
-const procesoPropuestaId = propuesta?.proceso_institucional_id ?? null;
-const nivelPropuestaId = propuesta?.nivel_gestion_id ?? null;
+          situacionActual: {
+            ...(p.situacionActual || {}),
+            proceso_institucional_id: procesoActualId,
+            nivel_gestion_id: nivelActualId,
+          },
 
-setForm((p) => ({
-  ...p,
-  accionId: accion.id,
-  cedula: accion.cedula || "",
-  servidorNombre: accion.servidor_nombre || "",
-  rigeDesde: accion.rige_desde ? String(accion.rige_desde).slice(0, 10) : "",
-  rigeHasta: accion.rige_hasta ? String(accion.rige_hasta).slice(0, 10) : "",
-  motivo: accion.motivo || "",
-  presentoDeclaracionJurada: accion.presento_declaracion_jurada ?? null,
-  detalleTipoAccion: accion.tipo_accion_otro_detalle || "",
-  numeroElaboracion: accion.numero_elaboracion || null,
-
-  // ← Actual usa los de accion_personal
-  proceso_institucional_id: procesoActualId,
-  nivel_gestion_id: nivelActualId,
-
-  situacionActual: {
-    ...(p.situacionActual || {}),
-    proceso_institucional_id: procesoActualId, // ← de accion_personal
-    nivel_gestion_id: nivelActualId,           // ← de accion_personal
-  },
-
-  situacionPropuesta: propuesta
-    ? {
-        proceso_institucional_id: procesoPropuestaId, // ← de propuesta
-        nivel_gestion_id: nivelPropuestaId,           // ← de propuesta
-        unidad_organica_id: propuesta.unidad_organica_id ?? null,
-        denominacion_puesto_id: propuesta.denominacion_puesto_id ?? null,
-        escala_ocupacional_id: propuesta.escala_ocupacional_id ?? null,
-        lugar_trabajo: propuesta.lugar_trabajo || "",
-        grado: propuesta.grado ?? null,
-        rmu_puesto: propuesta.rmu_puesto ?? null,
-        partida_individual: propuesta.partida_individual || null,
-      }
-    : null,
-}));
+          situacionPropuesta: propuesta
+            ? {
+                proceso_institucional_id: procesoPropuestaId,
+                nivel_gestion_id: nivelPropuestaId,
+                unidad_organica_id: propuesta.unidad_organica_id ?? null,
+                denominacion_puesto_id:
+                  propuesta.denominacion_puesto_id ?? null,
+                escala_ocupacional_id: propuesta.escala_ocupacional_id ?? null,
+                lugar_trabajo: propuesta.lugar_trabajo || "",
+                grado: propuesta.grado ?? null,
+                rmu_puesto: propuesta.rmu_puesto ?? null,
+                partida_individual: propuesta.partida_individual || null,
+              }
+            : null,
+        }));
 
         // Guardar el nombre del tipo para resolverlo cuando tipos estén cargados
         if (accion.tipo_accion_nombre) {
@@ -307,54 +305,55 @@ setForm((p) => ({
   };
 
   const cargarSituacionActual = async (cedula) => {
-  try {
-    const { data } = await api.get(`/servidores/${cedula}/situacion-actual`);
-    const actual = {
-      unidad_organica_id: data.unidad_organica_id,
-      unidad_organica: data.unidad_organica,
-      denominacion_puesto_id: data.denominacion_puesto_id,
-      denominacion_puesto: data.denominacion_puesto,
-      escala_ocupacional_id: data.escala_ocupacional_id,
-      grupo_ocupacional: data.grupo_ocupacional,
-      lugar_trabajo: data.lugar_trabajo,
-      grado: data.grado,
-      rmu_puesto: data.rmu_puesto,
-      partida_individual: data.partida_individual,
-      proceso_institucional: data.proceso_institucional,
-      nivel_gestion: data.nivel_gestion,
-      proceso_institucional_id: data.proceso_institucional_id,
-      nivel_gestion_id: data.nivel_gestion_id,
-    };
+    try {
+      const { data } = await api.get(`/servidores/${cedula}/situacion-actual`);
+      const actual = {
+        unidad_organica_id: data.unidad_organica_id,
+        unidad_organica: data.unidad_organica,
+        denominacion_puesto_id: data.denominacion_puesto_id,
+        denominacion_puesto: data.denominacion_puesto,
+        escala_ocupacional_id: data.escala_ocupacional_id,
+        grupo_ocupacional: data.grupo_ocupacional,
+        lugar_trabajo: data.lugar_trabajo,
+        grado: data.grado,
+        rmu_puesto: data.rmu_puesto,
+        partida_individual: data.partida_individual,
+        proceso_institucional: data.proceso_institucional,
+        nivel_gestion: data.nivel_gestion,
+        proceso_institucional_id: data.proceso_institucional_id,
+        nivel_gestion_id: data.nivel_gestion_id,
+      };
 
-    setForm((prev) => {
-      // En modo edit: respetar los IDs que ya vienen de la acción guardada
-      // En modo create: usar los que vienen del servidor
-      const procesoId = mode === "edit"
-        ? (prev.proceso_institucional_id ?? data.proceso_institucional_id)
-        : data.proceso_institucional_id;
+      setForm((prev) => {
+        // En modo edit: respetar los IDs que ya vienen de la acción guardada
+        // En modo create: usar los que vienen del servidor
+        const procesoId =
+          mode === "edit"
+            ? (prev.proceso_institucional_id ?? data.proceso_institucional_id)
+            : data.proceso_institucional_id;
 
-      const nivelId = mode === "edit"
-        ? (prev.nivel_gestion_id ?? data.nivel_gestion_id)
-        : data.nivel_gestion_id;
+        const nivelId =
+          mode === "edit"
+            ? (prev.nivel_gestion_id ?? data.nivel_gestion_id)
+            : data.nivel_gestion_id;
 
-      return {
-        ...prev,
-        servidorId: data.servidor_id,
-        puestoId: data.puesto_id,
-        situacionActual: {
-          ...actual,
-          // ← Sobrescribir con los valores correctos según el modo
+        return {
+          ...prev,
+          servidorId: data.servidor_id,
+          puestoId: data.puesto_id,
+          situacionActual: {
+            ...actual,
+            proceso_institucional_id: procesoId,
+            nivel_gestion_id: nivelId,
+          },
           proceso_institucional_id: procesoId,
           nivel_gestion_id: nivelId,
-        },
-        proceso_institucional_id: procesoId,
-        nivel_gestion_id: nivelId,
-      };
-    });
-  } catch (err) {
-    console.error("Error cargando situación actual:", err);
-  }
-};
+        };
+      });
+    } catch (err) {
+      console.error("Error cargando situación actual:", err);
+    }
+  };
 
   const validateCedula = (cedula) => {
     if (!cedula) return "La cédula es requerida";
@@ -658,7 +657,6 @@ setForm((p) => ({
         procesoInstitucionalId:
           form.situacionActual?.proceso_institucional_id ?? null,
         nivelGestionId: form.situacionActual?.nivel_gestion_id ?? null,
-
       };
 
       // 2. Construir datos de propuesta
@@ -666,8 +664,9 @@ setForm((p) => ({
         form.tipoAccion?.requiere_propuesta && form.situacionPropuesta
           ? {
               proceso_institucional_id:
-  form.situacionPropuesta?.proceso_institucional_id ?? null,
-              nivel_gestion_id: form.situacionPropuesta?.nivel_gestion_id ?? null,
+                form.situacionPropuesta?.proceso_institucional_id ?? null,
+              nivel_gestion_id:
+                form.situacionPropuesta?.nivel_gestion_id ?? null,
               unidad_organica_id:
                 form.situacionPropuesta.unidad_organica_id || null,
               denominacion_puesto_id:
@@ -759,7 +758,6 @@ setForm((p) => ({
         if (onSuccess) await onSuccess();
         handleClose();
       } else {
-        // 🔵 MODO EDIT: Un solo PUT con propuesta incluida
         const payloadEdit = {
           ...datosAccion,
           propuesta: datosPropuesta,
@@ -1458,18 +1456,15 @@ setForm((p) => ({
                                     }))}
                                     value={getSelectValue(
                                       catNiveles,
-                                      form.situacionActual
-                                        ?.nivel_gestion_id,
+                                      form.situacionActual?.nivel_gestion_id,
                                     )}
                                     onChange={(opt) =>
                                       setForm((p) => ({
                                         ...p,
                                         situacionActual: {
                                           ...p.situacionActual,
-                                          nivel_gestion_id:
-                                            opt?.value ?? null,
-                                          nivel_gestion:
-                                            opt?.label ?? null,
+                                          nivel_gestion_id: opt?.value ?? null,
+                                          nivel_gestion: opt?.label ?? null,
                                         },
                                       }))
                                     }
@@ -1566,15 +1561,15 @@ setForm((p) => ({
                                 label: x.nombre,
                               }))}
                               value={getSelectValue(
-                                catNiveles, form.situacionPropuesta?.nivel_gestion_id,
+                                catNiveles,
+                                form.situacionPropuesta?.nivel_gestion_id,
                               )}
                               onChange={(opt) =>
                                 setForm((p) => ({
                                   ...p,
                                   situacionPropuesta: {
                                     ...p.situacionPropuesta,
-                                    nivel_gestion_id:
-                                      opt?.value ?? null,
+                                    nivel_gestion_id: opt?.value ?? null,
                                   },
                                 }))
                               }
@@ -2350,7 +2345,9 @@ setForm((p) => ({
                                 value={
                                   catProcesos.find(
                                     (p) =>
-                                      p.id === form.situacionPropuesta?.proceso_institucional_id,
+                                      p.id ===
+                                      form.situacionPropuesta
+                                        ?.proceso_institucional_id,
                                   )?.nombre || "No especificado"
                                 }
                                 highlight
@@ -2360,7 +2357,9 @@ setForm((p) => ({
                                 label="Nivel de Gestión"
                                 value={
                                   catNiveles.find(
-                                    (n) => n.id === form.situacionPropuesta?.nivel_gestion_id,
+                                    (n) =>
+                                      n.id ===
+                                      form.situacionPropuesta?.nivel_gestion_id,
                                   )?.nombre || "No especificado"
                                 }
                                 highlight

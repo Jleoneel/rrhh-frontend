@@ -30,7 +30,7 @@ export default function Header({
               </button>
             )}
 
-            {/* 🔔 Notificaciones de firma */}
+            {/*Notificaciones de firma */}
             <FirmaNotificacionesBell />
 
             {/* Perfil del usuario */}

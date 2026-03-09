@@ -1,4 +1,3 @@
-// src/components/actions/modals/VerAccionModal.jsx
 import { useEffect, useMemo, useState } from "react";
 import Modal from "../../ui/Modal";
 import api from "../../../api/axios";
@@ -63,20 +62,17 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
     return pendiente.cargo_id === user.cargo_id;
   }, [pendiente, user]);
 
-const puedeNotificar = useMemo(() => {
-  if (!user?.cargo_id) return false;
+  const puedeNotificar = useMemo(() => {
+    if (!user?.cargo_id) return false;
 
-  const estadoActual = (detalleAccion || accion)?.estado;
+    const estadoActual = (detalleAccion || accion)?.estado;
 
-  if (estadoActual !== "APROBADO") return false;
+    if (estadoActual !== "APROBADO") return false;
 
-  const cargosPermitidos = [
-    "ASISTENTE DE LA UATH",
-    "RESPONSABLE DE LA UATH",
-  ];
+    const cargosPermitidos = ["ASISTENTE DE LA UATH", "RESPONSABLE DE LA UATH"];
 
-  return cargosPermitidos.includes(user.cargo_nombre);
-}, [user, detalleAccion, accion]);  
+    return cargosPermitidos.includes(user.cargo_nombre);
+  }, [user, detalleAccion, accion]);
 
   const progreso = useMemo(() => {
     const total = firmas.length || 0;
@@ -123,39 +119,39 @@ const puedeNotificar = useMemo(() => {
   }, [open, accionId]);
 
   // Cargar notificación — SOLO si está APROBADO
-useEffect(() => {
-  if (!open || !accionId) return;
+  useEffect(() => {
+    if (!open || !accionId) return;
 
-  // ← Aquí está el fix: no consultar si no está aprobado
-  const estadoActual = (detalleAccion || accion)?.estado;
-  if (estadoActual !== "APROBADO") return;
+    //no consultar si no está aprobado
+    const estadoActual = (detalleAccion || accion)?.estado;
+    if (estadoActual !== "APROBADO") return;
 
-  const cargarNotificacion = async () => {
-    setLoadingNotificacion(true);
+    const cargarNotificacion = async () => {
+      setLoadingNotificacion(true);
+      try {
+        const data = await getNotificacionByAccion(accionId);
+        setNotificacion(data);
+      } catch {
+        setNotificacion(null);
+      } finally {
+        setLoadingNotificacion(false);
+      }
+    };
+
+    cargarNotificacion();
+  }, [open, accionId, detalleAccion, accion]);
+
+  const handleNotificacionSuccess = async () => {
+    const estadoActual = (detalleAccion || accion)?.estado;
+    if (estadoActual !== "APROBADO") return;
+
     try {
       const data = await getNotificacionByAccion(accionId);
       setNotificacion(data);
     } catch {
       setNotificacion(null);
-    } finally {
-      setLoadingNotificacion(false);
     }
   };
-
-  cargarNotificacion();
-}, [open, accionId, detalleAccion, accion]); // ← agrega detalleAccion y accion como dependencias
-
-const handleNotificacionSuccess = async () => {
-  const estadoActual = (detalleAccion || accion)?.estado;
-  if (estadoActual !== "APROBADO") return;
-
-  try {
-    const data = await getNotificacionByAccion(accionId);
-    setNotificacion(data);
-  } catch {
-    setNotificacion(null);
-  }
-};
 
   const handleDownloadFirmado = (archivo_path) => {
     if (!archivo_path) return;
@@ -236,42 +232,40 @@ const handleNotificacionSuccess = async () => {
     }
   };
 
-const handleDeleteFirmado = async (firmaId) => {
-  const result = await Swal.fire({
-    title: "¿Eliminar documento firmado?",
-    text: "Esta acción no se puede deshacer",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#3085d6",
-    confirmButtonText: "Sí, eliminar",
-    cancelButtonText: "Cancelar"
-  });
+  const handleDeleteFirmado = async (firmaId) => {
+    const result = await Swal.fire({
+      title: "¿Eliminar documento firmado?",
+      text: "Esta acción no se puede deshacer",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
 
-  if (result.isConfirmed) {
-    try {
-
-await api.delete(`/firmas/acciones/${accionId}/firmas/${firmaId}`);
-      await refreshFirmas();
-      if (onChanged) await onChanged();
-      Swal.fire({
-        toast: true,
-        icon: "success",
-        title: "Documento eliminado",
-        showConfirmButton: false,
-        timer: 1500,
-        position: "top-end"
-      });
-    } catch (e) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: e.response?.data?.message || "No se pudo eliminar el documento",
-      });
+    if (result.isConfirmed) {
+      try {
+        await api.delete(`/firmas/acciones/${accionId}/firmas/${firmaId}`);
+        await refreshFirmas();
+        if (onChanged) await onChanged();
+        Swal.fire({
+          toast: true,
+          icon: "success",
+          title: "Documento eliminado",
+          showConfirmButton: false,
+          timer: 1500,
+          position: "top-end",
+        });
+      } catch (e) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: e.response?.data?.message || "No se pudo eliminar el documento",
+        });
+      }
     }
-  }
-};
-
+  };
 
   const handleDownloadAnexo = async (anexoId) => {
     try {
@@ -560,7 +554,7 @@ await api.delete(`/firmas/acciones/${accionId}/firmas/${firmaId}`);
                           handleDownloadFirmado(f.documento_path)
                         }
                         onDelete={handleDeleteFirmado}
-                          user={user}
+                        user={user}
                       />
                     ))
                 ) : (
@@ -685,14 +679,14 @@ await api.delete(`/firmas/acciones/${accionId}/firmas/${firmaId}`);
               Cerrar
             </button>
             {puedeNotificar && (
-  <button
-    onClick={() => setOpenNotificacionModal(true)}
-    className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all flex items-center gap-2"
-  >
-    <Bell size={18} />
-    {notificacion ? "Ver Notificación" : "Registrar Notificación"}
-  </button>
-)}
+              <button
+                onClick={() => setOpenNotificacionModal(true)}
+                className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all flex items-center gap-2"
+              >
+                <Bell size={18} />
+                {notificacion ? "Ver Notificación" : "Registrar Notificación"}
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-2 text-sm text-gray-600 bg-white/60 px-4 py-2 rounded-lg">
@@ -732,8 +726,6 @@ function MiniInfo({ icon: Icon, label, value }) {
 function FirmaRow({ firma, isPending, onDownload, onDelete, user }) {
   const isFirmado = firma.estado === "FIRMADO";
   const puedeEliminar = user?.cargo_id === firma.cargo_id;
-
-
 
   return (
     <div
@@ -806,32 +798,30 @@ function FirmaRow({ firma, isPending, onDownload, onDelete, user }) {
       </div>
 
       {/* Botón de descarga */}
-      
 
-{isFirmado && firma.documento_path && (
-  <div className="flex gap-2">
-    {/* Botón Descargar - visible para todos */}
-    <button
-      onClick={onDownload}
-      className="p-2.5 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg text-gray-700 hover:text-blue-600 transition-colors flex-shrink-0"
-      title="Ver PDF firmado"
-    >
-      <Download size={18} />
-    </button>
+      {isFirmado && firma.documento_path && (
+        <div className="flex gap-2">
+          {/* Botón Descargar - visible para todos */}
+          <button
+            onClick={onDownload}
+            className="p-2.5 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg text-gray-700 hover:text-blue-600 transition-colors flex-shrink-0"
+            title="Ver PDF firmado"
+          >
+            <Download size={18} />
+          </button>
 
-    {/* Botón Eliminar - solo para quien firmó */}
-    {puedeEliminar && (
-      <button
-        onClick={() => onDelete(firma.id)}
-        className="p-2.5 bg-white hover:bg-red-50 border border-gray-200 rounded-lg text-gray-700 hover:text-red-600 transition-colors flex-shrink-0"
-        title="Eliminar documento"
-      >
-        <Trash2 size={18} />
-      </button>
-    )}
-  </div>
-)}
-
+          {/* Botón Eliminar - solo para quien firmó */}
+          {puedeEliminar && (
+            <button
+              onClick={() => onDelete(firma.id)}
+              className="p-2.5 bg-white hover:bg-red-50 border border-gray-200 rounded-lg text-gray-700 hover:text-red-600 transition-colors flex-shrink-0"
+              title="Eliminar documento"
+            >
+              <Trash2 size={18} />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

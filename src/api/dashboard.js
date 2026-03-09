@@ -13,5 +13,3 @@ const dashboardAPI = {
 };
 
 export default dashboardAPI;
-
-//dafaaf

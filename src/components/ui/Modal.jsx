@@ -8,7 +8,7 @@ const sizes = {
   xl: "max-w-5xl",
   "2xl": "max-w-6xl",
   "3xl": "max-w-7xl",
-  "4xl": "max-w-5xl", // ← cambia esto, era lo que tenías antes
+  "4xl": "max-w-5xl",
 };
 
 export default function Modal({
