@@ -1,11 +1,11 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import MainLayout from "./components/Layout/MainLayout";
-import ProtectedRoute from "./auth/ProtectedRoute";
-import AccionesList from "./pages/Acciones/AccionesList";
-import GestionUsuarios from "./components/usuarios/GestionFirmantes";
-import Distributivo from "./pages/Distributivo";
+import Login from "./features/auth/pages/Login";
+import Dashboard from "./features/dashboard/pages/Dashboard";
+import MainLayout from "./shared/components/Layout/MainLayout";
+import ProtectedRoute from "./features/auth/ProtectedRoute";
+import AccionesList from "./features/acciones/pages/AccionesList";
+import GestionUsuarios from "./features/firmantes/components/GestionFirmantes";
+import Distributivo from "./features/distributivo/pages/Distributivo";
 
 export default function App() {
   return (
