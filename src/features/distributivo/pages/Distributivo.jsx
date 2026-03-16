@@ -132,7 +132,7 @@ export default function AdjuntarDistributivo() {
       });
 
       const { data } = await axios.post(
-        "http://localhost:3001/api/distributivo/import",
+        "/api/distributivo/import",
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );

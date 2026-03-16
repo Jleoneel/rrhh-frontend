@@ -34,9 +34,9 @@ export default function AccionesList() {
       setAcciones(data);
     } catch (err) {
       Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'No se pudieron cargar las acciones. Intente nuevamente.',
+        icon: "error",
+        title: "Error",
+        text: "No se pudieron cargar las acciones. Intente nuevamente.",
       });
     } finally {
       setLoading(false);
@@ -90,15 +90,12 @@ export default function AccionesList() {
 
   const handleDownload = async (accion) => {
     try {
-      const response = await fetch(
-        `http://localhost:3001/api/acciones/${accion.id}/pdf`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const response = await fetch(`/api/acciones/${accion.id}/pdf`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error("Error al generar el PDF");
@@ -115,22 +112,22 @@ export default function AccionesList() {
       a.remove();
 
       window.URL.revokeObjectURL(url);
-      
+
       // Opcional: mostrar éxito
       Swal.fire({
         toast: true,
-        position: 'top-end',
-        icon: 'success',
-        title: 'Descarga iniciada',
-        text: 'El PDF se está descargando.',
+        position: "top-end",
+        icon: "success",
+        title: "Descarga iniciada",
+        text: "El PDF se está descargando.",
         timer: 2000,
-        showConfirmButton: false
+        showConfirmButton: false,
       });
     } catch (error) {
       Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'No se pudo descargar el PDF',
+        icon: "error",
+        title: "Error",
+        text: "No se pudo descargar el PDF",
       });
     }
   };

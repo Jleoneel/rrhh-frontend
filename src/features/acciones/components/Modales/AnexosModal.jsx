@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import Swal from "sweetalert2";
 
-const API = "http://localhost:3001/api";
+const API = "/api";
 
 // Función para formatear bytes a KB o MB
 function formatBytes(bytes = 0) {

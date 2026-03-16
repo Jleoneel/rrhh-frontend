@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../../shared/api/axios"; // ajusta la ruta según tu proyecto
 
-const API_BASE = "http://localhost:3001";
+const API_BASE = "";
 
 export function useFirmaNotificaciones() {
   const [notificaciones, setNotificaciones] = useState([]);
