@@ -46,6 +46,7 @@ const Badge = ({ children, variant = "default" }) => {
   );
 };
 
+// eslint-disable-next-line no-unused-vars
 const StatCard = ({ label, value, icon: Icon, color = "blue", trend }) => {
   const colors = {
     blue: "from-blue-500 to-blue-600",
@@ -77,7 +78,7 @@ const StatCard = ({ label, value, icon: Icon, color = "blue", trend }) => {
   );
 };
 
-const FirmanteRow = ({ firmante, onEdit, onToggleActive, onDisable }) => {
+const FirmanteRow = ({ firmante, onEdit, onToggleActive }) => {
   return (
     <tr className="group hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-transparent transition-all duration-300">
       <td className="py-5 px-6">
@@ -160,14 +161,6 @@ const FirmanteRow = ({ firmante, onEdit, onToggleActive, onDisable }) => {
             ) : (
               <Eye className="h-4 w-4" />
             )}
-          </button>
-
-          <button
-            onClick={onDisable}
-            className="p-2.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl transition-all duration-200 hover:scale-110 shadow-sm hover:shadow-md"
-            title="Desactivar permanentemente"
-          >
-            <Trash2 className="h-4 w-4" />
           </button>
         </div>
       </td>
@@ -269,9 +262,9 @@ export default function GestionFirmantesUATH() {
         position: "top-end",
         background: "#ffffff",
         color: "#1f2937",
-      });
+      }); 
       return;
-    }
+    } 
 
     if (!validarCedula(form.cedula)) {
       Swal.fire({
@@ -300,6 +293,7 @@ export default function GestionFirmantesUATH() {
       });
       return;
     }
+    
 
     try {
       if (modalMode === "crear") {
@@ -386,58 +380,6 @@ export default function GestionFirmantesUATH() {
       Swal.fire({
         title: "Error",
         text: error.response?.data?.message || "No se pudo cambiar el estado",
-        icon: "error",
-        confirmButtonColor: "#3b82f6",
-        background: "#ffffff",
-        color: "#1f2937",
-      });
-    }
-  };
-
-  const desactivarComoEliminar = async (f) => {
-    const confirm = await Swal.fire({
-      title: "¿Desactivar usuario UATH?",
-      html: `
-        <div class="text-left">
-          <div class="flex items-center gap-3 p-4 bg-amber-50 rounded-xl border border-amber-200 mb-4">
-            <AlertCircle class="h-6 w-6 text-amber-600 flex-shrink-0" />
-            <p class="text-sm text-amber-800 font-medium">Recomendamos desactivar en lugar de eliminar para mantener la integridad de los registros históricos.</p>
-          </div>
-          <div class="p-5 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-200">
-            <p class="text-sm text-gray-600 mb-3"><span class="font-semibold text-gray-900">Nombre:</span> ${f.nombre}</p>
-            <p class="text-sm text-gray-600"><span class="font-semibold text-gray-900">Cédula:</span> ${f.cedula}</p>
-          </div>
-        </div>
-      `,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Sí, desactivar",
-      cancelButtonText: "Cancelar",
-      confirmButtonColor: "#ef4444",
-      cancelButtonColor: "#6b7280",
-      background: "#ffffff",
-      color: "#1f2937",
-      reverseButtons: true,
-    });
-    if (!confirm.isConfirmed) return;
-
-    try {
-      await api.put(`/firmantes/${f.id}`, { activo: false });
-      Swal.fire({
-        toast: true,
-        text: "✓ Usuario UATH desactivado permanentemente",
-        icon: "success",
-        showConfirmButton: false,
-        timer: 2000,
-        position: "top-end",
-        background: "#ffffff",
-        color: "#1f2937",
-      });
-      cargarFirmantes();
-    } catch (error) {
-      Swal.fire({
-        title: "Error",
-        text: error.response?.data?.message || "No se pudo desactivar",
         icon: "error",
         confirmButtonColor: "#3b82f6",
         background: "#ffffff",
@@ -632,7 +574,6 @@ export default function GestionFirmantesUATH() {
                         firmante={f}
                         onEdit={() => abrirEditar(f)}
                         onToggleActive={() => toggleActivo(f)}
-                        onDisable={() => desactivarComoEliminar(f)}
                       />
                     ))}
                   </tbody>

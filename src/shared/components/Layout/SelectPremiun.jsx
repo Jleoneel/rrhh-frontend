@@ -82,10 +82,12 @@ export default function SelectPremium({
   icon: Icon,
   className = '',
 }) {
-  const formatOptionLabel = ({ label, value, icon }) => (
+  // Eliminamos 'value' de aquí porque no se usa, y 'icon' ahora se usa como Icon
+
+  const formatOptionLabel = (option) => (
     <div className="flex items-center gap-3">
       {Icon && <Icon className="h-4 w-4 text-gray-400" />}
-      <span>{label}</span>
+      <span>{option.label}</span>
     </div>
   );
 

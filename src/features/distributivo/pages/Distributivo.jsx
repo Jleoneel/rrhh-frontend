@@ -1,8 +1,7 @@
 import { useRef, useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../../shared/api/axios"; 
 import Swal from "sweetalert2";
 import { useOutletContext } from "react-router-dom";
-
 import {
   Upload,
   FileSpreadsheet,
@@ -16,11 +15,11 @@ import {
   Layers,
   ChevronRight,
   X,
-  Download,
   RefreshCw,
   HardDrive,
 } from "lucide-react";
 
+// eslint-disable-next-line no-unused-vars
 function StatCard({ title, value, icon: Icon, color = "blue" }) {
   const colors = {
     blue: "from-blue-500 to-blue-600",
@@ -46,6 +45,7 @@ function StatCard({ title, value, icon: Icon, color = "blue" }) {
   );
 }
 
+// eslint-disable-next-line no-unused-vars
 function SectionCard({ title, description, icon: Icon, children }) {
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
@@ -131,8 +131,8 @@ export default function AdjuntarDistributivo() {
         color: "#1f2937",
       });
 
-      const { data } = await axios.post(
-        "/api/distributivo/import",
+      const { data } = await api.post(
+        "/distributivo/import",
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );

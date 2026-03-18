@@ -9,8 +9,13 @@ export default function GraficoEstadoDonut({ data }) {
   
   const [animacion, setAnimacion] = useState(false);
 
+  // setTimeout para evitar el setState síncrono
   useEffect(() => {
-    setAnimacion(true);
+    const timer = setTimeout(() => {
+      setAnimacion(true);
+    }, 100); 
+    
+    return () => clearTimeout(timer);
   }, [data]);
 
   const estados = [
@@ -32,7 +37,7 @@ export default function GraficoEstadoDonut({ data }) {
         opacity: animacion ? 1 : 0,
       }}
     >
-      <div className="flex flex-col md:flex-row \-center justify-between gap-6">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-6">
         {/* Donut Chart */}
         <div className="relative w-48 h-48">
           <svg className="w-full h-full" viewBox="0 0 200 200">
@@ -46,7 +51,7 @@ export default function GraficoEstadoDonut({ data }) {
             />
 
             {estados.map((estado, index) => {
-              const porcentaje = (estado.valor / total) * 100;
+              const porcentaje = total > 0 ? (estado.valor / total) * 100 : 0;
               const longitud = (porcentaje / 100) * circunferencia;
               const offset = offsetAcumulado;
               offsetAcumulado += longitud;
@@ -91,7 +96,7 @@ export default function GraficoEstadoDonut({ data }) {
         {/* Leyenda */}
         <div className="flex-1 space-y-3">
           {estados.map((estado, index) => {
-            const porcentaje = (estado.valor / total) * 100;
+            const porcentaje = total > 0 ? (estado.valor / total) * 100 : 0;
 
             return (
               <div key={index} className="flex items-center justify-between">

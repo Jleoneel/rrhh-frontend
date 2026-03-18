@@ -6,7 +6,7 @@ import { User, LockKeyhole, Eye, EyeOff } from "lucide-react";
 import Swal from "sweetalert2";
 
 const Login = () => {
-  const { login, isAuthenticated } = useAuth();
+  const { login } = useAuth();
   const [cedula, setCedula] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -63,13 +63,6 @@ const Login = () => {
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
-  useEffect(() => {
-    const savedCedula = localStorage.getItem("remember_cedula");
-    if (savedCedula) {
-      setCedula(savedCedula);
-      setRemember(true);
-    }
-  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-white to-black-100 p-4 bg-gradient-to-b from-blue-700 to-blue-800">

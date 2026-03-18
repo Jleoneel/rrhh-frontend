@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import Swal from "sweetalert2";
 
-const API = "/api";
+const API = `${import.meta.env.VITE_API_URL || ""}/api`;
 
 // Función para formatear bytes a KB o MB
 function formatBytes(bytes = 0) {
@@ -126,7 +126,7 @@ export default function AnexosModal({ open, onClose, accion, maxFiles = 5 }) {
     if (errors.length > 0) {
       Swal.fire({
         title: "Archivos no válidos",
-        html: `<div class="text-left"><p class="mb-2">Los siguientes archivos no pudieron ser agregados:</p><ul class="list-disc pl-5 text-sm">${errors.map(e => `<li>${e}</li>`).join('')}</ul></div>`,
+        html: `<div class="text-left"><p class="mb-2">Los siguientes archivos no pudieron ser agregados:</p><ul class="list-disc pl-5 text-sm">${errors.map((e) => `<li>${e}</li>`).join("")}</ul></div>`,
         icon: "warning",
         confirmButtonColor: "#3b82f6",
       });
@@ -196,7 +196,7 @@ export default function AnexosModal({ open, onClose, accion, maxFiles = 5 }) {
 
       setSelectedFiles([]);
       await loadAnexos();
-      
+
       Swal.fire({
         toast: true,
         title: "¡Éxito!",
@@ -207,11 +207,10 @@ export default function AnexosModal({ open, onClose, accion, maxFiles = 5 }) {
         timerProgressBar: true,
         position: "top-end",
       });
-      
+
       setTimeout(() => {
         setUploadProgress(0);
       }, 500);
-      
     } catch (e) {
       console.error(e);
       Swal.fire({
@@ -279,7 +278,7 @@ export default function AnexosModal({ open, onClose, accion, maxFiles = 5 }) {
 
   const onDownload = (anexoId) => {
     window.open(
-      `${API}/acciones/${accionId}/anexos/${anexoId}/descargar`,
+      `${import.meta.env.VITE_API_URL || ""}/api/acciones/${accionId}/anexos/${anexoId}/descargar`,
       "_blank",
     );
   };

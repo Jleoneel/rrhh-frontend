@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import api from "../../../shared/api/axios"; // ajusta la ruta según tu proyecto
+import api from "../../../shared/api/axios";
 
-const API_BASE = "";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 export function useFirmaNotificaciones() {
   const [notificaciones, setNotificaciones] = useState([]);
@@ -19,7 +19,7 @@ export function useFirmaNotificaciones() {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    // EventSource no soporta headers, token va por query param
+    // endpoint SSE que emite nuevas notificaciones para el usuario autenticado
     const es = new EventSource(
       `${API_BASE}/api/firma-notificaciones/stream?token=${token}`,
     );

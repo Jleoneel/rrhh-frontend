@@ -1,5 +1,4 @@
-import { Search, Filter, X, Calendar, User, FileText, Download } from "lucide-react";
-import { useState } from "react";
+import { Search, X, Calendar, User, FileText } from "lucide-react";
 
 export default function AccionesFilters({ filters, onChange, onBuscar, onLimpiar }) {
   return (
@@ -97,7 +96,7 @@ export default function AccionesFilters({ filters, onChange, onBuscar, onLimpiar
             <button
               type="button"
               onClick={onLimpiar}
-              className="flex items-center gap-2 px-3 py-2 border-1 border-gray-300 text-gray-700 hover:bg-gray-100 hover:border-gray-100 rounded-xl font-medium transition-all duration-300"
+              className="flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-100 hover:border-gray-100 rounded-xl font-medium transition-all duration-300"
             >
               <X size={18} />
               <span>Limpiar filtros</span>

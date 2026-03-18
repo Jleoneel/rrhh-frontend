@@ -15,8 +15,6 @@ export default function Dashboard() {
   const [resumen, setResumen] = useState(null);
   const [loading, setLoading] = useState(true);
 
-
-  // Y en el useEffect:
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {

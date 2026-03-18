@@ -17,12 +17,9 @@ import {
   User,
   ShieldCheck,
   Paperclip,
-  Building2,
   Calendar,
   Trash2,
   Bell,
-  Mail,
-  PenTool,
 } from "lucide-react";
 
 export default function VerAccionModal({ open, accion, onClose, onChanged }) {
@@ -36,7 +33,6 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
 
   // Estados para notificación
   const [notificacion, setNotificacion] = useState(null);
-  const [loadingNotificacion, setLoadingNotificacion] = useState(false);
   const [openNotificacionModal, setOpenNotificacionModal] = useState(false);
 
   //HOOK DE FIRMAS
@@ -127,14 +123,11 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
     if (estadoActual !== "APROBADO") return;
 
     const cargarNotificacion = async () => {
-      setLoadingNotificacion(true);
       try {
         const data = await getNotificacionByAccion(accionId);
         setNotificacion(data);
       } catch {
         setNotificacion(null);
-      } finally {
-        setLoadingNotificacion(false);
       }
     };
 
