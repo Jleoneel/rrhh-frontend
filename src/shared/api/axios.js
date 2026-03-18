@@ -19,11 +19,20 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status;
+    const url = error.config?.url || "";
 
-    if (status === 401) {
+    const rutasExcluidas = [
+      "auth/login",
+      "auth/cambiar-password",
+    ];
+
+    const esRutaExcluida = rutasExcluidas.some((ruta) => url.includes(ruta));
+
+    if (status === 401 && !esRutaExcluida) {
       localStorage.clear();
       window.location.href = "/login";
     }
+
     return Promise.reject(error);
   },
 );
