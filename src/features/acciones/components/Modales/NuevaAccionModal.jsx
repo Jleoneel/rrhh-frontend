@@ -519,13 +519,7 @@ export default function NuevaAccionModal({
     const rigeDesde = new Date(form.rigeDesde);
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
-
-    // Solo validar en modo create
-    if (mode === "create" && rigeDesde < hoy) {
-      setError("La fecha 'RIGE desde' no puede ser anterior a hoy.");
-      return;
-    }
-
+    
     if (form.rigeHasta) {
       const rigeHasta = new Date(form.rigeHasta);
       if (rigeHasta <= rigeDesde) {
@@ -1196,7 +1190,6 @@ export default function NuevaAccionModal({
                         <input
                           type="date"
                           value={form.rigeDesde || ""}
-                          min={mode === "create" ? today : undefined}
                           onChange={(e) =>
                             setForm((p) => ({
                               ...p,
