@@ -3,7 +3,6 @@ import {
   Search,
   UserPlus,
   Edit,
-  Trash2,
   CheckCircle,
   XCircle,
   RefreshCw,
@@ -16,12 +15,8 @@ import {
   Check,
   Shield,
   Lock,
-  Mail,
-  Phone,
-  Calendar,
   ChevronDown,
   Filter,
-  Download,
   AlertCircle,
 } from "lucide-react";
 import api from "../../../shared/api/axios";
@@ -79,6 +74,12 @@ const StatCard = ({ label, value, icon: Icon, color = "blue", trend }) => {
 };
 
 const FirmanteRow = ({ firmante, onEdit, onToggleActive }) => {
+  const cargoColor = {
+    "ASISTENTE DE LA UATH": "info",
+    "RESPONSABLE DE LA UATH": "warning",
+    "JEFE DE AREA": "success",
+    "ADMINISTRADOR DEL SISTEMA": "default",
+  };
   return (
     <tr className="group hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-transparent transition-all duration-300">
       <td className="py-5 px-6">
@@ -117,24 +118,10 @@ const FirmanteRow = ({ firmante, onEdit, onToggleActive }) => {
       </td>
 
       <td className="py-5 px-6">
-        <Badge variant="info">
+        <Badge variant={cargoColor[firmante.cargo_nombre] || "default"}>
           <Shield className="h-4 w-4" />
-          ASISTENTE UATH
+          {firmante.cargo_nombre || "Sin cargo"}
         </Badge>
-      </td>
-
-      <td className="py-5 px-6">
-        {firmante.activo ? (
-          <Badge variant="success">
-            <CheckCircle className="h-4 w-4" />
-            Activo
-          </Badge>
-        ) : (
-          <Badge variant="error">
-            <XCircle className="h-4 w-4" />
-            Inactivo
-          </Badge>
-        )}
       </td>
 
       <td className="py-5 px-6">
@@ -186,6 +173,7 @@ export default function GestionFirmantesUATH() {
     nombre: "",
     password: "",
     activo: true,
+    cargo: "ASISTENTE DE LA UATH",
   });
 
   useEffect(() => {
@@ -235,7 +223,7 @@ export default function GestionFirmantesUATH() {
   const abrirCrear = () => {
     setModalMode("crear");
     setEditando(null);
-    setForm({ cedula: "", nombre: "", password: "", activo: true });
+    setForm({ cedula: "", nombre: "", password: "", activo: true, cargo: "ASISTENTE DE LA UATH" });
     setModalOpen(true);
   };
 
@@ -262,9 +250,9 @@ export default function GestionFirmantesUATH() {
         position: "top-end",
         background: "#ffffff",
         color: "#1f2937",
-      }); 
+      });
       return;
-    } 
+    }
 
     if (!validarCedula(form.cedula)) {
       Swal.fire({
@@ -293,7 +281,6 @@ export default function GestionFirmantesUATH() {
       });
       return;
     }
-    
 
     try {
       if (modalMode === "crear") {
@@ -301,6 +288,7 @@ export default function GestionFirmantesUATH() {
           cedula: form.cedula,
           nombre: form.nombre,
           password: form.password,
+          cargo: form.cargo,
         });
 
         Swal.fire({
@@ -714,28 +702,57 @@ export default function GestionFirmantesUATH() {
             </div>
 
             {modalMode === "crear" && (
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-gray-700">
-                  Contraseña inicial <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type="password"
-                    value={form.password}
+              <>
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Cargo <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={form.cargo}
                     onChange={(e) =>
-                      setForm((prev) => ({ ...prev, password: e.target.value }))
+                      setForm((prev) => ({ ...prev, cargo: e.target.value }))
                     }
-                    className="w-full border-2 border-gray-300 rounded-xl pl-11 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    placeholder="••••••••"
-                  />
+                    className="w-full border-2 border-gray-300 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="ASISTENTE DE LA UATH">
+                      Asistente de la UATH
+                    </option>
+                    <option value="RESPONSABLE DE LA UATH">
+                      Responsable de la UATH
+                    </option>
+                    <option value="JEFE DE AREA">Jefe de Área</option>
+                    <option value="ADMINISTRADOR DEL SISTEMA">
+                      Administrador del Sistema
+                    </option>
+                  </select>
                 </div>
-                <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
-                  <AlertCircle className="h-4 w-4" />
-                  El firmante podrá cambiar su contraseña después del primer
-                  inicio de sesión
-                </p>
-              </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Contraseña inicial <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <input
+                      type="password"
+                      value={form.password}
+                      onChange={(e) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          password: e.target.value,
+                        }))
+                      }
+                      className="w-full border-2 border-gray-300 rounded-xl pl-11 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="••••••••"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <AlertCircle className="h-4 w-4" />
+                    El usuario podrá cambiar su contraseña después del primer
+                    inicio de sesión
+                  </p>
+                </div>
+              </>
             )}
 
             {modalMode === "editar" && (

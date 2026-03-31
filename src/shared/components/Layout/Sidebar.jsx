@@ -1,12 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
-  Building2,
-  LayoutDashboard,
-  FileText,
-  Settings,
-  Users,
-  ChevronLeft,
-} from "lucide-react";
+  LayoutDashboard, FileText, Settings, ChevronLeft,ClipboardList, ChevronDown, ClipboardCheck,} from "lucide-react";
 import LogoutButton from "./logoutButton";
 import { useAuth } from "../../../features/auth/AuthContext";
 import { useState } from "react";
@@ -15,142 +9,144 @@ export default function Sidebar() {
   const { user: Firmante } = useAuth();
   const location = useLocation();
   const [expanded, setExpanded] = useState(true);
-  const puedeVerUsuarios = Firmante?.cargo_nombre === "ADMINISTRADOR DEL SISTEMA";
+  const [openMenus, setOpenMenus] = useState({});
 
+  const tipoUsuario = Firmante?.tipo_usuario || "FIRMANTE";
+  const cargoNombre = Firmante?.cargo_nombre || "";
+  const puedeVerUsuarios = cargoNombre === "ADMINISTRADOR DEL SISTEMA";
+  const es_jefe = Firmante?.es_jefe || false;
 
-  const menuItems = [
-    {
-      title: "Dashboard",
-      path: "/dashboard",
-      icon: <LayoutDashboard size={20} />,
-    },
-    {
-      title: "Acciones de Personal",
-      path: "/acciones",
-      icon: <FileText size={20} />,
-    },
-    ...(puedeVerUsuarios ? [{
-      title: "Usuarios",
-      path: "/GestionUsuarios",
-      icon: <Users size={20} />,
-    }]: []),
-    {
-      title: "Adjuntar Distributivo",
-      path: "/AdjuntarDistributivo",
-      icon: <Settings size={20} />,
-      // submenu: [
-      //   { title: "Adjuntar distributivo", path: "/configuracion/perfil" },
-      //   { title: "Permisos", path: "/configuracion/permisos" },
-      // ],
-    },
-  ];
+  const toggleMenu = (title) => {
+    setOpenMenus(prev => ({ ...prev, [title]: !prev[title] }));
+  };
+
+  const isSubmenuActive = (submenu) =>
+    submenu?.some(sub => location.pathname === sub.path);
+
+  const menuItems = tipoUsuario === "SERVIDOR"
+    ? [
+        {
+          title: "Mis Permisos",
+          path: "/servidor/permisos",
+          icon: <ClipboardList size={20} />,
+        },
+      ]
+    : [
+        {
+          title: "Dashboard",
+          path: "/dashboard",
+          icon: <LayoutDashboard size={20} />,
+        },
+        {
+          title: "Acciones de Personal",
+          icon: <FileText size={20} />,
+          submenu: [
+            { title: "Lista de Acciones", path: "/acciones" },
+          ],
+        },
+        {
+          title: "Permisos",
+          icon: <ClipboardCheck size={20} />,
+          submenu: [
+            { title: "Gestión Permisos", path: "/permisos/gestion" },
+            { title: "Jefes por Unidad", path: "/permisos/jefes" },
+            ...(es_jefe ? [
+              { title: "Bandeja de Aprobación", path: "/permisos/bandeja" },
+              { title: "Mis Permisos", path: "/permisos/mis-permisos-jefe" },
+            ] : []),
+          ],
+        },
+        {
+          title: "Configuración",
+          icon: <Settings size={20} />,
+          submenu: [
+            { title: "Adjuntar Distributivo", path: "/AdjuntarDistributivo" },
+            ...(puedeVerUsuarios ? [
+              { title: "Usuarios UATH", path: "/GestionUsuarios" },
+            ] : []),
+          ],
+        },
+      ];
 
   return (
-    <aside
-      className={`bg-gradient-to-b from-gray-900 to-gray-800 text-white h-screen flex flex-col transition-all duration-300 ${expanded ? "w-64" : "w-20"}`}
-    >
-      {/* Header con toggle */}
+    <aside className={`bg-gradient-to-b from-gray-900 to-gray-800 text-white h-screen flex flex-col transition-all duration-300 ${expanded ? "w-64" : "w-20"}`}>
+      {/* Header */}
       <div className="p-4 border-b border-gray-700 flex items-center justify-between">
-        <div
-          className={`flex items-center gap-3 ${!expanded && "justify-center"}`}
-        >
-            <img
-              src="/msp2.png"
-              alt="Logo"
-              className={`${expanded ? "w-10 h-10" : "w-5 h-5"} object-contain`}
-            />
-
-
+        <div className={`flex items-center gap-3 ${!expanded && "justify-center"}`}>
+          <img src="/msp2.png" alt="Logo" className={`${expanded ? "w-10 h-10" : "w-5 h-5"} object-contain`} />
           {expanded && (
             <div>
               <h1 className="font-bold text-lg">Talento Humano</h1>
+              <p className="text-xs text-gray-400">
+                {tipoUsuario === "SERVIDOR" ? "Portal Servidor" : "Panel UATH"}
+              </p>
             </div>
           )}
         </div>
-
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="p-1 hover:bg-gray-700 rounded-md"
-          title={expanded ? "Contraer menú" : "Expandir menú"}
-        >
-          <ChevronLeft
-            className={`transition-transform ${expanded ? "" : "rotate-180"}`}
-          />
+        <button onClick={() => setExpanded(!expanded)} className="p-1 hover:bg-gray-700 rounded-md">
+          <ChevronLeft className={`transition-transform ${expanded ? "" : "rotate-180"}`} />
         </button>
       </div>
 
-      {/* Menú principal */}
+      {/* Menú */}
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
         {menuItems.map((item, index) => {
-          const isActive =
-            location.pathname === item.path ||
-            (item.submenu &&
-              item.submenu.some((sub) => location.pathname === sub.path));
+          // Item sin submenu
+          if (!item.submenu) {
+            const isActive = location.pathname === item.path;
+            return (
+              <NavLink
+                key={index}
+                to={item.path}
+                className={`flex items-center gap-3 p-3 rounded-lg transition-all
+                  ${isActive ? "bg-blue-600 text-white shadow-lg" : "hover:bg-gray-700 text-gray-300"}
+                  ${!expanded && "justify-center"}`}
+              >
+                <span className={isActive ? "text-white" : "text-gray-400"}>{item.icon}</span>
+                {expanded && <span>{item.title}</span>}
+              </NavLink>
+            );
+          }
+
+          // Item con submenu
+          const isOpen = openMenus[item.title] ?? isSubmenuActive(item.submenu);
+          const isGroupActive = isSubmenuActive(item.submenu);
 
           return (
             <div key={index}>
-              <NavLink
-                to={item.path}
-                className={`
-                  flex items-center justify-between p-3 rounded-lg transition-all
-                  ${
-                    isActive
-                      ? "bg-blue-600 text-white shadow-lg"
-                      : "hover:bg-gray-700 text-gray-300"
-                  }
-                  ${!expanded && "justify-center"}
-                `}
+              <button
+                onClick={() => expanded && toggleMenu(item.title)}
+                className={`w-full flex items-center justify-between p-3 rounded-lg transition-all
+                  ${isGroupActive ? "bg-gray-700/80 text-white" : "hover:bg-gray-700 text-gray-300"}
+                  ${!expanded && "justify-center"}`}
               >
                 <div className="flex items-center gap-3">
-                  <div
-                    className={`${isActive ? "text-white" : "text-gray-400"}`}
-                  >
-                    {item.icon}
-                  </div>
-                  {expanded && <span>{item.title}</span>}
+                  <span className={isGroupActive ? "text-blue-400" : "text-gray-400"}>{item.icon}</span>
+                  {expanded && <span className="font-medium">{item.title}</span>}
                 </div>
-
-                {/* Badges y notificaciones */}
                 {expanded && (
-                  <div className="flex items-center gap-2">
-                    {item.badge && (
-                      <span className="bg-gray-700 text-xs px-2 py-1 rounded">
-                        {item.badge}
-                      </span>
-                    )}
-                    {item.notification && (
-                      <span className="bg-red-500 text-xs w-5 h-5 flex items-center justify-center rounded-full animate-pulse">
-                        {item.notification}
-                      </span>
-                    )}
-                  </div>
+                  <ChevronDown size={16} className={`text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
                 )}
+              </button>
 
-                {/* Solo mostrar badge cuando está contraído */}
-                {!expanded && item.badge && (
-                  <span className="absolute top-1 right-1 bg-red-500 text-xs w-4 h-4 flex items-center justify-center rounded-full animate-pulse"></span>
-                )}
-              </NavLink>
-
-              {/* Submenú (solo cuando está expandido) */}
-              {expanded && item.submenu && (
-                <div className="ml-8 mt-1 space-y-1">
-                  {item.submenu.map((sub, subIndex) => (
-                    <NavLink
-                      key={subIndex}
-                      to={sub.path}
-                      className={`
-                        block py-2 px-3 text-sm rounded transition-colors
-                        ${
-                          location.pathname === sub.path
-                            ? "bg-blue-900/50 text-blue-300"
-                            : "text-gray-400 hover:text-white hover:bg-gray-800"
-                        }
-                      `}
-                    >
-                      • {sub.title}
-                    </NavLink>
-                  ))}
+              {expanded && isOpen && (
+                <div className="ml-4 mt-1 space-y-1 border-l border-gray-700 pl-3">
+                  {item.submenu.map((sub, subIndex) => {
+                    const isSubActive = location.pathname === sub.path;
+                    return (
+                      <NavLink
+                        key={subIndex}
+                        to={sub.path}
+                        className={`flex items-center gap-2 py-2 px-3 text-sm rounded-lg transition-colors
+                          ${isSubActive
+                            ? "bg-blue-600/20 text-blue-300 font-medium"
+                            : "text-gray-400 hover:text-white hover:bg-gray-700/50"}`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isSubActive ? "bg-blue-400" : "bg-gray-600"}`} />
+                        {sub.title}
+                      </NavLink>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -160,15 +156,10 @@ export default function Sidebar() {
 
       {/* Footer */}
       <div className="border-t border-gray-700 p-4">
-        {expanded ? (
-          <div className="space-y-3">
-            <LogoutButton expanded={true} />
-          </div>
-        ) : (
-          <div className="flex flex-col items-center space-y-4">           
-            <LogoutButton expanded={false} />
-          </div>
-        )}
+        {expanded
+          ? <LogoutButton expanded={true} />
+          : <div className="flex justify-center"><LogoutButton expanded={false} /></div>
+        }
       </div>
     </aside>
   );

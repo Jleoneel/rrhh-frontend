@@ -37,7 +37,13 @@ const Login = () => {
     try {
       const res = await api.post("/auth/login", { cedula, password });
       login(res.data.token, res.data.firmante);
-      navigate("/dashboard", { replace: true });
+      // ← Redirigir según tipo de usuario
+      const tipoUsuario = res.data.firmante?.tipo_usuario;
+      if (tipoUsuario === "SERVIDOR") {
+        navigate("/servidor/permisos", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
       Swal.fire({
         toast: true,
         title: "Sesión iniciada, bienvenido!",
