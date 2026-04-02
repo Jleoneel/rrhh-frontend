@@ -6,6 +6,7 @@ import AccionesTable from "../components/AccionesTable";
 import NuevaAccionModal from "../components/Modales/NuevaAccionModal";
 import AnexosModal from "../components/Modales/AnexosModal";
 import Swal from "sweetalert2";
+import api from "../../../shared/api/axios";
 
 // Constantes para IDs de roles
 const ROLES = {
@@ -100,7 +101,7 @@ export default function AccionesList() {
         onNewAction: null,
       });
     };
-  }, [setHeaderConfig, fetchAcciones]); // Añadir dependencias
+  }, [setHeaderConfig, fetchAcciones]);
 
   // Manejadores de eventos
   const handleChange = (name, value) => {
@@ -235,6 +236,50 @@ export default function AccionesList() {
     setOpenAnexos(true);
   };
 
+const handleInsubsistente = async (accion) => {
+  const result = await Swal.fire({  // ← cambiar a result
+    title: "¿Marcar como insubsistente?",
+    html: `
+      <p class="text-gray-600 mb-3">Acción: <b>${accion.codigo_elaboracion}</b></p>
+      <textarea id="motivo-input" class="swal2-textarea" placeholder="Motivo (opcional)..."></textarea>
+    `,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Sí, marcar",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#dc2626",
+    cancelButtonColor: "#6b7280",
+    preConfirm: () => {
+      return document.getElementById("motivo-input").value || null;
+    },
+  });
+
+  if (!result.isConfirmed) return; // ← verificar isConfirmed
+
+  const motivo = result.value; // ← obtener motivo del result
+
+  try {
+    await api.put(`/acciones/${accion.id}/insubsistente`, { motivo });
+    Swal.fire({
+      toast: true,
+      icon: "success",
+      text: `Acción ${accion.codigo_elaboracion} marcada como insubsistente`,
+      timer: 2500,
+      showConfirmButton: false,
+      position: "top-end",
+    });
+    fetchAcciones();
+  } catch (err) {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: err.response?.data?.message || "No se pudo procesar",
+      confirmButtonColor: "#dc2626",
+    });
+  }
+};
+
+
   const handleModalClose = () => {
     setOpenModal(false);
   };
@@ -255,6 +300,8 @@ export default function AccionesList() {
 
   // Verificar permisos de usuario
   const esAsistenteUATH = user?.cargo_id === ROLES.ASISTENTE_UATH;
+  const esAdmin = user?.es_admin === true; // ← aquí
+
 
   // Renderizado condicional de la tabla
   const renderContent = () => {
@@ -287,6 +334,8 @@ export default function AccionesList() {
         onAnexos={handleOpenAnexos}
         onEdit={handleEdit}
         esAsistenteUATH={esAsistenteUATH}
+           esAdmin={esAdmin}                          // ← nuevo
+    onInsubsistente={handleInsubsistente} 
       />
     );
   };

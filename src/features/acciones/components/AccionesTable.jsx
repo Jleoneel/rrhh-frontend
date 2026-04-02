@@ -1,4 +1,4 @@
-import { Eye, Edit, Filter, Download, Paperclip, FileText } from "lucide-react";
+import { Eye, Edit, Filter, Download, Paperclip, FileText, XCircle } from "lucide-react";
 import EstadoBadge from "./EstadoBadge";
 import { useState } from "react";
 import VerAccionModal from "./Modales/VerAccionModal";
@@ -10,6 +10,8 @@ export default function AccionesTable({
   onDownload,
   onAnexos,
   esAsistenteUATH,
+  esAdmin,
+  onInsubsistente,
 }) {
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [sortConfig, setSortConfig] = useState({
@@ -279,6 +281,15 @@ export default function AccionesTable({
                               title="Descargar PDF"
                             >
                               <Download size={15} />
+                            </button>
+                          )}
+                          {esAdmin && accion.estado !== "INSUBSISTENTE" && (
+                            <button
+                              onClick={() => onInsubsistente?.(accion)}
+                              className="p-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors"
+                              title="Marcar como insubsistente"
+                            >
+                              <XCircle size={15} />
                             </button>
                           )}
                         </div>

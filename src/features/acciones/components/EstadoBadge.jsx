@@ -1,4 +1,10 @@
-import { Clock, CheckCircle, AlertCircle, XCircle, FileEdit } from "lucide-react";
+import {
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  XCircle,
+  FileEdit,
+} from "lucide-react";
 
 export default function EstadoBadge({ estado, showIcon = true, size = "sm" }) {
   const config = {
@@ -8,7 +14,7 @@ export default function EstadoBadge({ estado, showIcon = true, size = "sm" }) {
       border: "border-gray-300",
       icon: <FileEdit size={12} />,
       label: "Borrador",
-      color: "#6b7280"
+      color: "#6b7280",
     },
     EN_FIRMA: {
       bg: "bg-yellow-50",
@@ -16,7 +22,7 @@ export default function EstadoBadge({ estado, showIcon = true, size = "sm" }) {
       border: "border-yellow-200",
       icon: <Clock size={12} />,
       label: "En Firma",
-      color: "#f59e0b"
+      color: "#f59e0b",
     },
     APROBADO: {
       bg: "bg-green-50",
@@ -24,7 +30,7 @@ export default function EstadoBadge({ estado, showIcon = true, size = "sm" }) {
       border: "border-green-200",
       icon: <CheckCircle size={12} />,
       label: "Aprobado",
-      color: "#10b981"
+      color: "#10b981",
     },
     RECHAZADO: {
       bg: "bg-red-50",
@@ -32,8 +38,16 @@ export default function EstadoBadge({ estado, showIcon = true, size = "sm" }) {
       border: "border-red-200",
       icon: <XCircle size={12} />,
       label: "Rechazado",
-      color: "#ef4444"
-    }
+      color: "#ef4444",
+    },
+    INSUBSISTENTE: {
+      bg: "bg-red-100",
+      text: "text-red-900",
+      border: "border-red-300",
+      icon: <XCircle size={12} />,
+      label: "Insubsistente",
+      color: "#991b1b",
+    },
   };
 
   const estadoConfig = config[estado] || {
@@ -42,25 +56,35 @@ export default function EstadoBadge({ estado, showIcon = true, size = "sm" }) {
     border: "border-gray-300",
     icon: <AlertCircle size={14} />,
     label: estado,
-    color: "#6b7280"
+    color: "#6b7280",
   };
 
   const sizeClasses = {
     sm: "px-2 py-1 text-xs",
     md: "px-3 py-1.5 text-sm",
-    lg: "px-4 py-2 text-base"
+    lg: "px-4 py-2 text-base",
   };
 
   return (
-    <div className={`inline-flex items-center gap-2 ${estadoConfig.bg} ${estadoConfig.text} ${estadoConfig.border} ${sizeClasses[size]} border rounded-full font-medium transition-all hover:shadow-sm`}>
-      {showIcon && <span className="flex items-center">{estadoConfig.icon}</span>}
+    <div
+      className={`inline-flex items-center gap-2 ${estadoConfig.bg} ${estadoConfig.text} ${estadoConfig.border} ${sizeClasses[size]} border rounded-full font-medium transition-all hover:shadow-sm`}
+    >
+      {showIcon && (
+        <span className="flex items-center">{estadoConfig.icon}</span>
+      )}
       <span>{estadoConfig.label}</span>
-      
+
       {/* Punto animado para estados activos */}
-      {(estado === 'EN_FIRMA' || estado === 'BORRADOR') && (
+      {(estado === "EN_FIRMA" || estado === "BORRADOR") && (
         <span className="relative flex h-2 w-2">
-          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75`} style={{ backgroundColor: estadoConfig.color }}></span>
-          <span className={`relative inline-flex rounded-full h-2 w-2`} style={{ backgroundColor: estadoConfig.color }}></span>
+          <span
+            className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75`}
+            style={{ backgroundColor: estadoConfig.color }}
+          ></span>
+          <span
+            className={`relative inline-flex rounded-full h-2 w-2`}
+            style={{ backgroundColor: estadoConfig.color }}
+          ></span>
         </span>
       )}
     </div>
