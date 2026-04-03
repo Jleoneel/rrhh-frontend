@@ -109,7 +109,7 @@ export default function GestionPermisos() {
   // Forms
   const [formSaldo, setFormSaldo] = useState({
     servidor_id: "",
-    horas_totales: 120,
+    dias: 15,
     descripcion: "",
   });
   const [formPassword, setFormPassword] = useState("");
@@ -241,7 +241,7 @@ export default function GestionPermisos() {
   };
 
   const handleCrearSaldo = async () => {
-    if (!formSaldo.servidor_id || !formSaldo.horas_totales) {
+    if (!formSaldo.servidor_id || !formSaldo.dias) {
       Swal.fire({
         toast: true,
         icon: "warning",
@@ -517,16 +517,20 @@ export default function GestionPermisos() {
                               {s.unidad_organica || "—"}
                             </td>
                             <td className="px-4 py-3 font-semibold text-gray-900">
-                              {s.horas_totales}h
+                              {(parseFloat(s.horas_totales) / 8).toFixed(1)}{" "}
+                              días
                             </td>
                             <td className="px-4 py-3 text-orange-600 font-medium">
-                              {s.horas_usadas}h
+                              {(parseFloat(s.horas_usadas) / 8).toFixed(1)} días
                             </td>
                             <td className="px-4 py-3">
                               <span
                                 className={`font-bold ${s.horas_disponibles <= 0 ? "text-red-600" : "text-green-600"}`}
                               >
-                                {s.horas_disponibles}h
+                                {(parseFloat(s.horas_disponibles) / 8).toFixed(
+                                  1,
+                                )}{" "}
+                                días
                               </span>
                             </td>
                             <td className="px-4 py-3 text-gray-500">
@@ -656,7 +660,6 @@ export default function GestionPermisos() {
         </div>
       )}
 
-      {/* Modal asignar saldo */}
       {modalSaldo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
@@ -687,26 +690,30 @@ export default function GestionPermisos() {
                   ))}
                 </select>
               </div>
+
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Horas totales
+                  Días de permiso
                 </label>
                 <input
                   type="number"
-                  value={formSaldo.horas_totales}
+                  value={formSaldo.dias}
                   onChange={(e) =>
-                    setFormSaldo((p) => ({
-                      ...p,
-                      horas_totales: e.target.value,
-                    }))
+                    setFormSaldo((p) => ({ ...p, dias: e.target.value }))
                   }
                   className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   min={1}
+                  max={30}
                 />
-                <p className="text-xs text-gray-400 mt-1">
-                  15 días × 8 horas = 120 horas
-                </p>
+                {/* ← Mostrar equivalencia en horas */}
+                {formSaldo.dias && (
+                  <p className="text-xs text-gray-400 mt-1">
+                    Equivale a <b>{formSaldo.dias * 8} horas</b> (
+                    {formSaldo.dias} días × 8 horas)
+                  </p>
+                )}
               </div>
+
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Descripción (opcional)
