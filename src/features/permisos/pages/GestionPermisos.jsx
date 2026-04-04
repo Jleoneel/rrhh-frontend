@@ -2,7 +2,6 @@ import { useEffect, useState, useMemo } from "react";
 import {
   Users,
   Clock,
-  Shield,
   Search,
   Plus,
   Eye,
@@ -11,10 +10,13 @@ import {
   Loader2,
   CheckCircle,
   XCircle,
-  Edit,
   ChevronDown,
-  UserCheck,
   Settings,
+  Building2,
+  Calendar,
+  TrendingUp,
+  AlertCircle,
+  X,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import api from "../../../shared/api/axios";
@@ -24,25 +26,51 @@ import {
   toggleUsuarioServidor,
   getSaldos,
   crearSaldo,
-  getJefes,
-  crearJefeFirmante,
 } from "../hooks/permisos.uath.service";
 
 const TABS = [
   { id: "usuarios", label: "Usuarios Servidor", icon: Users },
   { id: "saldos", label: "Saldos", icon: Clock },
-  { id: "jefes", label: "Jefes de Área", icon: Shield },
 ];
+
+// eslint-disable-next-line no-unused-vars
+const StatCard = ({ label, value, icon: Icon, color = "blue" }) => {
+  const colors = {
+    blue: "from-blue-500 to-blue-600",
+    green: "from-green-500 to-green-600",
+    yellow: "from-yellow-500 to-yellow-600",
+    purple: "from-purple-500 to-purple-600",
+  };
+
+  return (
+    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 group">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-gray-500 text-sm font-medium mb-1">{label}</p>
+          <p className="text-3xl font-bold text-gray-900">{value}</p>
+        </div>
+        <div
+          className={`p-3 bg-gradient-to-br ${colors[color]} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}
+        >
+          <Icon className="h-5 w-5 text-white" />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function GestionPermisos() {
   const [tab, setTab] = useState("usuarios");
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalServidores, setTotalServidores] = useState(0);
+  const [loadingTabla, setLoadingTabla] = useState(false);
 
   // Datos
   const [servidores, setServidores] = useState([]);
   const [saldos, setSaldos] = useState([]);
-  const [jefes, setJefes] = useState([]);
-  const [unidades, setUnidades] = useState([]);
 
   // Filtros
   const [search, setSearch] = useState("");
@@ -50,63 +78,10 @@ export default function GestionPermisos() {
 
   // Modales
   const [modalSaldo, setModalSaldo] = useState(false);
-  const [modalJefe, setModalJefe] = useState(false);
   const [modalUsuario, setModalUsuario] = useState(false);
   const [servidorSeleccionado, setServidorSeleccionado] = useState(null);
 
-  const [formJefeFirmante, setFormJefeFirmante] = useState({
-    cedula: "",
-    nombre: "",
-    password: "",
-    unidad_organica_id: "",
-  });
 
-  const handleCrearJefeFirmante = async () => {
-    if (
-      !formJefeFirmante.cedula ||
-      !formJefeFirmante.nombre ||
-      !formJefeFirmante.password ||
-      !formJefeFirmante.unidad_organica_id
-    ) {
-      Swal.fire({
-        toast: true,
-        icon: "warning",
-        text: "Completa todos los campos",
-        timer: 2000,
-        showConfirmButton: false,
-        position: "top-end",
-      });
-      return;
-    }
-    try {
-      await crearJefeFirmante(formJefeFirmante);
-      Swal.fire({
-        toast: true,
-        icon: "success",
-        text: "Jefe de área creado correctamente",
-        timer: 2000,
-        showConfirmButton: false,
-        position: "top-end",
-      });
-      setModalJefe(false);
-      setFormJefeFirmante({
-        cedula: "",
-        nombre: "",
-        password: "",
-        unidad_organica_id: "",
-      });
-      cargarDatos();
-    } catch (err) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: err.response?.data?.message || "Error creando jefe",
-        confirmButtonColor: "#ef4444",
-      });
-    }
-  };
-
-  // Forms
   const [formSaldo, setFormSaldo] = useState({
     servidor_id: "",
     dias: 15,
@@ -114,29 +89,62 @@ export default function GestionPermisos() {
   });
   const [formPassword, setFormPassword] = useState("");
 
+  // Funciones de paginación y filtros
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+      cargarServidores({ page: newPage, limit, search, filtro: filtroUsuario });
+    }
+  };
+
+  const handleLimitChange = (newLimit) => {
+    setLimit(newLimit);
+    setPage(1);
+    cargarServidores({ page: 1, limit: newLimit, search, filtro: filtroUsuario });
+  };
+
+  const handleSearch = (value) => {
+    setSearch(value);
+    setPage(1);
+    cargarServidores({ page: 1, limit, search: value, filtro: filtroUsuario });
+  };
+
+  const handleFiltro = (value) => {
+    setFiltroUsuario(value);
+    setPage(1);
+    cargarServidores({ page: 1, limit, search, filtro: value });
+  };
+
+  const cargarServidores = async (params = {}) => {
+    setLoadingTabla(true);
+    try {
+      const result = await getUsuariosServidor({
+        page: params.page || page,
+        limit: params.limit || limit,
+        search: params.search !== undefined ? params.search : search,
+        filtro: params.filtro !== undefined ? params.filtro : filtroUsuario,
+      });
+      setServidores(result.data);
+      setTotalPages(result.totalPages);
+      setTotalServidores(result.total);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingTabla(false);
+    }
+  };
+
   const cargarDatos = async () => {
     setLoading(true);
     try {
-      const [srv, sal, jef, uni] = await Promise.all([
-        getUsuariosServidor(),
+      const [sal] = await Promise.all([
         getSaldos(),
-        getJefes(),
         api.get("/catalogos/unidades-organicas").then((r) => r.data),
       ]);
-      setServidores(srv);
       setSaldos(sal);
-      setJefes(jef);
-      setUnidades(uni);
+      await cargarServidores({ page: 1 });
     } catch (err) {
-      console.error("Error cargando datos:", err);
-      Swal.fire({
-        toast: true,
-        icon: "error",
-        text: "Error cargando datos: " + err.message,
-        timer: 3000,
-        showConfirmButton: false,
-        position: "top-end",
-      });
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -146,28 +154,14 @@ export default function GestionPermisos() {
     cargarDatos();
   }, []);
 
-  // Filtrado de servidores
-  const servidoresFiltrados = useMemo(() => {
-    return servidores.filter((s) => {
-      const texto = `${s.nombres} ${s.cedula}`.toLowerCase();
-      const matchSearch = texto.includes(search.toLowerCase());
-      const matchFiltro =
-        filtroUsuario === "todos" ||
-        (filtroUsuario === "con_usuario" && s.usuario_id) ||
-        (filtroUsuario === "sin_usuario" && !s.usuario_id);
-      return matchSearch && matchFiltro;
-    });
-  }, [servidores, search, filtroUsuario]);
-
-  // Stats
   const stats = useMemo(
     () => ({
-      total: servidores.length,
+      total: totalServidores,
       conUsuario: servidores.filter((s) => s.usuario_id).length,
       sinUsuario: servidores.filter((s) => !s.usuario_id).length,
       conSaldo: saldos.length,
     }),
-    [servidores, saldos],
+    [totalServidores, servidores, saldos],
   );
 
   const handleCrearUsuario = async () => {
@@ -175,6 +169,7 @@ export default function GestionPermisos() {
       Swal.fire({
         toast: true,
         icon: "warning",
+        title: "Contraseña inválida",
         text: "La contraseña debe tener al menos 6 caracteres",
         timer: 2000,
         showConfirmButton: false,
@@ -190,6 +185,7 @@ export default function GestionPermisos() {
       Swal.fire({
         toast: true,
         icon: "success",
+        title: "¡Usuario creado!",
         text: "Usuario creado correctamente",
         timer: 2000,
         showConfirmButton: false,
@@ -211,7 +207,13 @@ export default function GestionPermisos() {
   const handleToggleUsuario = async (servidor) => {
     const confirm = await Swal.fire({
       title: servidor.activo ? "¿Desactivar usuario?" : "¿Activar usuario?",
-      text: `${servidor.nombres}`,
+      html: `
+        <div class="text-left">
+          <p class="text-gray-600 mb-2">Usuario:</p>
+          <p class="font-semibold text-gray-900">${servidor.nombres}</p>
+          <p class="text-sm text-gray-500 mt-2">${servidor.cedula}</p>
+        </div>
+      `,
       icon: "question",
       showCancelButton: true,
       confirmButtonText: servidor.activo ? "Desactivar" : "Activar",
@@ -224,7 +226,8 @@ export default function GestionPermisos() {
       Swal.fire({
         toast: true,
         icon: "success",
-        text: "Estado actualizado",
+        title: "Estado actualizado",
+        text: `Usuario ${!servidor.activo ? "activado" : "desactivado"} correctamente`,
         timer: 1500,
         showConfirmButton: false,
         position: "top-end",
@@ -234,7 +237,7 @@ export default function GestionPermisos() {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "No se pudo actualizar",
+        text: "No se pudo actualizar el estado",
         confirmButtonColor: "#ef4444",
       });
     }
@@ -245,6 +248,7 @@ export default function GestionPermisos() {
       Swal.fire({
         toast: true,
         icon: "warning",
+        title: "Campos incompletos",
         text: "Completa todos los campos",
         timer: 2000,
         showConfirmButton: false,
@@ -257,13 +261,14 @@ export default function GestionPermisos() {
       Swal.fire({
         toast: true,
         icon: "success",
+        title: "¡Saldo asignado!",
         text: "Saldo asignado correctamente",
         timer: 2000,
         showConfirmButton: false,
         position: "top-end",
       });
       setModalSaldo(false);
-      setFormSaldo({ servidor_id: "", horas_totales: 120, descripcion: "" });
+      setFormSaldo({ servidor_id: "", dias: 15, descripcion: "" });
       cargarDatos();
     } catch (err) {
       Swal.fire({
@@ -276,58 +281,54 @@ export default function GestionPermisos() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Gestión de Permisos
-            </h1>
-            <p className="text-gray-500 mt-1">
-              Administración de usuarios, saldos y jefes de área
-            </p>
-          </div>
-          <button
-            onClick={cargarDatos}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <RefreshCw size={18} className="text-gray-500" />
-          </button>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {[
-            { label: "Total Servidores", value: stats.total, color: "blue" },
-            { label: "Con Usuario", value: stats.conUsuario, color: "green" },
-            { label: "Sin Usuario", value: stats.sinUsuario, color: "yellow" },
-            { label: "Con Saldo", value: stats.conSaldo, color: "purple" },
-          ].map((s, i) => (
-            <div
-              key={i}
-              className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5"
-            >
-              <p className="text-sm text-gray-500">{s.label}</p>
-              <p className={`text-3xl font-bold mt-1 text-${s.color}-600`}>
-                {s.value}
-              </p>
+        <div className="mb-10">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <div className="p-4 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-xl shadow-blue-200">
+                <Settings className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+                  Gestión de Permisos
+                </h1>
+                <p className="text-gray-500 mt-1">
+                  Administración de usuarios, saldos y jefes de área
+                </p>
+              </div>
             </div>
-          ))}
+            <button
+              onClick={cargarDatos}
+              className="p-3 bg-white hover:bg-gray-50 rounded-xl transition-all shadow-md hover:shadow-lg"
+              title="Actualizar datos"
+            >
+              <RefreshCw size={18} className="text-gray-500" />
+            </button>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <StatCard label="Total Servidores" value={stats.total} icon={Users} color="blue" />
+            <StatCard label="Con Usuario" value={stats.conUsuario} icon={CheckCircle} color="green" />
+            <StatCard label="Sin Usuario" value={stats.sinUsuario} icon={AlertCircle} color="yellow" />
+            <StatCard label="Con Saldo" value={stats.conSaldo} icon={TrendingUp} color="purple" />
+          </div>
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="flex border-b border-gray-200">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+          <div className="flex border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
             {TABS.map((t) => {
               const Icon = t.icon;
               return (
                 <button
                   key={t.id}
                   onClick={() => setTab(t.id)}
-                  className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-all duration-200 ${
                     tab === t.id
-                      ? "border-b-2 border-blue-600 text-blue-600 bg-blue-50"
+                      ? "border-b-2 border-blue-600 text-blue-600 bg-blue-50/50"
                       : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                   }`}
                 >
@@ -339,54 +340,50 @@ export default function GestionPermisos() {
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="h-10 w-10 text-blue-600 animate-spin" />
+            <div className="flex flex-col items-center justify-center py-20">
+              <Loader2 className="h-12 w-12 text-blue-600 animate-spin mb-4" />
+              <p className="text-gray-500 font-medium">Cargando información...</p>
             </div>
           ) : (
             <div className="p-6">
               {/* TAB: USUARIOS */}
               {tab === "usuarios" && (
                 <div>
+                  {/* Filtros */}
                   <div className="flex flex-col md:flex-row gap-4 mb-6">
                     <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                       <input
                         type="text"
                         value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={(e) => handleSearch(e.target.value)}
                         placeholder="Buscar por nombre o cédula..."
-                        className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border-2 border-gray-200 rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                       />
                     </div>
                     <div className="relative">
                       <select
                         value={filtroUsuario}
-                        onChange={(e) => setFiltroUsuario(e.target.value)}
-                        className="border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-8 min-w-[160px]"
+                        onChange={(e) => handleFiltro(e.target.value)}
+                        className="border-2 border-gray-200 rounded-xl px-5 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none pr-10 min-w-[180px] bg-white cursor-pointer"
                       >
-                        <option value="todos">Todos</option>
-                        <option value="con_usuario">Con usuario</option>
+                        <option value="todos">Todos los usuarios</option>
+                        <option value="con_usuario">Con usuario creado</option>
                         <option value="sin_usuario">Sin usuario</option>
                       </select>
-                      <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto">
+                  {/* Tabla */}
+                  <div className="overflow-x-auto rounded-xl border border-gray-200">
                     <table className="w-full">
-                      <thead className="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                          {[
-                            "Servidor",
-                            "Cédula",
-                            "Unidad",
-                            "Usuario",
-                            "Estado",
-                            "Acciones",
-                          ].map((h) => (
+                      <thead>
+                        <tr className="bg-gradient-to-r from-gray-100 to-gray-50 border-b border-gray-200">
+                          {["Servidor", "Cédula", "Unidad", "Usuario", "Estado", "Acciones"].map((h) => (
                             <th
                               key={h}
-                              className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                              className="text-left px-6 py-4 text-xs font-semibold text-gray-700 uppercase tracking-wider"
                             >
                               {h}
                             </th>
@@ -394,215 +391,234 @@ export default function GestionPermisos() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {servidoresFiltrados.map((s) => (
-                          <tr
-                            key={s.servidor_id}
-                            className="hover:bg-gray-50 transition-colors"
-                          >
-                            <td className="px-4 py-3 font-medium text-gray-900">
-                              {s.nombres}
-                            </td>
-                            <td className="px-4 py-3 font-mono text-sm text-gray-600">
-                              {s.cedula}
-                            </td>
-                            <td className="px-4 py-3 text-sm text-gray-500">
-                              {s.unidad_organica || "—"}
-                            </td>
-                            <td className="px-4 py-3">
-                              {s.usuario_id ? (
-                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                                  <CheckCircle size={12} /> Creado
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
-                                  <XCircle size={12} /> Sin usuario
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3">
-                              {s.usuario_id &&
-                                (s.activo ? (
-                                  <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
-                                    Activo
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">
-                                    Inactivo
-                                  </span>
-                                ))}
-                            </td>
-                            <td className="px-4 py-3">
-                              <div className="flex items-center gap-2">
-                                {!s.usuario_id ? (
-                                  <button
-                                    onClick={() => {
-                                      setServidorSeleccionado(s);
-                                      setModalUsuario(true);
-                                    }}
-                                    className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-                                    title="Crear usuario"
-                                  >
-                                    <Plus size={15} />
-                                  </button>
-                                ) : (
-                                  <button
-                                    onClick={() => handleToggleUsuario(s)}
-                                    className={`p-1.5 rounded-lg transition-colors ${s.activo ? "bg-orange-50 text-orange-600 hover:bg-orange-100" : "bg-green-50 text-green-600 hover:bg-green-100"}`}
-                                    title={s.activo ? "Desactivar" : "Activar"}
-                                  >
-                                    {s.activo ? (
-                                      <EyeOff size={15} />
-                                    ) : (
-                                      <Eye size={15} />
-                                    )}
-                                  </button>
-                                )}
-                              </div>
+                        {loadingTabla ? (
+                          <tr>
+                            <td colSpan={6} className="px-6 py-20 text-center">
+                              <Loader2 className="h-8 w-8 text-blue-600 animate-spin mx-auto" />
+                              <p className="text-gray-500 text-sm mt-2">Cargando servidores...</p>
                             </td>
                           </tr>
-                        ))}
+                        ) : servidores.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="px-6 py-20 text-center">
+                              <Users className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                              <p className="text-gray-500 font-medium">No se encontraron servidores</p>
+                              <p className="text-sm text-gray-400 mt-1">Prueba con otros filtros de búsqueda</p>
+                            </td>
+                          </tr>
+                        ) : (
+                          servidores.map((s) => (
+                            <tr key={s.servidor_id} className="hover:bg-gray-50 transition-colors group">
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                    <span className="text-blue-600 font-semibold text-sm">
+                                      {s.nombres?.charAt(0) || "S"}
+                                    </span>
+                                  </div>
+                                  <span className="font-semibold text-gray-900">{s.nombres}</span>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 font-mono text-sm text-gray-600">{s.cedula}</td>
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-1.5">
+                                  <Building2 size={14} className="text-gray-400" />
+                                  <span className="text-sm text-gray-600">{s.unidad_organica || "—"}</span>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                {s.usuario_id ? (
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                    <CheckCircle size={12} /> Creado
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">
+                                    <XCircle size={12} /> Sin usuario
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-6 py-4">
+                                {s.usuario_id && (
+                                  s.activo ? (
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
+                                      <CheckCircle size={12} /> Activo
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-100 text-rose-700 rounded-full text-xs font-medium">
+                                      <XCircle size={12} /> Inactivo
+                                    </span>
+                                  )
+                                )}
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-2">
+                                  {!s.usuario_id ? (
+                                    <button
+                                      onClick={() => {
+                                        setServidorSeleccionado(s);
+                                        setModalUsuario(true);
+                                      }}
+                                      className="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-all hover:scale-110"
+                                      title="Crear usuario"
+                                    >
+                                      <Plus size={16} />
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() => handleToggleUsuario(s)}
+                                      className={`p-2 rounded-lg transition-all hover:scale-110 ${
+                                        s.activo
+                                          ? "bg-amber-50 text-amber-600 hover:bg-amber-100"
+                                          : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                                      }`}
+                                      title={s.activo ? "Desactivar" : "Activar"}
+                                    >
+                                      {s.activo ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
+
+                  {/* Paginación */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-gray-500">
+                          Mostrando <b className="text-gray-900">{servidores.length}</b> de{" "}
+                          <b className="text-gray-900">{totalServidores}</b> servidores
+                        </span>
+                        <select
+                          value={limit}
+                          onChange={(e) => handleLimitChange(Number(e.target.value))}
+                          className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm bg-white"
+                        >
+                          <option value={10}>10 por página</option>
+                          <option value={25}>25 por página</option>
+                          <option value={50}>50 por página</option>
+                        </select>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handlePageChange(page - 1)}
+                          disabled={page === 1}
+                          className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          Anterior
+                        </button>
+                        <div className="flex items-center gap-1">
+                          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                            let pageNum;
+                            if (totalPages <= 5) {
+                              pageNum = i + 1;
+                            } else if (page <= 3) {
+                              pageNum = i + 1;
+                            } else if (page >= totalPages - 2) {
+                              pageNum = totalPages - 4 + i;
+                            } else {
+                              pageNum = page - 2 + i;
+                            }
+                            return (
+                              <button
+                                key={pageNum}
+                                onClick={() => handlePageChange(pageNum)}
+                                className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${
+                                  page === pageNum
+                                    ? "bg-blue-600 text-white shadow-md"
+                                    : "text-gray-600 hover:bg-gray-100"
+                                }`}
+                              >
+                                {pageNum}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <button
+                          onClick={() => handlePageChange(page + 1)}
+                          disabled={page === totalPages}
+                          className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          Siguiente
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* TAB: SALDOS */}
               {tab === "saldos" && (
                 <div>
-                  <div className="flex justify-end mb-4">
+                  <div className="flex justify-end mb-6">
                     <button
                       onClick={() => setModalSaldo(true)}
-                      className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-md"
+                      className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl"
                     >
                       <Plus size={16} /> Asignar saldo
                     </button>
                   </div>
 
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto rounded-xl border border-gray-200">
                     <table className="w-full">
-                      <thead className="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                          {[
-                            "Servidor",
-                            "Cédula",
-                            "Unidad",
-                            "Total",
-                            "Usadas",
-                            "Disponibles",
-                            "Año",
-                          ].map((h) => (
-                            <th
-                              key={h}
-                              className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider"
-                            >
+                      <thead>
+                        <tr className="bg-gradient-to-r from-gray-100 to-gray-50 border-b border-gray-200">
+                          {["Servidor", "Cédula", "Unidad", "Total", "Usadas", "Disponibles", "Año"].map((h) => (
+                            <th key={h} className="text-left px-6 py-4 text-xs font-semibold text-gray-700 uppercase tracking-wider">
                               {h}
                             </th>
                           ))}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {saldos.map((s) => (
-                          <tr
-                            key={s.id}
-                            className="hover:bg-gray-50 transition-colors"
-                          >
-                            <td className="px-4 py-3 font-medium text-gray-900">
-                              {s.nombres}
-                            </td>
-                            <td className="px-4 py-3 font-mono text-sm text-gray-600">
-                              {s.cedula}
-                            </td>
-                            <td className="px-4 py-3 text-sm text-gray-500">
-                              {s.unidad_organica || "—"}
-                            </td>
-                            <td className="px-4 py-3 font-semibold text-gray-900">
-                              {(parseFloat(s.horas_totales) / 8).toFixed(1)}{" "}
-                              días
-                            </td>
-                            <td className="px-4 py-3 text-orange-600 font-medium">
-                              {(parseFloat(s.horas_usadas) / 8).toFixed(1)} días
-                            </td>
-                            <td className="px-4 py-3">
-                              <span
-                                className={`font-bold ${s.horas_disponibles <= 0 ? "text-red-600" : "text-green-600"}`}
-                              >
-                                {(parseFloat(s.horas_disponibles) / 8).toFixed(
-                                  1,
-                                )}{" "}
-                                días
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 text-gray-500">
-                              {s.anio}
-                            </td>
-                          </tr>
-                        ))}
-                        {saldos.length === 0 && (
+                        {saldos.length === 0 ? (
                           <tr>
-                            <td
-                              colSpan={7}
-                              className="px-4 py-12 text-center text-gray-400"
-                            >
-                              No hay saldos asignados aún
+                            <td colSpan={7} className="px-6 py-20 text-center">
+                              <Clock className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                              <p className="text-gray-500 font-medium">No hay saldos asignados</p>
+                              <p className="text-sm text-gray-400 mt-1">Asigna saldos usando el botón superior</p>
                             </td>
                           </tr>
+                        ) : (
+                          saldos.map((s) => (
+                            <tr key={s.id} className="hover:bg-gray-50 transition-colors">
+                              <td className="px-6 py-4 font-semibold text-gray-900">{s.nombres}</td>
+                              <td className="px-6 py-4 font-mono text-sm text-gray-600">{s.cedula}</td>
+                              <td className="px-6 py-4 text-sm text-gray-500">{s.unidad_organica || "—"}</td>
+                              <td className="px-6 py-4">
+                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-semibold">
+                                  {(parseFloat(s.horas_totales) / 8).toFixed(1)} días
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-amber-600 font-medium">
+                                {(parseFloat(s.horas_usadas) / 8).toFixed(1)} días
+                              </td>
+                              <td className="px-6 py-4">
+                                <span
+                                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-sm font-bold ${
+                                    s.horas_disponibles <= 0
+                                      ? "bg-red-100 text-red-600"
+                                      : "bg-green-100 text-green-600"
+                                  }`}
+                                >
+                                  {(parseFloat(s.horas_disponibles) / 8).toFixed(1)} días
+                                </span>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 rounded-lg text-xs font-mono">
+                                  <Calendar size={12} /> {s.anio}
+                                </span>
+                              </td>
+                            </tr>
+                          ))
                         )}
                       </tbody>
                     </table>
-                  </div>
-                </div>
-              )}
-
-              {/* TAB: JEFES */}
-              {tab === "jefes" && (
-                <div>
-                  <div className="flex justify-end mb-4">
-                    <button
-                      onClick={() => setModalJefe(true)}
-                      className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-md"
-                    >
-                      <Plus size={16} /> Asignar jefe
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {jefes.map((j) => (
-                      <div
-                        key={j.id}
-                        className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="p-2 bg-blue-100 rounded-xl">
-                            <UserCheck className="h-5 w-5 text-blue-600" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-gray-900 truncate">
-                              {j.jefe_nombre}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-0.5">
-                              {j.cargo_jefe}
-                            </p>
-                            <div className="mt-2 p-2 bg-gray-50 rounded-lg">
-                              <p className="text-xs text-gray-500">Unidad:</p>
-                              <p className="text-sm font-medium text-gray-800 truncate">
-                                {j.unidad_organica}
-                              </p>
-                            </div>
-                          </div>
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${j.activo ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
-                          >
-                            {j.activo ? "Activo" : "Inactivo"}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                    {jefes.length === 0 && (
-                      <div className="col-span-3 py-12 text-center text-gray-400">
-                        No hay jefes asignados aún
-                      </div>
-                    )}
                   </div>
                 </div>
               )}
@@ -614,238 +630,129 @@ export default function GestionPermisos() {
       {/* Modal crear usuario */}
       {modalUsuario && servidorSeleccionado && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setModalUsuario(false)}
-          />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-1">
-              Crear Usuario
-            </h2>
-            <p className="text-sm text-gray-500 mb-6">
-              {servidorSeleccionado.nombres}
-            </p>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Contraseña inicial
-                </label>
-                <input
-                  type="password"
-                  value={formPassword}
-                  onChange={(e) => setFormPassword(e.target.value)}
-                  placeholder="Mínimo 6 caracteres"
-                  className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <p className="text-xs text-gray-400 mt-1">
-                  Recomendado: usar la cédula como contraseña inicial
-                </p>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setModalUsuario(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+            <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white px-6 py-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/10 rounded-lg">
+                    <Users className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold">Crear Usuario</h2>
+                    <p className="text-sm text-gray-300">{servidorSeleccionado.nombres}</p>
+                  </div>
+                </div>
+                <button onClick={() => setModalUsuario(false)} className="p-2 hover:bg-white/10 rounded-lg transition-all">
+                  <X className="h-5 w-5" />
+                </button>
               </div>
             </div>
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setModalUsuario(false)}
-                className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-medium"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleCrearUsuario}
-                className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-all"
-              >
-                Crear
-              </button>
+            <div className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Contraseña inicial</label>
+                  <input
+                    type="password"
+                    value={formPassword}
+                    onChange={(e) => setFormPassword(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
+                    <AlertCircle size={12} /> Recomendado: usar la cédula como contraseña inicial
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button onClick={() => setModalUsuario(false)} className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-all">
+                  Cancelar
+                </button>
+                <button onClick={handleCrearUsuario} className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg">
+                  Crear Usuario
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
+      {/* Modal asignar saldo */}
       {modalSaldo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setModalSaldo(false)}
-          />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">
-              Asignar Saldo
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Servidor
-                </label>
-                <select
-                  value={formSaldo.servidor_id}
-                  onChange={(e) =>
-                    setFormSaldo((p) => ({ ...p, servidor_id: e.target.value }))
-                  }
-                  className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Seleccione...</option>
-                  {servidores.map((s) => (
-                    <option key={s.servidor_id} value={s.servidor_id}>
-                      {s.nombres} — {s.cedula}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Días de permiso
-                </label>
-                <input
-                  type="number"
-                  value={formSaldo.dias}
-                  onChange={(e) =>
-                    setFormSaldo((p) => ({ ...p, dias: e.target.value }))
-                  }
-                  className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  min={1}
-                  max={30}
-                />
-                {/* ← Mostrar equivalencia en horas */}
-                {formSaldo.dias && (
-                  <p className="text-xs text-gray-400 mt-1">
-                    Equivale a <b>{formSaldo.dias * 8} horas</b> (
-                    {formSaldo.dias} días × 8 horas)
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Descripción (opcional)
-                </label>
-                <input
-                  type="text"
-                  value={formSaldo.descripcion}
-                  onChange={(e) =>
-                    setFormSaldo((p) => ({ ...p, descripcion: e.target.value }))
-                  }
-                  placeholder="Ej: Saldo inicial 2026"
-                  className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setModalSaldo(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+            <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white px-6 py-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/10 rounded-lg">
+                    <Clock className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold">Asignar Saldo</h2>
+                    <p className="text-sm text-gray-300">Permisos anuales</p>
+                  </div>
+                </div>
+                <button onClick={() => setModalSaldo(false)} className="p-2 hover:bg-white/10 rounded-lg transition-all">
+                  <X className="h-5 w-5" />
+                </button>
               </div>
             </div>
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setModalSaldo(false)}
-                className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-medium"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleCrearSaldo}
-                className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-all"
-              >
-                Asignar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal asignar jefe */}
-      {modalJefe && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setModalJefe(false)}
-          />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">
-              Crear Jefe de Área
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Unidad Orgánica
-                </label>
-                <select
-                  value={formJefeFirmante.unidad_organica_id}
-                  onChange={(e) =>
-                    setFormJefeFirmante((p) => ({
-                      ...p,
-                      unidad_organica_id: e.target.value,
-                    }))
-                  }
-                  className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Seleccione unidad...</option>
-                  {unidades.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.nombre}
-                    </option>
-                  ))}
-                </select>
+            <div className="p-6">
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Servidor</label>
+                  <select
+                    value={formSaldo.servidor_id}
+                    onChange={(e) => setFormSaldo((p) => ({ ...p, servidor_id: e.target.value }))}
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer bg-white"
+                  >
+                    <option value="">Seleccione un servidor...</option>
+                    {servidores.map((s) => (
+                      <option key={s.servidor_id} value={s.servidor_id}>
+                        {s.nombres} — {s.cedula}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Días de permiso</label>
+                  <input
+                    type="number"
+                    value={formSaldo.dias}
+                    onChange={(e) => setFormSaldo((p) => ({ ...p, dias: parseInt(e.target.value) }))}
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    min={1}
+                    max={30}
+                  />
+                  {formSaldo.dias && (
+                    <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                      <TrendingUp size={12} /> Equivale a{" "}
+                      <span className="font-semibold text-blue-600">{formSaldo.dias * 8} horas</span> ({formSaldo.dias} días × 8 horas)
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Descripción <span className="text-gray-400 text-xs">(opcional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formSaldo.descripcion}
+                    onChange={(e) => setFormSaldo((p) => ({ ...p, descripcion: e.target.value }))}
+                    placeholder="Ej: Saldo inicial 2026"
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Cédula
-                </label>
-                <input
-                  type="text"
-                  value={formJefeFirmante.cedula}
-                  onChange={(e) =>
-                    setFormJefeFirmante((p) => ({
-                      ...p,
-                      cedula: e.target.value.replace(/\D/g, "").slice(0, 10),
-                    }))
-                  }
-                  placeholder="1234567890"
-                  className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
-                />
+              <div className="flex gap-3 mt-6">
+                <button onClick={() => setModalSaldo(false)} className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-all">
+                  Cancelar
+                </button>
+                <button onClick={handleCrearSaldo} className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg">
+                  Asignar Saldo
+                </button>
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Nombre completo
-                </label>
-                <input
-                  type="text"
-                  value={formJefeFirmante.nombre}
-                  onChange={(e) =>
-                    setFormJefeFirmante((p) => ({
-                      ...p,
-                      nombre: e.target.value.toUpperCase(),
-                    }))
-                  }
-                  placeholder="NOMBRES APELLIDOS"
-                  className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Contraseña inicial
-                </label>
-                <input
-                  type="password"
-                  value={formJefeFirmante.password}
-                  onChange={(e) =>
-                    setFormJefeFirmante((p) => ({
-                      ...p,
-                      password: e.target.value,
-                    }))
-                  }
-                  placeholder="Mínimo 6 caracteres"
-                  className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setModalJefe(false)}
-                className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-medium"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleCrearJefeFirmante}
-                className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-all"
-              >
-                Crear Jefe
-              </button>
             </div>
           </div>
         </div>
