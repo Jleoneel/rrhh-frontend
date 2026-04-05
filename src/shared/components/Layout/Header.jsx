@@ -9,11 +9,11 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { FirmaNotificacionesBell } from "../../../features/notificaciones/components/FirmaNotificacionesBell";
 import { useState, useRef, useEffect } from "react";
 import api from "../../api/axios";
 import Swal from "sweetalert2";
 import LogoutButton from "../Layout/logoutButton";
+import { NotificacionesBell } from "../../../features/notificaciones/components/FirmaNotificacionesBell";
 
 export default function Header({ title, showNewAction = true, onNuevaAccion }) {
   const { user } = useAuth();
@@ -164,7 +164,9 @@ export default function Header({ title, showNewAction = true, onNuevaAccion }) {
                 </button>
               )}
 
-              <FirmaNotificacionesBell />
+             <NotificacionesBell />
+
+
 
               {/* Perfil con dropdown */}
               <div className="relative" ref={dropdownRef}>
