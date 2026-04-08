@@ -12,6 +12,7 @@ import {
   Loader2,
   FileText,
   Send,
+  Trash2,
   X,
 } from "lucide-react";
 import Swal from "sweetalert2";
@@ -29,7 +30,9 @@ const estadoBadge = (estado) => {
     RECHAZADO: <XCircle size={12} />,
   };
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${map[estado]}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${map[estado]}`}
+    >
       {icons[estado]} {estado}
     </span>
   );
@@ -57,9 +60,9 @@ export default function PermisosFirmante() {
     setLoading(true);
     try {
       const [saldoData, permisosData, tiposData] = await Promise.all([
-        api.get("/permisos/mi-saldo-firmante").then(r => r.data),
-        api.get("/permisos/mis-permisos-firmante").then(r => r.data),
-        api.get("/permisos/tipos").then(r => r.data),
+        api.get("/permisos/mi-saldo-firmante").then((r) => r.data),
+        api.get("/permisos/mis-permisos-firmante").then((r) => r.data),
+        api.get("/permisos/tipos").then((r) => r.data),
       ]);
       setSaldo(saldoData);
       setPermisos(permisosData);
@@ -82,7 +85,9 @@ export default function PermisosFirmante() {
     }
   };
 
-  useEffect(() => { cargarDatos(); }, []);
+  useEffect(() => {
+    cargarDatos();
+  }, []);
 
   const horasCalculadas = () => {
     if (!form.hora_salida || !form.hora_regreso) return 0;
@@ -93,7 +98,12 @@ export default function PermisosFirmante() {
   };
 
   const handleSubmit = async () => {
-    if (!form.permiso_tipo_id || !form.fecha || !form.hora_salida || !form.hora_regreso) {
+    if (
+      !form.permiso_tipo_id ||
+      !form.fecha ||
+      !form.hora_salida ||
+      !form.hora_regreso
+    ) {
       Swal.fire({
         toast: true,
         icon: "warning",
@@ -122,17 +132,33 @@ export default function PermisosFirmante() {
       return;
     }
 
+    const tipoSeleccionado = tipos.find(
+      (t) => t.id == form.permiso_tipo_id,
+    )?.nombre;
+    if (tipoSeleccionado === "Calamidad Doméstica" && !form.motivo.trim()) {
+      Swal.fire({
+        toast: true,
+        icon: "warning",
+        title: "Motivo requerido",
+        text: "Para Calamidad Doméstica debes especificar el motivo",
+        timer: 2500,
+        showConfirmButton: false,
+        position: "top-end",
+      });
+      return;
+    }
+
     const confirm = await Swal.fire({
       title: "¿Enviar solicitud?",
       html: `
         <div class="text-left space-y-3 p-2">
           <div class="flex justify-between border-b pb-2">
             <span class="text-gray-600">Tipo de permiso:</span>
-            <span class="font-semibold text-gray-900">${tipos.find(t => t.id === parseInt(form.permiso_tipo_id))?.nombre || '-'}</span>
+            <span class="font-semibold text-gray-900">${tipos.find((t) => t.id === parseInt(form.permiso_tipo_id))?.nombre || "-"}</span>
           </div>
           <div class="flex justify-between border-b pb-2">
             <span class="text-gray-600">Fecha:</span>
-            <span class="font-semibold text-gray-900">${new Date(form.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+            <span class="font-semibold text-gray-900">${new Date(form.fecha).toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" })}</span>
           </div>
           <div class="flex justify-between border-b pb-2">
             <span class="text-gray-600">Horario:</span>
@@ -187,6 +213,48 @@ export default function PermisosFirmante() {
     }
   };
 
+  const handleCancelar = async (permiso) => {
+    const confirm = await Swal.fire({
+      title: "¿Cancelar solicitud?",
+      text: "Esta acción no se puede deshacer",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, cancelar",
+      cancelButtonText: "No",
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#6b7280",
+      background: "#ffffff",
+      color: "#1f2937",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      await api.put(`/permisos/${permiso.id}/cancelar-firmante`);
+      Swal.fire({
+        toast: true,
+        icon: "success",
+        title: "¡Cancelado!",
+        text: "Solicitud cancelada correctamente",
+        timer: 2000,
+        showConfirmButton: false,
+        position: "top-end",
+        background: "#ffffff",
+        color: "#1f2937",
+      });
+      cargarDatos();
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: err.response?.data?.message || "No se pudo cancelar",
+        confirmButtonColor: "#ef4444",
+        background: "#ffffff",
+        color: "#1f2937",
+      });
+    }
+  };
+
   const horasADias = (horas) => (parseFloat(horas) / 8).toFixed(1);
   const porcentajeUsado = saldo
     ? Math.round((saldo.horas_usadas / saldo.horas_totales) * 100)
@@ -210,7 +278,6 @@ export default function PermisosFirmante() {
                 <span className="font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">
                   {user?.nombre}
                 </span>
-                <span className="text-gray-300"></span>
               </div>
             </div>
           </div>
@@ -270,14 +337,16 @@ export default function PermisosFirmante() {
                         porcentajeUsado > 80
                           ? "bg-gradient-to-r from-red-500 to-red-600"
                           : porcentajeUsado > 50
-                          ? "bg-gradient-to-r from-yellow-500 to-yellow-600"
-                          : "bg-gradient-to-r from-blue-500 to-blue-600"
+                            ? "bg-gradient-to-r from-yellow-500 to-yellow-600"
+                            : "bg-gradient-to-r from-blue-500 to-blue-600"
                       }`}
                       style={{ width: `${porcentajeUsado}%` }}
                     />
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span className="text-gray-400">{porcentajeUsado}% utilizado</span>
+                    <span className="text-gray-400">
+                      {porcentajeUsado}% utilizado
+                    </span>
                     {porcentajeUsado > 80 && (
                       <span className="text-red-500 flex items-center gap-1">
                         <AlertCircle size={12} /> Saldo bajo
@@ -358,11 +427,14 @@ export default function PermisosFirmante() {
                       className="px-8 py-5 hover:bg-gray-50 transition-colors group"
                     >
                       <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-start gap-4">
+                        <div className="flex items-start gap-4 flex-1">
                           <div className="p-2.5 bg-gray-100 rounded-xl group-hover:bg-blue-100 transition-colors">
-                            <Calendar size={18} className="text-gray-600 group-hover:text-blue-600" />
+                            <Calendar
+                              size={18}
+                              className="text-gray-600 group-hover:text-blue-600"
+                            />
                           </div>
-                          <div>
+                          <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <p className="font-semibold text-gray-900">
                                 {p.tipo_permiso}
@@ -397,6 +469,20 @@ export default function PermisosFirmante() {
                             )}
                           </div>
                         </div>
+
+                        {/* Botón cancelar - AL FINAL DE LA FILA */}
+                        {p.estado === "PENDIENTE" && (
+                          <button
+                            onClick={() => handleCancelar(p)}
+                            className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl transition-all duration-200 flex-shrink-0"
+                            title="Cancelar solicitud"
+                          >
+                            <Trash2 size={16} />
+                            <span className="text-sm font-medium hidden sm:inline">
+                              Cancelar
+                            </span>
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -407,7 +493,7 @@ export default function PermisosFirmante() {
         )}
       </div>
 
-      {/* Modal Nueva Solicitud - MEJORADO */}
+      {/* Modal Nueva Solicitud */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
@@ -453,19 +539,32 @@ export default function PermisosFirmante() {
                     <select
                       value={form.permiso_tipo_id}
                       onChange={(e) =>
-                        setForm(p => ({ ...p, permiso_tipo_id: e.target.value }))
+                        setForm((p) => ({
+                          ...p,
+                          permiso_tipo_id: e.target.value,
+                        }))
                       }
                       className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer bg-white"
                     >
                       <option value="">Seleccione el tipo...</option>
-                      {tipos.map(t => (
+                      {tipos.map((t) => (
                         <option key={t.id} value={t.id}>
                           {t.nombre}
                         </option>
                       ))}
                     </select>
-                    <svg className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <svg
+                      className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
                     </svg>
                   </div>
                 </div>
@@ -479,7 +578,7 @@ export default function PermisosFirmante() {
                     type="date"
                     value={form.fecha}
                     onChange={(e) =>
-                      setForm(p => ({ ...p, fecha: e.target.value }))
+                      setForm((p) => ({ ...p, fecha: e.target.value }))
                     }
                     min={new Date().toISOString().split("T")[0]}
                     className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -496,7 +595,7 @@ export default function PermisosFirmante() {
                       type="time"
                       value={form.hora_salida}
                       onChange={(e) =>
-                        setForm(p => ({ ...p, hora_salida: e.target.value }))
+                        setForm((p) => ({ ...p, hora_salida: e.target.value }))
                       }
                       className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
@@ -509,7 +608,7 @@ export default function PermisosFirmante() {
                       type="time"
                       value={form.hora_regreso}
                       onChange={(e) =>
-                        setForm(p => ({ ...p, hora_regreso: e.target.value }))
+                        setForm((p) => ({ ...p, hora_regreso: e.target.value }))
                       }
                       className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
@@ -539,7 +638,8 @@ export default function PermisosFirmante() {
                       </p>
                       <p
                         className={`text-lg font-bold ${
-                          horasCalculadas() > parseFloat(saldo?.horas_disponibles)
+                          horasCalculadas() >
+                          parseFloat(saldo?.horas_disponibles)
                             ? "text-red-600"
                             : "text-blue-600"
                         }`}
@@ -547,7 +647,8 @@ export default function PermisosFirmante() {
                         {horasCalculadas()} horas
                       </p>
                     </div>
-                    {horasCalculadas() > parseFloat(saldo?.horas_disponibles) && (
+                    {horasCalculadas() >
+                      parseFloat(saldo?.horas_disponibles) && (
                       <div className="flex items-center gap-1">
                         <AlertCircle size={14} className="text-red-500" />
                         <span className="text-xs text-red-600 font-medium">
@@ -561,12 +662,19 @@ export default function PermisosFirmante() {
                 {/* Motivo */}
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
-                    Motivo <span className="text-gray-400 text-xs">(opcional)</span>
+                    Motivo{" "}
+                    {tipos.find((t) => t.id == form.permiso_tipo_id)?.nombre ===
+                    "Calamidad Doméstica" ? (
+                      <span className="text-red-500">*</span>
+                    ) : (
+                      <span className="text-gray-400 text-xs">(opcional)</span>
+                    )}
                   </label>
+
                   <textarea
                     value={form.motivo}
                     onChange={(e) =>
-                      setForm(p => ({ ...p, motivo: e.target.value }))
+                      setForm((p) => ({ ...p, motivo: e.target.value }))
                     }
                     rows={3}
                     className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
@@ -589,7 +697,8 @@ export default function PermisosFirmante() {
                   onClick={handleSubmit}
                   disabled={
                     submitting ||
-                    horasCalculadas() > parseFloat(saldo?.horas_disponibles ?? 0)
+                    horasCalculadas() >
+                      parseFloat(saldo?.horas_disponibles ?? 0)
                   }
                   className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >

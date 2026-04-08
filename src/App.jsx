@@ -11,8 +11,7 @@ import GestionPermisos from "./features/permisos/pages/GestionPermisos";
 import PermisosFirmante from "./features/permisos/pages/PermisosFirmante";
 import BandejaJefe from "./features/permisos/pages/BandejaJefe";
 import GestionJefes from "./features/permisos/pages/GestionJefes";
-
-
+import ReportePermisos from "./features/permisos/pages/ReportePermisos";
 
 export default function App() {
   return (
@@ -37,7 +36,7 @@ export default function App() {
         <Route path="/permisos/bandeja" element={<BandejaJefe />} />
         <Route path="/permisos/mis-permisos-jefe" element={<PermisosFirmante />}/>
         <Route path="/permisos/jefes" element={<GestionJefes />} />
-
+        <Route path="/permisos/reporte" element={<ReportePermisos />} />
 
       </Route>
 

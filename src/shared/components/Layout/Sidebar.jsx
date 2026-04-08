@@ -42,6 +42,7 @@ export default function Sidebar() {
             icon: <ClipboardList size={20} />,
           },
         ]
+        
       : esJefeArea
         ? [
             {
@@ -97,16 +98,12 @@ export default function Sidebar() {
                   { title: "Gestión Permisos", path: "/permisos/gestion" },
                   { title: "Jefes por Unidad", path: "/permisos/jefes" },
                   { title: "Mis Permisos", path: "/permisos/mis-permisos-jefe" },
-
+                  { title: "Reporte Permisos", path: "/permisos/reporte" },
                   ...(es_jefe
                     ? [
                         {
                           title: "Bandeja de Aprobación",
                           path: "/permisos/bandeja",
-                        },
-                        {
-                          title: "Mis Permisos",
-                          path: "/permisos/mis-permisos-jefe",
                         },
                       ]
                     : []),

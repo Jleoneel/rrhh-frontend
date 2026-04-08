@@ -123,7 +123,7 @@ export default function Dashboard() {
           description={`${porcentajeAprobadas}% tasa de aprobación`}
         />
         <StatCard
-          title="Rechazadas"
+          title="Insubsistentes"
           value={resumen.rechazadas}
           icon={<FiXCircle />}
           color="red"

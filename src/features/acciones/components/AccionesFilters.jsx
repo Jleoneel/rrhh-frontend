@@ -38,7 +38,7 @@ export default function AccionesFilters({ filters, onChange, onBuscar, onLimpiar
               <option value="BORRADOR" className="text-gray-600">🟡 Borrador</option>
               <option value="EN_FIRMA" className="text-yellow-600">🟠 En firma</option>
               <option value="APROBADO" className="text-green-600">🟢 Aprobado</option>
-              <option value="RECHAZADO" className="text-red-600">🔴 Rechazado</option>
+              <option value="INSUBSISTENTE" className="text-red-600">🔴 Insubsistente</option>
             </select>
           </div>
 

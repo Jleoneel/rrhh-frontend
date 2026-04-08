@@ -135,6 +135,23 @@ export default function PermisosServidor() {
       return;
     }
 
+    //MOtivo requerido
+    const tipoSeleccionado = tipos.find(
+      (t) => t.id == form.permiso_tipo_id,
+    )?.nombre;
+    if (tipoSeleccionado === "Calamidad Doméstica" && !form.motivo.trim()) {
+      Swal.fire({
+        toast: true,
+        icon: "warning",
+        title: "Motivo requerido",
+        text: "Para Calamidad Doméstica debes especificar el motivo",
+        timer: 2500,
+        showConfirmButton: false,
+        position: "top-end",
+      });
+      return;
+    }
+
     const confirm = await Swal.fire({
       title: "¿Enviar solicitud?",
       html: `
@@ -593,6 +610,8 @@ export default function PermisosServidor() {
                 {horasCalculadas() > 0 && (
                   <div
                     className={`p-4 rounded-xl flex items-center gap-3 ${
+                      tipos.find((t) => t.id == form.permiso_tipo_id)
+                        ?.nombre === "Personal" &&
                       horasCalculadas() > parseFloat(saldo?.horas_disponibles)
                         ? "bg-red-50 border border-red-200"
                         : "bg-blue-50 border border-blue-200"
@@ -601,6 +620,8 @@ export default function PermisosServidor() {
                     <Clock
                       size={20}
                       className={
+                        tipos.find((t) => t.id == form.permiso_tipo_id)
+                          ?.nombre === "Personal" &&
                         horasCalculadas() > parseFloat(saldo?.horas_disponibles)
                           ? "text-red-500"
                           : "text-blue-500"
@@ -612,8 +633,10 @@ export default function PermisosServidor() {
                       </p>
                       <p
                         className={`text-lg font-bold ${
+                          tipos.find((t) => t.id == form.permiso_tipo_id)
+                            ?.nombre === "Personal" &&
                           horasCalculadas() >
-                          parseFloat(saldo?.horas_disponibles)
+                            parseFloat(saldo?.horas_disponibles)
                             ? "text-red-600"
                             : "text-blue-600"
                         }`}
@@ -621,15 +644,17 @@ export default function PermisosServidor() {
                         {horasCalculadas()} horas
                       </p>
                     </div>
-                    {horasCalculadas() >
-                      parseFloat(saldo?.horas_disponibles) && (
-                      <div className="flex items-center gap-1">
-                        <AlertCircle size={14} className="text-red-500" />
-                        <span className="text-xs text-red-600 font-medium">
-                          Supera el saldo disponible
-                        </span>
-                      </div>
-                    )}
+                    {tipos.find((t) => t.id == form.permiso_tipo_id)?.nombre ===
+                      "Personal" &&
+                      horasCalculadas() >
+                        parseFloat(saldo?.horas_disponibles) && (
+                        <div className="flex items-center gap-1">
+                          <AlertCircle size={14} className="text-red-500" />
+                          <span className="text-xs text-red-600 font-medium">
+                            Supera el saldo disponible
+                          </span>
+                        </div>
+                      )}
                   </div>
                 )}
 
@@ -637,8 +662,14 @@ export default function PermisosServidor() {
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
                     Motivo{" "}
-                    <span className="text-gray-400 text-xs">(opcional)</span>
+                    {tipos.find((t) => t.id == form.permiso_tipo_id)?.nombre ===
+                    "Calamidad Doméstica" ? (
+                      <span className="text-red-500">*</span>
+                    ) : (
+                      <span className="text-gray-400 text-xs">(opcional)</span>
+                    )}
                   </label>
+
                   <textarea
                     value={form.motivo}
                     onChange={(e) =>
@@ -665,8 +696,11 @@ export default function PermisosServidor() {
                   onClick={handleSubmit}
                   disabled={
                     submitting ||
-                    horasCalculadas() >
-                      parseFloat(saldo?.horas_disponibles ?? 0)
+                    (form.permiso_tipo_id &&
+                      tipos.find((t) => t.id == form.permiso_tipo_id)
+                        ?.nombre === "Personal" &&
+                      horasCalculadas() >
+                        parseFloat(saldo?.horas_disponibles ?? 0))
                   }
                   className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
