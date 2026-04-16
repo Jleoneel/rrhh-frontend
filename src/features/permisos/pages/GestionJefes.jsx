@@ -153,12 +153,6 @@ export default function GestionJefes() {
     }
   };
 
-  const obtenerNombreJefe = (jefeId, tipo) => {
-    if (!jefeId) return null;
-    const jefe = firmantes.find(f => f.id === parseInt(jefeId));
-    return jefe ? jefe.nombre : null;
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-8">
       <div className="max-w-7xl mx-auto">

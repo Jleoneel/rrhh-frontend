@@ -3,13 +3,19 @@ import { Bell, FileText, Clock, CheckCircle, XCircle } from "lucide-react";
 import { useNotificaciones } from "../hooks/useNotificaciones";
 
 export function NotificacionesBell() {
-  const { notificaciones, marcarLeida, marcarTodasLeidas } = useNotificaciones();
+  const { notificaciones, marcarLeida, marcarTodasLeidas } =
+    useNotificaciones();
   const [abierto, setAbierto] = useState(false);
 
   const renderIcono = (n) => {
-    if (n.categoria === "FIRMA") return <FileText size={14} className="text-blue-500" />;
-    if (n.tipo === "APROBADO") return <CheckCircle size={14} className="text-green-500" />;
-    if (n.tipo === "RECHAZADO") return <XCircle size={14} className="text-red-500" />;
+    if (n.categoria === "FIRMA")
+      return <FileText size={14} className="text-blue-500" />;
+    if (n.categoria === "VACACION")
+      return <Calendar size={14} className="text-green-500" />;
+    if (n.tipo === "APROBADO")
+      return <CheckCircle size={14} className="text-green-500" />;
+    if (n.tipo === "RECHAZADO")
+      return <XCircle size={14} className="text-red-500" />;
     return <Clock size={14} className="text-yellow-500" />;
   };
 
@@ -21,7 +27,39 @@ export function NotificacionesBell() {
             Firma pendiente — Paso {n.orden}: {n.rol_firma}
           </p>
           {n.codigo_elaboracion && (
-            <p className="text-xs text-gray-500">Acción: {n.codigo_elaboracion}</p>
+            <p className="text-xs text-gray-500">
+              Acción: {n.codigo_elaboracion}
+            </p>
+          )}
+        </>
+      );
+    }
+    if (n.categoria === "VACACION") {
+      return (
+        <>
+          <p className="text-sm font-medium text-gray-800">
+            {n.tipo === "APROBADO" && "Tus vacaciones fueron aprobadas"}
+            {n.tipo === "NEGADO" && "Tu solicitud de vacaciones fue negada"}
+            {n.tipo === "NUEVA_SOLICITUD" && "Nueva solicitud de vacaciones"}
+          </p>
+          {n.servidor_nombre && (
+            <p className="text-xs text-gray-500">{n.servidor_nombre}</p>
+          )}
+          {n.fecha_inicio && (
+            <p className="text-xs text-gray-400">
+              {new Date(n.fecha_inicio + "T12:00:00").toLocaleDateString(
+                "es-ES",
+                { day: "2-digit", month: "short" },
+              )}
+              {" → "}
+              {new Date(n.fecha_fin + "T12:00:00").toLocaleDateString("es-ES", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })}
+              {" · "}
+              {n.dias_solicitados} días
+            </p>
           )}
         </>
       );
@@ -41,7 +79,10 @@ export function NotificacionesBell() {
   };
 
   const colorBadge = (n) => {
-    if (n.categoria === "FIRMA") return "bg-blue-100 border-l-4 border-blue-400";
+    if (n.categoria === "FIRMA")
+      return "bg-blue-100 border-l-4 border-blue-400";
+    if (n.categoria === "VACACION")
+      return "bg-green-50 border-l-4 border-green-400";
     if (n.tipo === "APROBADO") return "bg-green-50 border-l-4 border-green-400";
     if (n.tipo === "RECHAZADO") return "bg-red-50 border-l-4 border-red-400";
     return "bg-yellow-50 border-l-4 border-yellow-400";
@@ -50,21 +91,25 @@ export function NotificacionesBell() {
   return (
     <div className="relative">
       <button
-        onClick={() => setAbierto(v => !v)}
+        onClick={() => setAbierto((v) => !v)}
         className="relative p-2 rounded-full hover:bg-gray-100 transition"
       >
         <Bell size={20} />
         {notificaciones.length > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white
-                           text-xs rounded-full w-4 h-4 flex items-center justify-center">
+          <span
+            className="absolute -top-1 -right-1 bg-red-500 text-white
+                           text-xs rounded-full w-4 h-4 flex items-center justify-center"
+          >
             {notificaciones.length > 9 ? "9+" : notificaciones.length}
           </span>
         )}
       </button>
 
       {abierto && (
-        <div className="absolute right-0 mt-2 w-96 bg-white shadow-xl
-                        rounded-xl border border-gray-100 z-50 overflow-hidden">
+        <div
+          className="absolute right-0 mt-2 w-96 bg-white shadow-xl
+                        rounded-xl border border-gray-100 z-50 overflow-hidden"
+        >
           <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
             <span className="font-semibold text-sm text-gray-700">
               Notificaciones
@@ -88,7 +133,9 @@ export function NotificacionesBell() {
             {notificaciones.length === 0 ? (
               <div className="px-4 py-8 text-center">
                 <Bell size={32} className="text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-400">Sin notificaciones pendientes</p>
+                <p className="text-sm text-gray-400">
+                  Sin notificaciones pendientes
+                </p>
               </div>
             ) : (
               notificaciones.map((n, i) => (
