@@ -137,9 +137,13 @@ export default function ReporteVacaciones() {
     () => ({
       total: filtrados.length,
       aprobados: filtrados.filter((v) => v.estado === "APROBADO").length,
-      pendientes: filtrados.filter((v) => v.estado.startsWith("PENDIENTE")).length,
+      pendientes: filtrados.filter((v) => v.estado.startsWith("PENDIENTE"))
+        .length,
       negados: filtrados.filter((v) => v.estado === "NEGADO").length,
-      totalDias: filtrados.reduce((acc, v) => acc + (v.dias_solicitados || 0), 0),
+      totalDias: filtrados.reduce(
+        (acc, v) => acc + (v.dias_solicitados || 0),
+        0,
+      ),
     }),
     [filtrados],
   );
@@ -150,7 +154,7 @@ export default function ReporteVacaciones() {
 
       // Si está aprobado, descargar el PDF final firmado por UATH
       const url =
-        v.estado === "APROBADO"
+        v.estado === "APROBADO" && v.archivo_uath
           ? `${import.meta.env.VITE_API_URL}/api/permisos/${v.id}/descargar-vacacion/uath`
           : `${import.meta.env.VITE_API_URL}/api/permisos/${v.id}/pdf-vacacion`;
 
@@ -179,7 +183,7 @@ export default function ReporteVacaciones() {
         showConfirmButton: false,
         position: "top-end",
       });
-    // eslint-disable-next-line no-unused-vars
+      // eslint-disable-next-line no-unused-vars
     } catch (err) {
       Swal.fire({
         icon: "error",
@@ -219,7 +223,7 @@ export default function ReporteVacaciones() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
             <StatCard
               label="Total Solicitudes"
               value={stats.total}
@@ -243,12 +247,6 @@ export default function ReporteVacaciones() {
               value={stats.negados}
               icon={XCircle}
               color="red"
-            />
-            <StatCard
-              label="Total Días"
-              value={stats.totalDias}
-              icon={TrendingUp}
-              color="purple"
             />
           </div>
         </div>

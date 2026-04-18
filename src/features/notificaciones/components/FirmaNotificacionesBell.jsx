@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, FileText, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Bell, FileText, Clock, CheckCircle, XCircle, Calendar } from "lucide-react";
 import { useNotificaciones } from "../hooks/useNotificaciones";
 
 export function NotificacionesBell() {
@@ -148,7 +148,7 @@ export function NotificacionesBell() {
                   <div className="flex-1 min-w-0">
                     {renderMensaje(n)}
                     <p className="text-xs text-gray-400 mt-0.5">
-                      {new Date(n.creada_en).toLocaleString("es-EC")}
+                      {n.creada_en ? new Date(n.creada_en).toLocaleString("es-EC") : ""}
                     </p>
                   </div>
                 </div>

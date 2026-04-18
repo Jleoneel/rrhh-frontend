@@ -103,6 +103,10 @@ export default function VacacionesFirmante() {
     ? Math.round((saldo.horas_usadas / saldo.horas_totales) * 100)
     : 0;
 
+  const tienePendiente = vacaciones.some(
+    (v) => !["APROBADO", "NEGADO"].includes(v.estado),
+  );
+
   const handleSubmit = async () => {
     if (
       !form.tipo ||
@@ -115,6 +119,18 @@ export default function VacacionesFirmante() {
         icon: "warning",
         text: "Completa todos los campos",
         timer: 2000,
+        showConfirmButton: false,
+        position: "top-end",
+      });
+      return;
+    }
+
+    if (!form.telefono_movil || form.telefono_movil.trim().length < 10) {
+      Swal.fire({
+        toast: true,
+        icon: "warning",
+        text: "El teléfono móvil es obligatorio (mínimo 10 dígitos)",
+        timer: 2500,
         showConfirmButton: false,
         position: "top-end",
       });
@@ -227,8 +243,6 @@ export default function VacacionesFirmante() {
     }
   };
 
-  // JSX igual que VacacionesServidor.jsx — misma estructura visual
-  // Solo cambia el título del header a "Mis Vacaciones" y el color a verde
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-8">
       <div className="max-w-5xl mx-auto">
@@ -307,11 +321,20 @@ export default function VacacionesFirmante() {
                 </p>
                 <button
                   onClick={() => setModalOpen(true)}
-                  disabled={parseFloat(saldo?.horas_disponibles || 0) <= 0}
+                  disabled={
+                    parseFloat(saldo?.horas_disponibles || 0) <= 0 ||
+                    tienePendiente
+                  }
                   className="w-full py-3 bg-white text-green-700 rounded-xl font-semibold hover:bg-green-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Solicitar vacaciones
                 </button>
+
+                {tienePendiente && (
+                  <p className="text-xs text-yellow-200 mt-3 text-center">
+                    Tienes una solicitud en proceso
+                  </p>
+                )}
               </div>
             </div>
 
@@ -550,7 +573,7 @@ export default function VacacionesFirmante() {
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1">
-                      Teléfono móvil
+                      Teléfono móvil <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="tel"

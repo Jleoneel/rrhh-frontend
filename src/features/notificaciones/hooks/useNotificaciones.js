@@ -48,22 +48,10 @@ export function useNotificaciones() {
           );
         }
 
-        // Servidor → solo permisos
-        if (esServidor) {
-          promesas.push(
-            api
-              .get("/permisos/notificaciones/servidor")
-              .then((r) => r.data.map((n) => ({ ...n, categoria: "PERMISO" }))),
-          );
-        }
-
-        // En el useEffect de cargar, agrega estos al array promesas:
-
-        // Firmantes UATH/Gerente/Responsable → también vacaciones
         if (esFirmante && !esJefeArea) {
           promesas.push(
             api
-              .get("/permisos/notificaciones/firma-notificaciones")
+              .get("/firma-notificaciones")
               .then((r) => r.data.map((n) => ({ ...n, categoria: "FIRMA" }))),
           );
           promesas.push(
@@ -73,15 +61,10 @@ export function useNotificaciones() {
           );
           promesas.push(
             api.get("/permisos/notificaciones/vacaciones-firmante").then(
-              (
-                r, // ← nuevo
-              ) => r.data.map((n) => ({ ...n, categoria: "VACACION" })),
+              (r) => r.data.map((n) => ({ ...n, categoria: "VACACION" })),
             ),
           );
-        }
-
-        // Jefe de área → permisos + vacaciones
-        if (esFirmante && esJefeArea) {
+        } else if (esFirmante && esJefeArea) {
           promesas.push(
             api
               .get("/permisos/notificaciones/firmante")
@@ -89,15 +72,10 @@ export function useNotificaciones() {
           );
           promesas.push(
             api.get("/permisos/notificaciones/vacaciones-firmante").then(
-              (
-                r, // ← nuevo
-              ) => r.data.map((n) => ({ ...n, categoria: "VACACION" })),
+              (r) => r.data.map((n) => ({ ...n, categoria: "VACACION" })),
             ),
           );
-        }
-
-        // Servidor → permisos + vacaciones
-        if (esServidor) {
+        } else if (esServidor) {
           promesas.push(
             api
               .get("/permisos/notificaciones/servidor")
@@ -105,9 +83,7 @@ export function useNotificaciones() {
           );
           promesas.push(
             api.get("/permisos/notificaciones/vacaciones-servidor").then(
-              (
-                r, // ← nuevo
-              ) => r.data.map((n) => ({ ...n, categoria: "VACACION" })),
+              (r) => r.data.map((n) => ({ ...n, categoria: "VACACION" })),
             ),
           );
         }
@@ -123,7 +99,7 @@ export function useNotificaciones() {
     };
 
     cargar();
-  }, [user]);
+  }, [user, esFirmante, esJefeArea, esServidor]);
 
   // SSE firmas (solo UATH/Gerente/Responsable)
   useEffect(() => {
@@ -151,7 +127,7 @@ export function useNotificaciones() {
 
     es.onerror = () => es.close();
     return () => es.close();
-  }, [user]);
+  }, [esFirmante, esJefeArea]);
 
   // SSE permisos firmante (jefes y UATH)
   useEffect(() => {
@@ -180,7 +156,7 @@ export function useNotificaciones() {
 
     es.onerror = () => es.close();
     return () => es.close();
-  }, [user]);
+  }, [esFirmante]);
 
   // SSE permisos servidor
   useEffect(() => {
@@ -209,9 +185,14 @@ export function useNotificaciones() {
 
     es.onerror = () => es.close();
     return () => es.close();
-  }, [user]);
+  }, [esServidor]);
 
   const marcarLeida = async (notif) => {
+    if (!notif.id) {
+      // Si no tiene id, solo removerla del estado local
+      setNotificaciones((prev) => prev.filter((n) => n !== notif));
+      return;
+    }
     try {
       if (notif.categoria === "FIRMA") {
         await api.patch(`/firma-notificaciones/${notif.id}/leer`);
@@ -220,7 +201,7 @@ export function useNotificaciones() {
       }
       setNotificaciones((prev) =>
         prev.filter(
-          (n) => n.id !== notif.id || n.categoria !== notif.categoria,
+          (n) => !(n.id === notif.id && n.categoria === notif.categoria),
         ),
       );
     } catch (err) {

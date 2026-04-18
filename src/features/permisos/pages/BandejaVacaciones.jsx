@@ -54,7 +54,7 @@ const estadoBadge = (estado) => {
   );
 };
 
-//eslint-disable-next-line 
+//eslint-disable-next-line
 const StatCard = ({ label, value, icon: Icon, color = "blue" }) => {
   const colors = {
     blue: "from-blue-500 to-blue-600",
@@ -228,6 +228,82 @@ export default function BandejaVacaciones() {
     }
   };
 
+  const handleConfirmar = async (v) => {
+    const endpointMap = {
+      PENDIENTE_JEFE: "confirmar-firma-jefe",
+      PENDIENTE_GERENTE: "confirmar-firma-superior",
+      PENDIENTE_UATH: "confirmar-firma-uath",
+    };
+    const endpoint = endpointMap[v.estado];
+    if (!endpoint) return;
+
+    const confirm = await Swal.fire({
+      title: "¿Confirmar envío?",
+      text: "El PDF firmado será enviado al siguiente paso. Ya no podrás modificarlo.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Sí, enviar",
+      cancelButtonText: "Revisar",
+      confirmButtonColor: "#16a34a",
+      cancelButtonColor: "#6b7280",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      await api.post(`/permisos/${v.id}/${endpoint}`);
+      Swal.fire({
+        toast: true,
+        icon: "success",
+        text: "Solicitud enviada al siguiente paso",
+        timer: 2000,
+        showConfirmButton: false,
+        position: "top-end",
+      });
+      cargarVacaciones();
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: err.response?.data?.message || "No se pudo confirmar",
+        confirmButtonColor: "#ef4444",
+      });
+    }
+  };
+
+  const handleVerPdf = async (v) => {
+    const archivoMap = {
+      PENDIENTE_JEFE: v.archivo_jefe,
+      PENDIENTE_GERENTE: v.archivo_superior,
+      PENDIENTE_UATH: v.archivo_uath,
+    };
+    const archivo = archivoMap[v.estado];
+    if (!archivo) return;
+
+    const token = localStorage.getItem("token");
+    const tipoMap = {
+      PENDIENTE_JEFE: "jefe",
+      PENDIENTE_GERENTE: "superior",
+      PENDIENTE_UATH: "uath",
+    };
+    const tipo = tipoMap[v.estado];
+
+    const url = `${import.meta.env.VITE_API_URL}/api/permisos/${v.id}/descargar-vacacion/${tipo}`;
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const blob = await response.blob();
+    const a = document.createElement("a");
+    a.href = window.URL.createObjectURL(blob);
+    a.download = `vacacion_revision_${v.id}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(a.href);
+    }, 100);
+  };
+
   const handleSubirFirma = async (v, archivo) => {
     const endpointMap = {
       PENDIENTE_JEFE: "subir-firma-jefe",
@@ -312,10 +388,30 @@ export default function BandejaVacaciones() {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <StatCard label="Total Solicitudes" value={stats.total} icon={Users} color="blue" />
-            <StatCard label="Pend. Jefe Inmediato" value={stats.pendienteJefe} icon={User} color="yellow" />
-            <StatCard label="Pend. Gerente" value={stats.pendienteGerente} icon={Building2} color="orange" />
-            <StatCard label="Pend. UATH" value={stats.pendienteUath} icon={TrendingUp} color="purple" />
+            <StatCard
+              label="Total Solicitudes"
+              value={stats.total}
+              icon={Users}
+              color="blue"
+            />
+            <StatCard
+              label="Pend. Jefe Inmediato"
+              value={stats.pendienteJefe}
+              icon={User}
+              color="yellow"
+            />
+            <StatCard
+              label="Pend. Gerente"
+              value={stats.pendienteGerente}
+              icon={Building2}
+              color="orange"
+            />
+            <StatCard
+              label="Pend. UATH"
+              value={stats.pendienteUath}
+              icon={TrendingUp}
+              color="purple"
+            />
           </div>
         </div>
 
@@ -328,10 +424,15 @@ export default function BandejaVacaciones() {
               </div>
               <div>
                 <span className="font-semibold text-gray-900">
-                  {vacaciones.length} solicitud{vacaciones.length !== 1 ? "es" : ""}
+                  {vacaciones.length} solicitud
+                  {vacaciones.length !== 1 ? "es" : ""}
                 </span>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  {vacaciones.filter(v => v.estado.startsWith("PENDIENTE")).length} pendientes de revisión
+                  {
+                    vacaciones.filter((v) => v.estado.startsWith("PENDIENTE"))
+                      .length
+                  }{" "}
+                  pendientes de revisión
                 </p>
               </div>
             </div>
@@ -340,7 +441,9 @@ export default function BandejaVacaciones() {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <Loader2 className="h-12 w-12 text-green-600 animate-spin mb-4" />
-              <p className="text-gray-500 font-medium">Cargando solicitudes...</p>
+              <p className="text-gray-500 font-medium">
+                Cargando solicitudes...
+              </p>
             </div>
           ) : vacaciones.length === 0 ? (
             <div className="p-20 text-center">
@@ -378,7 +481,7 @@ export default function BandejaVacaciones() {
                           {estadoBadge(v.estado)}
                         </div>
                         <p className="text-sm text-gray-500 mb-3 flex items-center gap-1">
-                          <div className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
                           {v.unidad_organica}
                         </p>
 
@@ -438,30 +541,74 @@ export default function BandejaVacaciones() {
                       </div>
                     </div>
 
-                    {/* Botones de acción */}
-                    <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+                    <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+                      {/* Descargar PDF base */}
                       <button
                         onClick={() => handleDescargar(v)}
-                        className="flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-200 transition-all text-sm font-medium hover:shadow-md"
+                        className="flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-200 transition-all text-sm font-medium"
                         title="Descargar PDF para firmar"
                       >
                         <Download size={15} />
                         <span className="hidden sm:inline">Descargar</span>
                       </button>
 
-                      <button
-                        onClick={() => abrirSelectorArchivo(v)}
-                        className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all text-sm font-medium shadow-md hover:shadow-lg"
-                        title="Subir PDF firmado"
-                      >
-                        <Upload size={15} />
-                        <span className="hidden sm:inline">Subir Firmado</span>
-                      </button>
+                      {/* Subir/Resubir PDF firmado */}
+                      {(v.estado === "PENDIENTE_JEFE" ||
+                        v.estado === "PENDIENTE_GERENTE" ||
+                        v.estado === "PENDIENTE_UATH") && (
+                        <button
+                          onClick={() => abrirSelectorArchivo(v)}
+                          className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all text-sm font-medium"
+                        >
+                          <Upload size={15} />
+                          <span className="hidden sm:inline">
+                            {(v.estado === "PENDIENTE_JEFE" &&
+                              v.archivo_jefe) ||
+                            (v.estado === "PENDIENTE_GERENTE" &&
+                              v.archivo_superior) ||
+                            (v.estado === "PENDIENTE_UATH" && v.archivo_uath)
+                              ? "Resubir"
+                              : "Subir Firmado"}
+                          </span>
+                        </button>
+                      )}
 
+                      {/* Ver PDF subido */}
+                      {((v.estado === "PENDIENTE_JEFE" && v.archivo_jefe) ||
+                        (v.estado === "PENDIENTE_GERENTE" &&
+                          v.archivo_superior) ||
+                        (v.estado === "PENDIENTE_UATH" && v.archivo_uath)) && (
+                        <button
+                          onClick={() => handleVerPdf(v)}
+                          className="flex items-center gap-2 px-3 py-2 bg-green-50 text-green-600 border border-green-200 rounded-xl hover:bg-green-100 transition-all text-sm font-medium"
+                        >
+                          <Eye size={15} />
+                          <span className="hidden sm:inline">Ver PDF</span>
+                        </button>
+                      )}
+
+                      {/* Confirmar envío — solo si ya subió PDF y no es UATH */}
+                      {((v.estado === "PENDIENTE_JEFE" && v.archivo_jefe) ||
+                        (v.estado === "PENDIENTE_GERENTE" &&
+                          v.archivo_superior) ||
+                        (v.estado === "PENDIENTE_UATH" && v.archivo_uath)) && ( // ← agregar UATH
+                        <button
+                          onClick={() => handleConfirmar(v)}
+                          className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all text-sm font-medium"
+                        >
+                          <Send size={15} />
+                          <span className="hidden sm:inline">
+                            {v.estado === "PENDIENTE_UATH"
+                              ? "Certificar"
+                              : "Confirmar"}
+                          </span>
+                        </button>
+                      )}
+
+                      {/* Negar */}
                       <button
                         onClick={() => abrirModal(v, false)}
-                        className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-all text-sm font-medium"
-                        title="Negar solicitud"
+                        className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-600 border border-red-200 rounded-xl hover:bg-red-100 transition-all text-sm font-medium"
                       >
                         <XCircle size={15} />
                         <span className="hidden sm:inline">Negar</span>
@@ -484,11 +631,13 @@ export default function BandejaVacaciones() {
           />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in fade-in zoom-in duration-200">
             {/* Header */}
-            <div className={`px-6 py-5 ${
-              selected.accion
-                ? "bg-gradient-to-r from-green-900 to-green-800"
-                : "bg-gradient-to-r from-red-900 to-red-800"
-            } text-white`}>
+            <div
+              className={`px-6 py-5 ${
+                selected.accion
+                  ? "bg-gradient-to-r from-green-900 to-green-800"
+                  : "bg-gradient-to-r from-red-900 to-red-800"
+              } text-white`}
+            >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-white/10 rounded-lg">
@@ -596,7 +745,9 @@ export default function BandejaVacaciones() {
                 </button>
                 <button
                   onClick={handleResponder}
-                  disabled={submitting || (!selected.accion && !observacion.trim())}
+                  disabled={
+                    submitting || (!selected.accion && !observacion.trim())
+                  }
                   className={`flex-1 px-4 py-3 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
                     selected.accion
                       ? "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"

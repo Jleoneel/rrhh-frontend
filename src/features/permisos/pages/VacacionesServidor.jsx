@@ -106,6 +106,10 @@ export default function VacacionesServidor() {
 
   const horasADias = (horas) => (parseFloat(horas || 0) / 8).toFixed(1);
 
+  const tienePendiente = vacaciones.some(
+    (v) => !["APROBADO", "NEGADO"].includes(v.estado),
+  );
+
   const handleSubmit = async () => {
     if (
       !form.tipo ||
@@ -118,6 +122,18 @@ export default function VacacionesServidor() {
         icon: "warning",
         text: "Completa todos los campos",
         timer: 2000,
+        showConfirmButton: false,
+        position: "top-end",
+      });
+      return;
+    }
+
+    if (!form.telefono_movil || form.telefono_movil.trim().length < 10) {
+      Swal.fire({
+        toast: true,
+        icon: "warning",
+        text: "El teléfono móvil es obligatorio (mínimo 10 dígitos)",
+        timer: 2500,
         showConfirmButton: false,
         position: "top-end",
       });
@@ -324,11 +340,20 @@ export default function VacacionesServidor() {
                 </p>
                 <button
                   onClick={() => setModalOpen(true)}
-                  disabled={parseFloat(saldo?.horas_disponibles || 0) <= 0}
+                  disabled={
+                    parseFloat(saldo?.horas_disponibles || 0) <= 0 ||
+                    tienePendiente
+                  }
                   className="w-full py-3 bg-white text-green-700 rounded-xl font-semibold hover:bg-green-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Solicitar vacaciones
                 </button>
+
+                {tienePendiente && (
+                  <p className="text-xs text-yellow-200 mt-3 text-center">
+                    Tienes una solicitud en proceso
+                  </p>
+                )}
               </div>
             </div>
 
@@ -567,7 +592,7 @@ export default function VacacionesServidor() {
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1">
-                      Teléfono móvil
+                      Teléfono móvil <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="tel"
@@ -579,7 +604,8 @@ export default function VacacionesServidor() {
                         }))
                       }
                       placeholder="09XXXXXXXX"
-                      maxLength={10} 
+                      maxLength={10}
+                      required
                       className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                   </div>
