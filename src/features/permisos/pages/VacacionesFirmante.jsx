@@ -28,7 +28,7 @@ const estadoBadge = (estado) => {
   };
   const labels = {
     PENDIENTE_JEFE: "Pendiente Jefe",
-    PENDIENTE_GERENTE: "Pendiente Gerente",
+    PENDIENTE_GERENTE: "Pendiente Jefe Superior",
     PENDIENTE_UATH: "Pendiente UATH",
     APROBADO: "Aprobado",
     NEGADO: "Negado",

@@ -25,29 +25,7 @@ export function useNotificaciones() {
       try {
         const promesas = [];
 
-        // Firmantes UATH/Gerente/Responsable → firmas + permisos
-        if (esFirmante && !esJefeArea) {
-          promesas.push(
-            api
-              .get("/firma-notificaciones")
-              .then((r) => r.data.map((n) => ({ ...n, categoria: "FIRMA" }))),
-          );
-          promesas.push(
-            api
-              .get("/permisos/notificaciones/firmante")
-              .then((r) => r.data.map((n) => ({ ...n, categoria: "PERMISO" }))),
-          );
-        }
-
-        // Jefe de área → solo permisos
-        if (esFirmante && esJefeArea) {
-          promesas.push(
-            api
-              .get("/permisos/notificaciones/firmante")
-              .then((r) => r.data.map((n) => ({ ...n, categoria: "PERMISO" }))),
-          );
-        }
-
+        // Firmantes UATH/Gerente/Responsable (no Jefe de Área) → firmas + permisos + vacaciones
         if (esFirmante && !esJefeArea) {
           promesas.push(
             api
@@ -64,7 +42,9 @@ export function useNotificaciones() {
               (r) => r.data.map((n) => ({ ...n, categoria: "VACACION" })),
             ),
           );
-        } else if (esFirmante && esJefeArea) {
+        }
+        // Jefe de área → permisos + vacaciones
+        else if (esFirmante && esJefeArea) {
           promesas.push(
             api
               .get("/permisos/notificaciones/firmante")
@@ -75,7 +55,9 @@ export function useNotificaciones() {
               (r) => r.data.map((n) => ({ ...n, categoria: "VACACION" })),
             ),
           );
-        } else if (esServidor) {
+        }
+        // Servidor → permisos + vacaciones
+        else if (esServidor) {
           promesas.push(
             api
               .get("/permisos/notificaciones/servidor")

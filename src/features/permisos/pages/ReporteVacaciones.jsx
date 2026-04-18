@@ -31,7 +31,7 @@ const ESTADOS = [
 
 const estadoLabel = {
   PENDIENTE_JEFE: "Pend. Jefe",
-  PENDIENTE_GERENTE: "Pend. Gerente",
+  PENDIENTE_GERENTE: "Pend. Jefe Superior",
   PENDIENTE_UATH: "Pend. UATH",
   APROBADO: "Aprobado",
   NEGADO: "Negado",

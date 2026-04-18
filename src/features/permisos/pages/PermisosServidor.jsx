@@ -48,6 +48,7 @@ const estadoBadge = (estado) => {
     </span>
   );
 };
+
 const initialForm = {
   permiso_tipo_id: "",
   fecha: "",
@@ -150,6 +151,25 @@ export default function PermisosServidor() {
         position: "top-end",
       });
       return;
+    }
+
+    // Validar saldo solo para tipos que descuentan
+    const tiposQueDescuentan = ["Personal", "Calamidad Doméstica"];
+    if (tiposQueDescuentan.includes(tipoSeleccionado)) {
+      const horasDisponibles = parseFloat(saldo?.horas_disponibles || 0);
+      if (horasCalculadas() > horasDisponibles) {
+        Swal.fire({
+          toast: true,
+          icon: "warning",
+          text: `Saldo insuficiente. Disponible: ${horasDisponibles}h, Solicitado: ${horasCalculadas()}h`,
+          timer: 2500,
+          showConfirmButton: false,
+          position: "top-end",
+          background: "#ffffff",
+          color: "#1f2937",
+        });
+        return;
+      }
     }
 
     const confirm = await Swal.fire({
@@ -372,7 +392,14 @@ export default function PermisosServidor() {
                 </p>
                 <button
                   onClick={() => setModalOpen(true)}
-                  disabled={saldo?.horas_disponibles <= 0}
+                  disabled={
+                    submitting ||
+                    (["Personal", "Calamidad Doméstica"].includes(
+                      tipos.find((t) => t.id == form.permiso_tipo_id)?.nombre,
+                    ) &&
+                      horasCalculadas() >
+                        parseFloat(saldo?.horas_disponibles ?? 0))
+                  }
                   className="w-full py-3 bg-white text-blue-700 rounded-xl font-semibold hover:bg-blue-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                 >
                   Solicitar permiso
@@ -610,8 +637,9 @@ export default function PermisosServidor() {
                 {horasCalculadas() > 0 && (
                   <div
                     className={`p-4 rounded-xl flex items-center gap-3 ${
-                      tipos.find((t) => t.id == form.permiso_tipo_id)
-                        ?.nombre === "Personal" &&
+                      ["Personal", "Calamidad Doméstica"].includes(
+                        tipos.find((t) => t.id == form.permiso_tipo_id)?.nombre,
+                      ) &&
                       horasCalculadas() > parseFloat(saldo?.horas_disponibles)
                         ? "bg-red-50 border border-red-200"
                         : "bg-blue-50 border border-blue-200"
@@ -620,8 +648,10 @@ export default function PermisosServidor() {
                     <Clock
                       size={20}
                       className={
-                        tipos.find((t) => t.id == form.permiso_tipo_id)
-                          ?.nombre === "Personal" &&
+                        ["Personal", "Calamidad Doméstica"].includes(
+                          tipos.find((t) => t.id == form.permiso_tipo_id)
+                            ?.nombre,
+                        ) &&
                         horasCalculadas() > parseFloat(saldo?.horas_disponibles)
                           ? "text-red-500"
                           : "text-blue-500"
@@ -633,8 +663,10 @@ export default function PermisosServidor() {
                       </p>
                       <p
                         className={`text-lg font-bold ${
-                          tipos.find((t) => t.id == form.permiso_tipo_id)
-                            ?.nombre === "Personal" &&
+                          ["Personal", "Calamidad Doméstica"].includes(
+                            tipos.find((t) => t.id == form.permiso_tipo_id)
+                              ?.nombre,
+                          ) &&
                           horasCalculadas() >
                             parseFloat(saldo?.horas_disponibles)
                             ? "text-red-600"
@@ -644,8 +676,9 @@ export default function PermisosServidor() {
                         {horasCalculadas()} horas
                       </p>
                     </div>
-                    {tipos.find((t) => t.id == form.permiso_tipo_id)?.nombre ===
-                      "Personal" &&
+                    {["Personal", "Calamidad Doméstica"].includes(
+                      tipos.find((t) => t.id == form.permiso_tipo_id)?.nombre,
+                    ) &&
                       horasCalculadas() >
                         parseFloat(saldo?.horas_disponibles) && (
                         <div className="flex items-center gap-1">
@@ -657,7 +690,6 @@ export default function PermisosServidor() {
                       )}
                   </div>
                 )}
-
                 {/* Motivo */}
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">

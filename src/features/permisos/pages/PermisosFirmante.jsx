@@ -148,28 +148,47 @@ export default function PermisosFirmante() {
       return;
     }
 
+    // Validar saldo solo para tipos que descuentan
+    const tiposQueDescuentan = ["Personal", "Calamidad Doméstica"];
+    if (tiposQueDescuentan.includes(tipoSeleccionado)) {
+      const horasDisponibles = parseFloat(saldo?.horas_disponibles || 0);
+      if (horasCalculadas() > horasDisponibles) {
+        Swal.fire({
+          toast: true,
+          icon: "warning",
+          text: `Saldo insuficiente. Disponible: ${horasDisponibles}h, Solicitado: ${horasCalculadas()}h`,
+          timer: 2500,
+          showConfirmButton: false,
+          position: "top-end",
+          background: "#ffffff",
+          color: "#1f2937",
+        });
+        return;
+      }
+    }
+
     const confirm = await Swal.fire({
       title: "¿Enviar solicitud?",
       html: `
-        <div class="text-left space-y-3 p-2">
-          <div class="flex justify-between border-b pb-2">
-            <span class="text-gray-600">Tipo de permiso:</span>
-            <span class="font-semibold text-gray-900">${tipos.find((t) => t.id === parseInt(form.permiso_tipo_id))?.nombre || "-"}</span>
+          <div class="text-left space-y-3 p-2">
+            <div class="flex justify-between border-b pb-2">
+              <span class="text-gray-600">Tipo de permiso:</span>
+              <span class="font-semibold text-gray-900">${tipos.find((t) => t.id === parseInt(form.permiso_tipo_id))?.nombre || "-"}</span>
+            </div>
+            <div class="flex justify-between border-b pb-2">
+              <span class="text-gray-600">Fecha:</span>
+              <span class="font-semibold text-gray-900">${new Date(form.fecha).toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" })}</span>
+            </div>
+            <div class="flex justify-between border-b pb-2">
+              <span class="text-gray-600">Horario:</span>
+              <span class="font-semibold text-gray-900">${form.hora_salida} - ${form.hora_regreso}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Duración:</span>
+              <span class="font-semibold text-blue-600">${horasCalculadas()} horas</span>
+            </div>
           </div>
-          <div class="flex justify-between border-b pb-2">
-            <span class="text-gray-600">Fecha:</span>
-            <span class="font-semibold text-gray-900">${new Date(form.fecha).toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" })}</span>
-          </div>
-          <div class="flex justify-between border-b pb-2">
-            <span class="text-gray-600">Horario:</span>
-            <span class="font-semibold text-gray-900">${form.hora_salida} - ${form.hora_regreso}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-gray-600">Duración:</span>
-            <span class="font-semibold text-blue-600">${horasCalculadas()} horas</span>
-          </div>
-        </div>
-      `,
+        `,
       icon: "question",
       showCancelButton: true,
       confirmButtonText: "Sí, enviar solicitud",
@@ -367,7 +386,15 @@ export default function PermisosFirmante() {
                 </p>
                 <button
                   onClick={() => setModalOpen(true)}
-                  disabled={!saldo || parseFloat(saldo.horas_disponibles) <= 0}
+                  disabled={
+                    submitting ||
+                    (form.permiso_tipo_id &&
+                      ["Personal", "Calamidad Doméstica"].includes(
+                        tipos.find((t) => t.id == form.permiso_tipo_id)?.nombre,
+                      ) &&
+                      horasCalculadas() >
+                        parseFloat(saldo?.horas_disponibles ?? 0))
+                  }
                   className="w-full py-3 bg-white text-blue-700 rounded-xl font-semibold hover:bg-blue-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                 >
                   Solicitar permiso
@@ -619,6 +646,9 @@ export default function PermisosFirmante() {
                 {horasCalculadas() > 0 && (
                   <div
                     className={`p-4 rounded-xl flex items-center gap-3 ${
+                      ["Personal", "Calamidad Doméstica"].includes(
+                        tipos.find((t) => t.id == form.permiso_tipo_id)?.nombre,
+                      ) &&
                       horasCalculadas() > parseFloat(saldo?.horas_disponibles)
                         ? "bg-red-50 border border-red-200"
                         : "bg-blue-50 border border-blue-200"
@@ -627,6 +657,10 @@ export default function PermisosFirmante() {
                     <Clock
                       size={20}
                       className={
+                        ["Personal", "Calamidad Doméstica"].includes(
+                          tipos.find((t) => t.id == form.permiso_tipo_id)
+                            ?.nombre,
+                        ) &&
                         horasCalculadas() > parseFloat(saldo?.horas_disponibles)
                           ? "text-red-500"
                           : "text-blue-500"
@@ -638,8 +672,12 @@ export default function PermisosFirmante() {
                       </p>
                       <p
                         className={`text-lg font-bold ${
+                          ["Personal", "Calamidad Doméstica"].includes(
+                            tipos.find((t) => t.id == form.permiso_tipo_id)
+                              ?.nombre,
+                          ) &&
                           horasCalculadas() >
-                          parseFloat(saldo?.horas_disponibles)
+                            parseFloat(saldo?.horas_disponibles)
                             ? "text-red-600"
                             : "text-blue-600"
                         }`}
@@ -647,15 +685,18 @@ export default function PermisosFirmante() {
                         {horasCalculadas()} horas
                       </p>
                     </div>
-                    {horasCalculadas() >
-                      parseFloat(saldo?.horas_disponibles) && (
-                      <div className="flex items-center gap-1">
-                        <AlertCircle size={14} className="text-red-500" />
-                        <span className="text-xs text-red-600 font-medium">
-                          Supera el saldo disponible
-                        </span>
-                      </div>
-                    )}
+                    {["Personal", "Calamidad Doméstica"].includes(
+                      tipos.find((t) => t.id == form.permiso_tipo_id)?.nombre,
+                    ) &&
+                      horasCalculadas() >
+                        parseFloat(saldo?.horas_disponibles) && (
+                        <div className="flex items-center gap-1">
+                          <AlertCircle size={14} className="text-red-500" />
+                          <span className="text-xs text-red-600 font-medium">
+                            Supera el saldo disponible
+                          </span>
+                        </div>
+                      )}
                   </div>
                 )}
 
@@ -663,8 +704,9 @@ export default function PermisosFirmante() {
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
                     Motivo{" "}
-                    {tipos.find((t) => t.id == form.permiso_tipo_id)?.nombre ===
-                    "Calamidad Doméstica" ? (
+                    {["Personal", "Calamidad Doméstica"].includes(
+                      tipos.find((t) => t.id == form.permiso_tipo_id)?.nombre,
+                    ) ? (
                       <span className="text-red-500">*</span>
                     ) : (
                       <span className="text-gray-400 text-xs">(opcional)</span>
@@ -697,8 +739,11 @@ export default function PermisosFirmante() {
                   onClick={handleSubmit}
                   disabled={
                     submitting ||
-                    horasCalculadas() >
-                      parseFloat(saldo?.horas_disponibles ?? 0)
+                    (["Personal", "Calamidad Doméstica"].includes(
+                      tipos.find((t) => t.id == form.permiso_tipo_id)?.nombre,
+                    ) &&
+                      horasCalculadas() >
+                        parseFloat(saldo?.horas_disponibles ?? 0))
                   }
                   className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >

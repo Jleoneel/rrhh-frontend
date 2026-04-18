@@ -2,7 +2,19 @@ import { useState, useEffect } from "react";
 import api from "../../../shared/api/axios";
 import { useAuth } from "../AuthContext";
 import { useNavigate } from "react-router-dom";
-import { User, LockKeyhole, Eye, EyeOff } from "lucide-react";
+import {
+  User,
+  LockKeyhole,
+  Eye,
+  EyeOff,
+  Code2,
+  GraduationCap,
+  Building2,
+  Calendar,
+  Coffee,
+  Heart,
+  X,
+} from "lucide-react";
 import Swal from "sweetalert2";
 
 const Login = () => {
@@ -13,6 +25,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [remember, setRemember] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
 
   // Redirigir si ya está autenticado
   useEffect(() => {
@@ -39,8 +52,12 @@ const Login = () => {
       login(res.data.token, res.data.firmante);
       // ← Redirigir según tipo de usuario
       const tipoUsuario = res.data.firmante?.tipo_usuario;
+      const cargoNombre = res.data.firmante?.cargo_nombre;
+
       if (tipoUsuario === "SERVIDOR") {
         navigate("/servidor/permisos", { replace: true });
+      } else if (cargoNombre === "JEFE DE AREA") {
+        navigate("/permisos/bandeja", { replace: true });
       } else {
         navigate("/dashboard", { replace: true });
       }
@@ -77,7 +94,11 @@ const Login = () => {
         <div className="hidden md:flex md:w-2/5 bg-gradient-to-b from-blue-700 to-blue-800 p-8 flex-col justify-between text-white">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2  rounded-lg">
+              <div
+                className="p-2  rounded-lg <p
+                 cursor-pointer hover:text-gray-600 transition"
+                onClick={() => setAboutOpen(true)}
+              >
                 <img src="/msp1.png" alt="Logo MSP" className="h-15 w-auto" />
               </div>
             </div>
@@ -149,7 +170,13 @@ const Login = () => {
 
           <div className="text-blue-200 text-sm">
             <p>© {new Date().getFullYear()} Ministerio de Salud Pública</p>
-            <p className="mt-1">Todos los derechos reservados</p>
+            <p
+              className="mt-1 cursor-pointer hover:text-gray-600 transition"
+              onClick={() => setAboutOpen(true)}
+            >
+              {" "}
+              Todos los derechos reservados
+            </p>
           </div>
         </div>
 
@@ -176,7 +203,7 @@ const Login = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Campos del formulario (tus campos actuales) */}
+              {/* Campos del formulario*/}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Usuario
@@ -236,7 +263,7 @@ const Login = () => {
                 </div>
               </div>
 
-              {/* Recordar y olvidó contraseña */}
+              {/* Recordar */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <input
@@ -267,13 +294,114 @@ const Login = () => {
 
             {/* Información de contacto */}
             <div className="mt-8 pt-6 border-t border-gray-200">
-              <p className="text-xs text-gray-400 mt-4">
+              <p
+                className="text-xs text-gray-400 mt-4 cursor-pointer hover:text-gray-600 transition"
+                onClick={() => setAboutOpen(true)}
+              >
                 v1.1.1 • Acceso restringido al personal autorizado
               </p>
             </div>
           </div>
         </div>
       </div>
+      {aboutOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setAboutOpen(false)}
+          />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-6 py-8 text-white text-center overflow-hidden">
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute top-0 -right-10 w-40 h-40 bg-white rounded-full blur-3xl" />
+                <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white rounded-full blur-3xl" />
+              </div>
+
+              {/* Icono animado */}
+              <div className="relative">
+                <div className="w-20 h-20 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-4 backdrop-blur-sm shadow-lg animate-bounce-slow">
+                  <Code2 className="h-10 w-10 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold tracking-tight">
+                  Desarrollado por
+                </h2>
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center animate-pulse">
+                  <span className="text-xs">☆</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 text-center space-y-4">
+              <div>
+                <p className="text-2xl font-bold text-gray-900">
+                  Janerson Leonel Arrunátegui Moreira
+                </p>
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                  <p className="text-sm font-medium text-gray-500">
+                    Desarrollador Full Stack
+                  </p>
+                </div>
+              </div>
+
+              {/* Badge de título */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 rounded-full text-sm font-medium shadow-sm">
+                <GraduationCap size={16} />
+                <span>Ingeniería en Software — UTM</span>
+              </div>
+
+              {/* Habilidades técnicas */}
+              <div className="pt-2 space-y-3">
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg text-xs font-medium text-gray-700">
+                    <span className="text-blue-500">⚛️</span>{" "}
+                    janersonarruna@gmail.com
+                  </div>
+                  <br />
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg text-xs font-medium text-gray-700">
+                    <span className="text-green-500">🟢</span> 0999717366
+                  </div>
+                </div>
+              </div>
+
+              {/* Información del proyecto */}
+              <div className="pt-3 border-t border-gray-100 space-y-2">
+                <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+                  <Building2 size={14} />
+                  <span>
+                    Hospital Verdi Cevallos Balda - Departamento de TIC'S
+                  </span>
+                </div>
+                <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+                  <Calendar size={14} />
+                  <span>2026</span>
+                </div>
+              </div>
+
+              {/* Frase motivacional */}
+              <div className="mt-3 p-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-200">
+                <p className="text-sm text-amber-800 italic flex items-center justify-center gap-2">
+                  <Coffee size={16} className="text-amber-600" />
+                  "Hecho con ☕ y muchas horas de debugging"
+                  <Heart size={16} className="text-red-500" />
+                </p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 pb-6">
+              <button
+                onClick={() => setAboutOpen(false)}
+                className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all font-medium text-sm shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+              >
+                <X size={16} />
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

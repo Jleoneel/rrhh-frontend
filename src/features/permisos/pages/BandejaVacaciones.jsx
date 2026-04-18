@@ -33,7 +33,7 @@ const estadoBadge = (estado) => {
   };
   const labels = {
     PENDIENTE_JEFE: "Pendiente Jefe",
-    PENDIENTE_GERENTE: "Pendiente Gerente",
+    PENDIENTE_GERENTE: "Pendiente Jefe Superior",
     PENDIENTE_UATH: "Pendiente UATH",
     APROBADO: "Aprobado",
     NEGADO: "Negado",
@@ -181,18 +181,28 @@ export default function BandejaVacaciones() {
 
   const labelAccion = (estado) => {
     if (estado === "PENDIENTE_JEFE") return "Jefe Inmediato";
-    if (estado === "PENDIENTE_GERENTE") return "Gerente Hospitalario";
+    if (estado === "PENDIENTE_GERENTE") return "Jefe Superior";
     if (estado === "PENDIENTE_UATH") return "UATH";
     return estado;
   };
 
   const handleDescargar = async (v) => {
-    const tipo =
-      v.estado === "PENDIENTE_JEFE"
-        ? "base"
-        : v.estado === "PENDIENTE_GERENTE"
-          ? "jefe"
-          : "superior";
+    let tipo;
+
+    if (v.estado === "PENDIENTE_JEFE") {
+      tipo = "base";
+    } else if (v.estado === "PENDIENTE_GERENTE") {
+      tipo = "jefe";
+    } else if (v.estado === "PENDIENTE_UATH") {
+      // Descargar el último archivo disponible
+      if (v.archivo_superior) {
+        tipo = "superior";
+      } else if (v.archivo_jefe) {
+        tipo = "jefe";
+      } else {
+        tipo = "base";
+      }
+    }
 
     try {
       const token = localStorage.getItem("token");
@@ -222,8 +232,6 @@ export default function BandejaVacaciones() {
         title: "Error",
         text: "No se pudo descargar el PDF",
         confirmButtonColor: "#ef4444",
-        background: "#ffffff",
-        color: "#1f2937",
       });
     }
   };
@@ -401,7 +409,7 @@ export default function BandejaVacaciones() {
               color="yellow"
             />
             <StatCard
-              label="Pend. Gerente"
+              label="Pend. Jefe Superior"
               value={stats.pendienteGerente}
               icon={Building2}
               color="orange"
@@ -606,13 +614,15 @@ export default function BandejaVacaciones() {
                       )}
 
                       {/* Negar */}
-                      <button
-                        onClick={() => abrirModal(v, false)}
-                        className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-600 border border-red-200 rounded-xl hover:bg-red-100 transition-all text-sm font-medium"
-                      >
-                        <XCircle size={15} />
-                        <span className="hidden sm:inline">Negar</span>
-                      </button>
+                      {v.estado === "PENDIENTE_JEFE" && (
+                        <button
+                          onClick={() => abrirModal(v, false)}
+                          className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-600 border border-red-200 rounded-xl hover:bg-red-100 transition-all text-sm font-medium"
+                        >
+                          <XCircle size={15} />
+                          <span className="hidden sm:inline">Negar</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
