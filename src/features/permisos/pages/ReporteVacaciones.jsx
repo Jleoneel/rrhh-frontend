@@ -457,14 +457,16 @@ export default function ReporteVacaciones() {
                       </td>
                       <td className="px-6 py-4">{estadoBadge(v.estado)}</td>
                       <td className="px-6 py-4">
-                        <button
-                          onClick={() => handleDescargarPdf(v)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-md hover:shadow-lg text-xs font-medium"
-                          title="Descargar PDF de vacaciones"
-                        >
-                          <Download size={13} />
-                          PDF
-                        </button>
+                        {v.estado === "APROBADO" && (
+                          <button
+                            onClick={() => handleDescargarPdf(v)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-md hover:shadow-lg text-xs font-medium"
+                            title="Descargar PDF de vacaciones"
+                          >
+                            <Download size={13} />
+                            PDF
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
