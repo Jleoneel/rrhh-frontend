@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { useOutletContext } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import {
   CheckCircle,
@@ -82,6 +83,16 @@ const StatCard = ({ label, value, icon: Icon, color = "blue" }) => {
 };
 
 export default function BandejaVacaciones() {
+  const { setHeaderConfig } = useOutletContext();
+
+  useEffect(() => {
+    setHeaderConfig({
+      title: "Bandeja de Vacaciones",
+      showNewAction: false,
+      onNewAction: null,
+    });
+  }, [setHeaderConfig]);
+
   const { user } = useAuth();
   const [vacaciones, setVacaciones] = useState([]);
   const [loading, setLoading] = useState(true);

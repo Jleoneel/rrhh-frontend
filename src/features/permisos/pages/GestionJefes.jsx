@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { useOutletContext } from "react-router-dom";
 import {
   Search,
   Shield,
@@ -56,6 +57,16 @@ const Badge = ({ children, variant = "default" }) => {
 };
 
 export default function GestionJefes() {
+  const { setHeaderConfig } = useOutletContext();
+
+  useEffect(() => {
+    setHeaderConfig({
+      title: "Gestión de Jefes",
+      showNewAction: false,
+      onNewAction: null,
+    });
+  }, [setHeaderConfig]);
+
   const [unidades, setUnidades] = useState([]);
   const [firmantes, setFirmantes] = useState([]);
   const [loading, setLoading] = useState(true);

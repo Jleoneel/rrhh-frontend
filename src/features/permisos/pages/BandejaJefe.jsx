@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { useOutletContext } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import {
   CheckCircle,
@@ -71,6 +72,16 @@ const StatCard = ({ label, value, icon: Icon, color = "blue", onClick }) => {
 };
 
 export default function BandejaJefe() {
+  const { setHeaderConfig } = useOutletContext();
+
+  useEffect(() => {
+    setHeaderConfig({
+      title: "Bandeja de Permisos",
+      showNewAction: false,
+      onNewAction: null,
+    });
+  }, [setHeaderConfig]);
+
   const { user } = useAuth();
   const [permisos, setPermisos] = useState([]);
   const [loading, setLoading] = useState(true);

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import {
   Clock,
@@ -47,6 +48,16 @@ const initialForm = {
 };
 
 export default function PermisosFirmante() {
+  const { setHeaderConfig } = useOutletContext();
+
+  useEffect(() => {
+    setHeaderConfig({
+      title: "Permisos Firmante",
+      showNewAction: false,
+      onNewAction: null,
+    });
+  }, [setHeaderConfig]);
+
   const { user } = useAuth();
   const [saldo, setSaldo] = useState(null);
   const [permisos, setPermisos] = useState([]);

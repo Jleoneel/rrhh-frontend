@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { useOutletContext } from "react-router-dom";
 import {
   Calendar,
   RefreshCw,
@@ -89,6 +90,16 @@ const StatCard = ({ label, value, icon: Icon, color = "blue" }) => {
 };
 
 export default function ReporteVacaciones() {
+  const { setHeaderConfig } = useOutletContext();
+
+  useEffect(() => {
+    setHeaderConfig({
+      title: "Reporte de Vacaciones",
+      showNewAction: false,
+      onNewAction: null,
+    });
+  }, [setHeaderConfig]);
+
   const [fecha, setFecha] = useState("");
   const [estado, setEstado] = useState("TODOS");
   const [data, setData] = useState([]);

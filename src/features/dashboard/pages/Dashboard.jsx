@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import dashboardAPI from "../hooks/dashboard";
 import StatCard from "../components/StatCard";
 import GraficoEstado from "../components/GraficoEstado";
@@ -12,6 +13,16 @@ import {
 
 
 export default function Dashboard() {
+  const { setHeaderConfig } = useOutletContext();
+
+  useEffect(() => {
+    setHeaderConfig({
+      title: "Dashboard",
+      showNewAction: false,
+      onNewAction: null,
+    });
+  }, [setHeaderConfig]);
+
   const [resumen, setResumen] = useState(null);
   const [loading, setLoading] = useState(true);
 

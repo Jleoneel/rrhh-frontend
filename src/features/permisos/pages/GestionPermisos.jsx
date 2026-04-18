@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { useOutletContext } from "react-router-dom";
 import {
   Users,
   Clock,
@@ -60,6 +61,16 @@ const StatCard = ({ label, value, icon: Icon, color = "blue" }) => {
 };
 
 export default function GestionPermisos() {
+  const { setHeaderConfig } = useOutletContext();
+
+  useEffect(() => {
+    setHeaderConfig({
+      title: "Gestión de Permisos",
+      showNewAction: false,
+      onNewAction: null,
+    });
+  }, [setHeaderConfig]);
+
   const [tab, setTab] = useState("usuarios");
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);

@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { useOutletContext } from "react-router-dom";
 import {
   Calendar,
   RefreshCw,
@@ -69,6 +70,16 @@ const StatCard = ({ label, value, icon: Icon, color = "blue" }) => {
 };
 
 export default function ReportePermisos() {
+  const { setHeaderConfig } = useOutletContext();
+
+  useEffect(() => {
+    setHeaderConfig({
+      title: "Reporte de Permisos",
+      showNewAction: false,
+      onNewAction: null,
+    });
+  }, [setHeaderConfig]);
+
   const hoy = new Date().toISOString().split("T")[0];
   const [fecha, setFecha] = useState(hoy);
   const [estado, setEstado] = useState("TODOS");

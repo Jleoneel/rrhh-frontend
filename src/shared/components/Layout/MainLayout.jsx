@@ -22,7 +22,7 @@ export default function MainLayout() {
         />
 
         <main className="flex-1 p-6 overflow-y-auto">
-          {/* 👇 pasamos setter a las páginas */}
+          {/* pasamos setter a las páginas */}
           <Outlet context={{ setHeaderConfig }} />
         </main>
       </div>

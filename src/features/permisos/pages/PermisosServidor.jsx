@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import {
   getMiSaldo,
@@ -58,6 +59,16 @@ const initialForm = {
 };
 
 export default function PermisosServidor() {
+  const { setHeaderConfig } = useOutletContext();
+
+  useEffect(() => {
+    setHeaderConfig({
+      title: "Permisos Servidor",
+      showNewAction: false,
+      onNewAction: null,
+    });
+  }, [setHeaderConfig]);
+
   const { user } = useAuth();
   const [saldo, setSaldo] = useState(null);
   const [permisos, setPermisos] = useState([]);

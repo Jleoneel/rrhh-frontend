@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import {
   getMiSaldo,
@@ -64,6 +65,16 @@ const initialForm = {
 };
 
 export default function VacacionesServidor() {
+  const { setHeaderConfig } = useOutletContext();
+
+  useEffect(() => {
+    setHeaderConfig({
+      title: "Vacaciones Servidor",
+      showNewAction: false,
+      onNewAction: null,
+    });
+  }, [setHeaderConfig]);
+
   const { user } = useAuth();
   const [saldo, setSaldo] = useState(null);
   const [vacaciones, setVacaciones] = useState([]);
