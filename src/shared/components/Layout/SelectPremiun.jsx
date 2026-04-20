@@ -71,6 +71,7 @@ export default function SelectPremium({
   options,
   value,
   onChange,
+  onInputChange,
   placeholder = 'Seleccionar...',
   isSearchable = true,
   isClearable = true,
@@ -116,6 +117,7 @@ export default function SelectPremium({
         options={options}
         value={value}
         onChange={onChange}
+        onInputChange={onInputChange}
         placeholder={placeholder}
         isSearchable={isSearchable}
         isClearable={isClearable}

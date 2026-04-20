@@ -28,6 +28,7 @@ import {
   getSaldos,
   crearSaldo,
 } from "../hooks/permisos.uath.service";
+import SelectPremium from "../../../shared/components/Layout/SelectPremiun";
 
 const TABS = [
   { id: "usuarios", label: "Usuarios Servidor", icon: Users },
@@ -82,6 +83,7 @@ export default function GestionPermisos() {
   // Datos
   const [servidores, setServidores] = useState([]);
   const [saldos, setSaldos] = useState([]);
+  const [todosServidores, setTodosServidores] = useState([]);
 
   // Filtros
   const [search, setSearch] = useState("");
@@ -91,6 +93,9 @@ export default function GestionPermisos() {
   const [modalSaldo, setModalSaldo] = useState(false);
   const [modalUsuario, setModalUsuario] = useState(false);
   const [servidorSeleccionado, setServidorSeleccionado] = useState(null);
+
+  // Filtro de búsqueda para select de servidores
+  const [filtroSelectServidor, setFiltroSelectServidor] = useState("");
 
   const [formSaldo, setFormSaldo] = useState({
     servidor_id: "",
@@ -153,11 +158,12 @@ export default function GestionPermisos() {
   const cargarDatos = async () => {
     setLoading(true);
     try {
-      const [sal] = await Promise.all([
+      const [sal, todosR] = await Promise.all([
         getSaldos(),
-        api.get("/catalogos/unidades-organicas").then((r) => r.data),
+        api.get("/permisos/usuarios-servidor?limit=1000").then((r) => r.data),
       ]);
       setSaldos(sal);
+      setTodosServidores(todosR.data || []);
       await cargarServidores({ page: 1 });
     } catch (err) {
       console.error(err);
@@ -215,6 +221,39 @@ export default function GestionPermisos() {
         icon: "error",
         title: "Error",
         text: err.response?.data?.message || "Error creando usuario",
+        confirmButtonColor: "#ef4444",
+      });
+    }
+  };
+
+  const handleCrearCuentasMasivo = async () => {
+    const confirm = await Swal.fire({
+      title: "¿Crear cuentas masivamente?",
+      text: "Se crearán cuentas para todos los servidores que no tienen acceso. La contraseña inicial será su número de cédula.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Sí, crear cuentas",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#3b82f6",
+      cancelButtonColor: "#6b7280",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const { data } = await api.post("/auth/crear-cuentas-masivo");
+      Swal.fire({
+        icon: "success",
+        title: "¡Listo!",
+        text: data.message,
+        confirmButtonColor: "#3b82f6",
+      });
+      cargarDatos();
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: err.response?.data?.message || "No se pudo completar",
         confirmButtonColor: "#ef4444",
       });
     }
@@ -284,7 +323,13 @@ export default function GestionPermisos() {
         position: "top-end",
       });
       setModalSaldo(false);
-      setFormSaldo({ servidor_id: "", dias: 15, descripcion: "", fecha_ingreso: ""});
+      setFormSaldo({
+        servidor_id: "",
+        dias: 15,
+        descripcion: "",
+        fecha_ingreso: "",
+      });
+      setFiltroSelectServidor("");
       cargarDatos();
     } catch (err) {
       Swal.fire({
@@ -295,6 +340,20 @@ export default function GestionPermisos() {
       });
     }
   };
+  const opcionesServidores = useMemo(() => {
+    // Solo mostrar opciones si hay 3+ caracteres de búsqueda
+    if (filtroSelectServidor.length < 5) {
+      return [];
+    }
+
+    const searchLower = filtroSelectServidor.toLowerCase();
+    return todosServidores
+      .filter((s) => s.cedula.toLowerCase().includes(searchLower))
+      .map((s) => ({
+        value: s.servidor_id,
+        label: `${s.nombres} — ${s.cedula}`,
+      }));
+  }, [filtroSelectServidor, todosServidores]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-8">
@@ -315,15 +374,24 @@ export default function GestionPermisos() {
                 </p>
               </div>
             </div>
-            <button
-              onClick={cargarDatos}
-              className="p-3 bg-white hover:bg-gray-50 rounded-xl transition-all shadow-md hover:shadow-lg"
-              title="Actualizar datos"
-            >
-              <RefreshCw size={18} className="text-gray-500" />
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleCrearCuentasMasivo}
+                className="flex items-center gap-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all shadow-md text-sm font-medium"
+                title="Crear cuentas para todos los servidores"
+              >
+                <Users size={16} />
+                <span className="hidden sm:inline">Crear cuentas masivo</span>
+              </button>
+              <button
+                onClick={cargarDatos}
+                className="p-3 bg-white hover:bg-gray-50 rounded-xl transition-all shadow-md hover:shadow-lg"
+                title="Actualizar datos"
+              >
+                <RefreshCw size={18} className="text-gray-500" />
+              </button>
+            </div>
           </div>
-
           {/* Stats Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <StatCard
@@ -632,7 +700,10 @@ export default function GestionPermisos() {
                 <div>
                   <div className="flex justify-end mb-6">
                     <button
-                      onClick={() => setModalSaldo(true)}
+                      onClick={() => {
+                        setModalSaldo(true);
+                        setFiltroSelectServidor("");
+                      }}
                       className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl"
                     >
                       <Plus size={16} /> Asignar saldo
@@ -803,7 +874,10 @@ export default function GestionPermisos() {
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setModalSaldo(false)}
+            onClick={() => {
+              setModalSaldo(false);
+              setFiltroSelectServidor("");
+            }}
           />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
             <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white px-6 py-5">
@@ -818,7 +892,10 @@ export default function GestionPermisos() {
                   </div>
                 </div>
                 <button
-                  onClick={() => setModalSaldo(false)}
+                  onClick={() => {
+                    setModalSaldo(false);
+                    setFiltroSelectServidor("");
+                  }}
                   className="p-2 hover:bg-white/10 rounded-lg transition-all"
                 >
                   <X className="h-5 w-5" />
@@ -828,26 +905,31 @@ export default function GestionPermisos() {
             <div className="p-6">
               <div className="space-y-5">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Servidor
-                  </label>
-                  <select
-                    value={formSaldo.servidor_id}
-                    onChange={(e) =>
+                  <SelectPremium
+                    label="Servidor"
+                    required
+                    placeholder="Escribe 5+ dígitos de cédula..."
+                    options={opcionesServidores}
+                    value={
+                      opcionesServidores.find(
+                        (o) => o.value === formSaldo.servidor_id,
+                      ) || null
+                    }
+                    onChange={(opt) =>
                       setFormSaldo((p) => ({
                         ...p,
-                        servidor_id: e.target.value,
+                        servidor_id: opt?.value || "",
                       }))
                     }
-                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer bg-white"
-                  >
-                    <option value="">Seleccione un servidor...</option>
-                    {servidores.map((s) => (
-                      <option key={s.servidor_id} value={s.servidor_id}>
-                        {s.nombres} — {s.cedula}
-                      </option>
-                    ))}
-                  </select>
+                    onInputChange={(val) => setFiltroSelectServidor(val || "")}
+                  />
+                  {filtroSelectServidor.length > 0 &&
+                    filtroSelectServidor.length < 5 && (
+                      <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
+                        <AlertCircle size={12} /> Escribe al menos 5 dígitos de
+                        cédula para ver resultados
+                      </p>
+                    )}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -916,7 +998,10 @@ export default function GestionPermisos() {
               </div>
               <div className="flex gap-3 mt-6">
                 <button
-                  onClick={() => setModalSaldo(false)}
+                  onClick={() => {
+                    setModalSaldo(false);
+                    setFiltroSelectServidor("");
+                  }}
                   className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-all"
                 >
                   Cancelar

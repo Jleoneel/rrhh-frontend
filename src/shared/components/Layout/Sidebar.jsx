@@ -6,23 +6,14 @@ import {
   ChevronLeft,
   ClipboardList,
   ChevronDown,
-  ClipboardCheck,
   Calendar,
-  CheckCircle,
-  Users,
-  UserCheck,
   FileSpreadsheet,
-  Clock,
-  AlertCircle,
-  LogOut,
-  Briefcase,
   Umbrella,
   UserCog,
   Building2,
   BarChart3,
   FileSignature,
   Bell,
-  Eye,
   GitBranch,
 } from "lucide-react";
 import LogoutButton from "./logoutButton";
@@ -221,7 +212,7 @@ export default function Sidebar() {
                     path: "/AdjuntarDistributivo",
                     icon: <FileSpreadsheet size={16} />,
                   },
-                  ...(puedeVerUsuarios
+                  ...(puedeVerUsuarios || esAsistenteUATH
                     ? [
                         {
                           title: "Usuarios UATH",
