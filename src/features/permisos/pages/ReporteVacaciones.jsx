@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import api from "../../../shared/api/axios";
 import Swal from "sweetalert2";
+import * as XLSX from "xlsx";
 
 const ESTADOS = [
   "TODOS",
@@ -205,6 +206,44 @@ export default function ReporteVacaciones() {
     }
   };
 
+  const handleExportarExcel = () => {
+    if (!data.length) {
+      Swal.fire({
+        toast: true,
+        icon: "warning",
+        text: "No hay datos para exportar",
+        timer: 2000,
+        showConfirmButton: false,
+        position: "top-end",
+      });
+      return;
+    }
+
+    const datos = data.map((v) => ({
+      Servidor: v.servidor_nombre,
+      Cédula: v.cedula,
+      Unidad: v.unidad_organica,
+      Tipo:
+        v.tipo === "VACACION_PROGRAMADA"
+          ? "Vacación Programada"
+          : "Permiso con Cargo",
+      "Fecha Solicitud": v.fecha_solicitud,
+      "Fecha Inicio": v.fecha_inicio,
+      "Fecha Fin": v.fecha_fin,
+      Días: v.dias_solicitados,
+      Estado: v.estado,
+      "Jefe Inmediato": v.jefe_nombre || "",
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(datos);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Vacaciones");
+    XLSX.writeFile(
+      wb,
+      `reporte_vacaciones_${new Date().toISOString().split("T")[0]}.xlsx`,
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-green-50 p-8">
       <div className="max-w-7xl mx-auto">
@@ -262,7 +301,7 @@ export default function ReporteVacaciones() {
           </div>
         </div>
 
-        {/* Filtros - Mejorados */}
+        {/* Filtros */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-5 mb-8">
           <div className="flex flex-col md:flex-row gap-4">
             {/* Fecha */}
@@ -315,6 +354,15 @@ export default function ReporteVacaciones() {
                 className="w-full border-2 border-gray-200 rounded-xl pl-9 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
               />
             </div>
+
+            {/* Exportar Excel */}
+            <button
+              onClick={handleExportarExcel}
+              className="flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all shadow-md text-sm font-medium"
+            >
+              <Download size={16} />
+              <span className="hidden sm:inline">Exportar Excel</span>
+            </button>
           </div>
         </div>
 

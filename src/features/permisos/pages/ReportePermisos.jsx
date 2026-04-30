@@ -15,8 +15,11 @@ import {
   TrendingUp,
   Building2,
   User,
+  Download,
 } from "lucide-react";
 import api from "../../../shared/api/axios";
+import * as XLSX from "xlsx";
+import Swal from "sweetalert2";
 
 const ESTADOS = ["TODOS", "PENDIENTE", "APROBADO", "RECHAZADO", "CANCELADO"];
 
@@ -115,12 +118,48 @@ export default function ReportePermisos() {
     cargarReporte(fecha, e.target.value);
   };
 
+  const handleExportarExcel = () => {
+    if (!data.length) {
+      Swal.fire({
+        toast: true,
+        icon: "warning",
+        text: "No hay datos para exportar",
+        timer: 2000,
+        showConfirmButton: false,
+        position: "top-end",
+      });
+      return;
+    }
+
+    const datos = data.map((p) => ({
+      Servidor: p.servidor_nombre,
+      Cédula: p.cedula,
+      Unidad: p.unidad_organica,
+      "Tipo Permiso": p.tipo_permiso,
+      Fecha: p.fecha,
+      "Hora Salida": p.hora_salida,
+      "Hora Regreso": p.hora_regreso,
+      Horas: p.horas_solicitadas,
+      Estado: p.estado,
+      Observación: p.observacion_jefe || "",
+      Jefe: p.jefe_nombre || "",
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(datos);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Permisos");
+    XLSX.writeFile(
+      wb,
+      `reporte_permisos_${new Date().toISOString().split("T")[0]}.xlsx`,
+    );
+  };
+
   const filtrados = useMemo(() => {
     if (!search) return data;
     return data.filter((p) =>
       `${p.servidor_nombre} ${p.cedula} ${p.unidad_organica}`
         .toLowerCase()
-        .includes(search.toLowerCase())
+        .includes(search.toLowerCase()),
     );
   }, [data, search]);
 
@@ -131,7 +170,7 @@ export default function ReportePermisos() {
       pendientes: data.filter((p) => p.estado === "PENDIENTE").length,
       rechazados: data.filter((p) => p.estado === "RECHAZADO").length,
     }),
-    [data]
+    [data],
   );
 
   return (
@@ -172,10 +211,30 @@ export default function ReportePermisos() {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <StatCard label="Total Permisos" value={stats.total} icon={TrendingUp} color="blue" />
-            <StatCard label="Aprobados" value={stats.aprobados} icon={CheckCircle} color="green" />
-            <StatCard label="Pendientes" value={stats.pendientes} icon={Clock} color="yellow" />
-            <StatCard label="Rechazados" value={stats.rechazados} icon={XCircle} color="red" />
+            <StatCard
+              label="Total Permisos"
+              value={stats.total}
+              icon={TrendingUp}
+              color="blue"
+            />
+            <StatCard
+              label="Aprobados"
+              value={stats.aprobados}
+              icon={CheckCircle}
+              color="green"
+            />
+            <StatCard
+              label="Pendientes"
+              value={stats.pendientes}
+              icon={Clock}
+              color="yellow"
+            />
+            <StatCard
+              label="Rechazados"
+              value={stats.rechazados}
+              icon={XCircle}
+              color="red"
+            />
           </div>
         </div>
 
@@ -221,6 +280,13 @@ export default function ReportePermisos() {
                 className="w-full border-2 border-gray-200 rounded-xl pl-9 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               />
             </div>
+            <button
+              onClick={handleExportarExcel}
+              className="flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all shadow-md text-sm font-medium"
+            >
+              <Download size={16} />
+              <span className="hidden sm:inline">Exportar Excel</span>
+            </button>
           </div>
         </div>
 
@@ -235,7 +301,9 @@ export default function ReportePermisos() {
                 <span className="font-semibold text-gray-900">
                   {filtrados.length} permiso{filtrados.length !== 1 ? "s" : ""}
                 </span>
-                <p className="text-xs text-gray-500 mt-0.5">Registros encontrados</p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Registros encontrados
+                </p>
               </div>
             </div>
           </div>
