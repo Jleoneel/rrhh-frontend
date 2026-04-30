@@ -10,6 +10,10 @@ export const crearUsuarioServidor = (data) =>
 export const toggleUsuarioServidor = (id, activo) =>
   api.put(`/permisos/usuarios-servidor/${id}`, { activo }).then((r) => r.data);
 
+// Reset contraseña
+export const resetPasswordServidor = (servidorId, password) =>
+  api.patch(`/servidores/${servidorId}/reset-password`, { password }).then((r) => r.data);
+
 // Saldos
 export const getSaldos = () => api.get("/permisos/saldos").then((r) => r.data);
 export const crearSaldo = (data) =>

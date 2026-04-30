@@ -554,7 +554,7 @@ export default function PermisosServidor() {
           />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden animate-in fade-in zoom-in duration-200">
             {/* Header */}
-            <div className="sticky top-0 bg-gradient-to-r from-gray-900 to-gray-800 text-white px-8 py-6">
+            <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white px-8 py-6">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4">
                   <div className="p-3 bg-white/10 rounded-xl">
@@ -580,7 +580,7 @@ export default function PermisosServidor() {
             </div>
 
             {/* Content */}
-            <div className="p-8 max-h-[60vh] overflow-y-auto">
+            <div className="p-8 max-h-[65vh] overflow-y-auto">
               <div className="space-y-6">
                 {/* Tipo de permiso */}
                 <div className="space-y-2">
@@ -712,6 +712,7 @@ export default function PermisosServidor() {
                       )}
                   </div>
                 )}
+
                 {/* Motivo */}
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
@@ -723,7 +724,6 @@ export default function PermisosServidor() {
                       <span className="text-gray-400 text-xs">(opcional)</span>
                     )}
                   </label>
-
                   <textarea
                     value={form.motivo}
                     onChange={(e) =>
@@ -731,54 +731,78 @@ export default function PermisosServidor() {
                     }
                     rows={3}
                     className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                    placeholder="Describa brevemente el motivo del permiso..."
-                  />
-                </div>
-              </div>
-            </div>
-            {/* Adjuntar evidencia - solo Calamidad Doméstica */}
-            {tipos.find((t) => t.id == form.permiso_tipo_id)?.nombre ===
-              "Calamidad Doméstica" && (
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-gray-700">
-                  Documento de evidencia <span className="text-red-500">*</span>
-                </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-blue-400 transition-colors">
-                  <input
-                    type="file"
-                    accept="application/pdf"
-                    onChange={(e) =>
-                      setForm((p) => ({
-                        ...p,
-                        archivo_evidencia: e.target.files[0] || null,
-                      }))
+                    placeholder={
+                      tipos.find((t) => t.id == form.permiso_tipo_id)
+                        ?.nombre === "Calamidad Doméstica"
+                        ? "Describa la calamidad doméstica..."
+                        : "Describa brevemente el motivo del permiso..."
                     }
-                    className="hidden"
-                    id="archivo_evidencia"
                   />
-                  <label
-                    htmlFor="archivo_evidencia"
-                    className="flex flex-col items-center gap-2 cursor-pointer"
-                  >
-                    <FileText size={24} className="text-gray-400" />
-                    <span className="text-sm text-gray-500">
-                      {form.archivo_evidencia
-                        ? form.archivo_evidencia.name
-                        : "Haz clic para subir PDF de evidencia"}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      Certificado médico, receta, etc.
-                    </span>
-                  </label>
                 </div>
-                {form.archivo_evidencia && (
-                  <p className="text-xs text-green-600 flex items-center gap-1">
-                    <CheckCircle2 size={12} /> {form.archivo_evidencia.name}{" "}
-                    seleccionado
-                  </p>
+
+                {/* Adjuntar evidencia - solo Calamidad Doméstica */}
+                {tipos.find((t) => t.id == form.permiso_tipo_id)?.nombre ===
+                  "Calamidad Doméstica" && (
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Documento de evidencia{" "}
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-blue-400 hover:bg-blue-50/30 transition-all duration-200 cursor-pointer group">
+                      <input
+                        type="file"
+                        accept="application/pdf"
+                        onChange={(e) =>
+                          setForm((p) => ({
+                            ...p,
+                            archivo_evidencia: e.target.files[0] || null,
+                          }))
+                        }
+                        className="hidden"
+                        id="archivo_evidencia"
+                      />
+                      <label
+                        htmlFor="archivo_evidencia"
+                        className="flex flex-col items-center gap-3 cursor-pointer"
+                      >
+                        <div className="p-3 bg-gray-100 rounded-xl group-hover:bg-blue-100 transition-colors">
+                          <FileText
+                            size={32}
+                            className="text-gray-500 group-hover:text-blue-600"
+                          />
+                        </div>
+                        <div className="text-center">
+                          <span className="text-sm font-medium text-gray-700">
+                            {form.archivo_evidencia
+                              ? form.archivo_evidencia.name
+                              : "Haz clic para subir PDF"}
+                          </span>
+                          <p className="text-xs text-gray-400 mt-1">
+                            Certificado médico, receta médica, constancia, etc.
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                    {form.archivo_evidencia && (
+                      <div className="flex items-center gap-2 p-2 bg-green-50 rounded-lg border border-green-200">
+                        <CheckCircle2 size={16} className="text-green-600" />
+                        <span className="text-sm text-green-700 font-medium truncate flex-1">
+                          {form.archivo_evidencia.name}
+                        </span>
+                        <button
+                          onClick={() =>
+                            setForm((p) => ({ ...p, archivo_evidencia: null }))
+                          }
+                          className="p-1 hover:bg-green-100 rounded-lg transition-colors"
+                        >
+                          <X size={14} className="text-green-600" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
+            </div>
 
             {/* Footer */}
             <div className="sticky bottom-0 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-8 py-5">
@@ -797,7 +821,10 @@ export default function PermisosServidor() {
                       tipos.find((t) => t.id == form.permiso_tipo_id)
                         ?.nombre === "Personal" &&
                       horasCalculadas() >
-                        parseFloat(saldo?.horas_disponibles ?? 0))
+                        parseFloat(saldo?.horas_disponibles ?? 0)) ||
+                    (tipos.find((t) => t.id == form.permiso_tipo_id)?.nombre ===
+                      "Calamidad Doméstica" &&
+                      !form.archivo_evidencia)
                   }
                   className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >

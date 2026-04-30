@@ -92,6 +92,13 @@ export default function SelectPremium({
     </div>
   );
 
+  const formatSingleValue = (option) => (
+    <div className="flex items-center gap-3">
+      {Icon && <Icon className="h-4 w-4 text-gray-400" />}
+      <span>{option.label}</span>
+    </div>
+  );
+
   const DropdownIndicator = (props) => (
     <div {...props.innerProps} className="pr-2">
       <ChevronDown className="h-5 w-5 text-gray-400" />
@@ -125,6 +132,7 @@ export default function SelectPremium({
         isLoading={isLoading}
         styles={customStyles}
         formatOptionLabel={formatOptionLabel}
+        formatSingleValue={formatSingleValue}
         components={{ DropdownIndicator, ClearIndicator }}
         className="react-select-container"
         classNamePrefix="react-select"

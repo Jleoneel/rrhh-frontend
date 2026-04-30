@@ -271,6 +271,7 @@ export default function ReportePermisos() {
                       "Horas",
                       "Jefe",
                       "Estado",
+                      "Acciones",
                     ].map((h) => (
                       <th
                         key={h}
@@ -333,6 +334,22 @@ export default function ReportePermisos() {
                         </div>
                       </td>
                       <td className="px-6 py-4">{estadoBadge(p.estado)}</td>
+                      <td className="px-6 py-4">
+                        {p.tipo_permiso === "Calamidad Doméstica" &&
+                        p.archivo_evidencia ? (
+                          <a
+                            href={`${import.meta.env.VITE_API_URL}${p.archivo_evidencia}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-orange-50 text-orange-600 border border-orange-200 rounded-lg hover:bg-orange-100 transition-all text-xs font-medium"
+                          >
+                            <FileText size={13} />
+                            Ver evidencia
+                          </a>
+                        ) : (
+                          <span className="text-xs text-gray-400">—</span>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -5,8 +5,6 @@ import {
   Clock,
   Search,
   Plus,
-  Eye,
-  EyeOff,
   RefreshCw,
   Loader2,
   CheckCircle,
@@ -24,9 +22,9 @@ import api from "../../../shared/api/axios";
 import {
   getUsuariosServidor,
   crearUsuarioServidor,
-  toggleUsuarioServidor,
   getSaldos,
   crearSaldo,
+  resetPasswordServidor,
 } from "../hooks/permisos.uath.service";
 import SelectPremium from "../../../shared/components/Layout/SelectPremiun";
 
@@ -93,6 +91,7 @@ export default function GestionPermisos() {
   const [modalSaldo, setModalSaldo] = useState(false);
   const [modalUsuario, setModalUsuario] = useState(false);
   const [servidorSeleccionado, setServidorSeleccionado] = useState(null);
+  const [submittingReset, setSubmittingReset] = useState(false);
 
   // Filtro de búsqueda para select de servidores
   const [filtroSelectServidor, setFiltroSelectServidor] = useState("");
@@ -174,6 +173,7 @@ export default function GestionPermisos() {
 
   useEffect(() => {
     cargarDatos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const stats = useMemo(
@@ -259,42 +259,51 @@ export default function GestionPermisos() {
     }
   };
 
-  const handleToggleUsuario = async (servidor) => {
+  const handleResetPassword = async (servidor) => {
     const confirm = await Swal.fire({
-      title: servidor.activo ? "¿Desactivar usuario?" : "¿Activar usuario?",
+      title: "¿Resetear contraseña?",
       html: `
         <div class="text-left">
-          <p class="text-gray-600 mb-2">Usuario:</p>
+          <p class="text-gray-600 mb-2">Servidor:</p>
           <p class="font-semibold text-gray-900">${servidor.nombres}</p>
           <p class="text-sm text-gray-500 mt-2">${servidor.cedula}</p>
+          <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <p class="text-xs text-blue-600 mb-1">La nueva contraseña será:</p>
+            <p class="font-mono font-bold text-blue-900">${servidor.cedula}</p>
+          </div>
         </div>
       `,
-      icon: "question",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonText: servidor.activo ? "Desactivar" : "Activar",
-      confirmButtonColor: servidor.activo ? "#ef4444" : "#10b981",
+      confirmButtonText: "Sí, resetear",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#3b82f6",
       cancelButtonColor: "#6b7280",
     });
     if (!confirm.isConfirmed) return;
+
+    setSubmittingReset(true);
     try {
-      await toggleUsuarioServidor(servidor.usuario_id, !servidor.activo);
+      await resetPasswordServidor(servidor.servidor_id, servidor.cedula);
       Swal.fire({
         toast: true,
         icon: "success",
-        title: "Estado actualizado",
-        text: `Usuario ${!servidor.activo ? "activado" : "desactivado"} correctamente`,
-        timer: 1500,
+        title: "¡Contraseña reseteada!",
+        text: `Contraseña reseteada a ${servidor.cedula}`,
+        timer: 2000,
         showConfirmButton: false,
         position: "top-end",
       });
       cargarDatos();
-    } catch {
+    } catch (err) {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "No se pudo actualizar el estado",
+        text: err.response?.data?.message || "No se pudo resetear la contraseña",
         confirmButtonColor: "#ef4444",
       });
+    } finally {
+      setSubmittingReset(false);
     }
   };
 
@@ -595,21 +604,12 @@ export default function GestionPermisos() {
                                     </button>
                                   ) : (
                                     <button
-                                      onClick={() => handleToggleUsuario(s)}
-                                      className={`p-2 rounded-lg transition-all hover:scale-110 ${
-                                        s.activo
-                                          ? "bg-amber-50 text-amber-600 hover:bg-amber-100"
-                                          : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
-                                      }`}
-                                      title={
-                                        s.activo ? "Desactivar" : "Activar"
-                                      }
+                                      onClick={() => handleResetPassword(s)}
+                                      disabled={submittingReset}
+                                      className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-all hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
+                                      title="Resetear contraseña"
                                     >
-                                      {s.activo ? (
-                                        <EyeOff size={16} />
-                                      ) : (
-                                        <Eye size={16} />
-                                      )}
+                                      <RefreshCw size={16} />
                                     </button>
                                   )}
                                 </div>
@@ -911,9 +911,9 @@ export default function GestionPermisos() {
                     placeholder="Escribe 5+ dígitos de cédula..."
                     options={opcionesServidores}
                     value={
-                      opcionesServidores.find(
-                        (o) => o.value === formSaldo.servidor_id,
-                      ) || null
+                      todosServidores
+                        .map(s => ({ value: s.servidor_id, label: `${s.nombres} — ${s.cedula}` }))
+                        .find((o) => o.value === formSaldo.servidor_id) || null
                     }
                     onChange={(opt) =>
                       setFormSaldo((p) => ({
