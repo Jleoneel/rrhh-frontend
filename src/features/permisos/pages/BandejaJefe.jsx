@@ -433,6 +433,18 @@ export default function BandejaJefe() {
                           </div>
                         )}
                       </div>
+                      {p.tipo_permiso === "Calamidad Doméstica" &&
+                        p.archivo_evidencia && (
+                          <a
+                            href={`${import.meta.env.VITE_API_URL}${p.archivo_evidencia}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 px-3 py-1.5 bg-orange-50 text-orange-600 border border-orange-200 rounded-lg hover:bg-orange-100 transition-all text-xs font-medium"
+                          >
+                            <FileText size={13} />
+                            Ver evidencia
+                          </a>
+                        )}
                     </div>
 
                     {/* Acciones solo para PENDIENTE */}

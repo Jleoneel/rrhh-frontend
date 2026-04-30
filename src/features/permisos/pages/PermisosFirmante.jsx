@@ -45,6 +45,7 @@ const initialForm = {
   hora_salida: "",
   hora_regreso: "",
   motivo: "",
+  archivo_evidencia: null,
 };
 
 export default function PermisosFirmante() {
@@ -214,7 +215,19 @@ export default function PermisosFirmante() {
 
     setSubmitting(true);
     try {
-      await api.post("/permisos/solicitar-firmante", form);
+      const formData = new FormData();
+      formData.append("permiso_tipo_id", form.permiso_tipo_id);
+      formData.append("fecha", form.fecha);
+      formData.append("hora_salida", form.hora_salida);
+      formData.append("hora_regreso", form.hora_regreso);
+      if (form.motivo) formData.append("motivo", form.motivo);
+      if (form.archivo_evidencia)
+        formData.append("archivo_evidencia", form.archivo_evidencia);
+
+      await api.post("/permisos/solicitar-firmante", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
       Swal.fire({
         toast: true,
         icon: "success",
@@ -736,6 +749,49 @@ export default function PermisosFirmante() {
                 </div>
               </div>
             </div>
+            {/* Adjuntar evidencia - solo Calamidad Doméstica */}
+            {tipos.find((t) => t.id == form.permiso_tipo_id)?.nombre ===
+              "Calamidad Doméstica" && (
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Documento de evidencia <span className="text-red-500">*</span>
+                </label>
+                <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-blue-400 transition-colors">
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    onChange={(e) =>
+                      setForm((p) => ({
+                        ...p,
+                        archivo_evidencia: e.target.files[0] || null,
+                      }))
+                    }
+                    className="hidden"
+                    id="archivo_evidencia"
+                  />
+                  <label
+                    htmlFor="archivo_evidencia"
+                    className="flex flex-col items-center gap-2 cursor-pointer"
+                  >
+                    <FileText size={24} className="text-gray-400" />
+                    <span className="text-sm text-gray-500">
+                      {form.archivo_evidencia
+                        ? form.archivo_evidencia.name
+                        : "Haz clic para subir PDF de evidencia"}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      Certificado médico, receta, etc.
+                    </span>
+                  </label>
+                </div>
+                {form.archivo_evidencia && (
+                  <p className="text-xs text-green-600 flex items-center gap-1">
+                    <CheckCircle2 size={12} /> {form.archivo_evidencia.name}{" "}
+                    seleccionado
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Footer */}
             <div className="sticky bottom-0 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-8 py-5">
