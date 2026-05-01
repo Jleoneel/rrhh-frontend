@@ -16,6 +16,8 @@ import {
   TrendingUp,
   AlertCircle,
   X,
+  FileSpreadsheet,
+  Mail,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import api from "../../../shared/api/axios";
@@ -299,7 +301,8 @@ export default function GestionPermisos() {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: err.response?.data?.message || "No se pudo resetear la contraseña",
+        text:
+          err.response?.data?.message || "No se pudo resetear la contraseña",
         confirmButtonColor: "#ef4444",
       });
     } finally {
@@ -349,6 +352,160 @@ export default function GestionPermisos() {
       });
     }
   };
+
+  const handleImportarPosicional = async () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".xls,.xlsx";
+    input.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const fileSizeMB = (file.size / 1024 / 1024).toFixed(2);
+
+      const confirm = await Swal.fire({
+        title: "¿Importar distributivo posicional?",
+        html: `
+        <div class="text-left space-y-4">
+          <div class="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <div class="p-2 bg-blue-100 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-4"/><path d="M8 18v-4"/><path d="M16 18v-4"/></svg>
+            </div>
+            <div class="flex-1">
+              <p class="font-semibold text-gray-800">${file.name}</p>
+              <p class="text-xs text-gray-500">${fileSizeMB} MB</p>
+            </div>
+          </div>
+          
+          <div class="space-y-2">
+            <p class="text-sm text-gray-600 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Se actualizarán los siguientes datos:
+            </p>
+            <ul class="list-disc list-inside text-sm text-gray-600 space-y-1 ml-4">
+              <li>Correo electrónico institucional</li>
+              <li>Fecha de ingreso al servicio público</li>
+            </ul>
+          </div>
+          
+          <div class="p-3 bg-amber-50 rounded-lg border border-amber-200">
+            <p class="text-xs text-amber-700 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg>
+              <span>Esta acción actualizará los registros existentes. No se puede deshacer.</span>
+            </p>
+          </div>
+        </div>
+      `,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Sí, importar archivo",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#3b82f6",
+        cancelButtonColor: "#6b7280",
+        background: "#ffffff",
+        color: "#1f2937",
+      });
+
+      if (!confirm.isConfirmed) return;
+
+      Swal.fire({
+        title: "Procesando archivo",
+        html: `
+        <div class="flex flex-col items-center gap-4 py-4">
+          <div class="relative">
+            <div class="w-16 h-16 border-4 border-blue-200 rounded-full"></div>
+            <div class="absolute top-0 left-0 w-16 h-16 border-4 border-blue-600 rounded-full animate-spin border-t-transparent"></div>
+          </div>
+          <div>
+            <p class="font-medium text-gray-800">Importando datos...</p>
+            <p class="text-sm text-gray-500 mt-1">Por favor espere, esto puede tomar unos segundos</p>
+          </div>
+        </div>
+      `,
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        background: "#ffffff",
+      });
+
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        const { data } = await api.post(
+          "/distributivo/import-posicional",
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          },
+        );
+
+        Swal.fire({
+          icon: "success",
+          title: "¡Importación completada!",
+          html: `
+          <div class="text-left space-y-4 mt-4">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-green-50 rounded-lg p-4 text-center border border-green-200">
+                <div class="text-2xl font-bold text-green-600">${data.actualizados || 0}</div>
+                <div class="text-xs text-green-700 font-medium mt-1">Actualizados</div>
+              </div>
+              <div class="bg-yellow-50 rounded-lg p-4 text-center border border-yellow-200">
+                <div class="text-2xl font-bold text-yellow-600">${data.sinEmail || 0}</div>
+                <div class="text-xs text-yellow-700 font-medium mt-1">Sin Email</div>
+              </div>
+              <div class="bg-red-50 rounded-lg p-4 text-center border border-red-200">
+                <div class="text-2xl font-bold text-red-600">${data.noEncontrados || 0}</div>
+                <div class="text-xs text-red-700 font-medium mt-1">No Encontrados</div>
+              </div>
+              <div class="bg-blue-50 rounded-lg p-4 text-center border border-blue-200">
+                <div class="text-2xl font-bold text-blue-600">${data.total || 0}</div>
+                <div class="text-xs text-blue-700 font-medium mt-1">Total Procesados</div>
+              </div>
+            </div>
+            <div class="border-t border-gray-200 pt-3">
+              <p class="text-xs text-gray-500 text-center">
+                Archivo procesado: <span class="font-medium">${file.name}</span>
+              </p>
+            </div>
+          </div>
+        `,
+          confirmButtonText: "Aceptar",
+          confirmButtonColor: "#3b82f6",
+          background: "#ffffff",
+          color: "#1f2937",
+          width: "500px",
+        });
+
+        cargarDatos();
+      } catch (err) {
+        Swal.fire({
+          icon: "error",
+          title: "Error en la importación",
+          html: `
+          <div class="text-left space-y-3 mt-2">
+            <div class="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-red-200">
+              <div class="p-2 bg-red-100 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-600"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              </div>
+              <div class="flex-1">
+                <p class="font-semibold text-red-800">No se pudo completar la importación</p>
+                <p class="text-sm text-red-600 mt-1">${err.response?.data?.message || "Error desconocido"}</p>
+              </div>
+            </div>
+            <p class="text-xs text-gray-500 text-center">
+              Verifique que el archivo tenga el formato correcto y contenga las columnas necesarias.
+            </p>
+          </div>
+        `,
+          confirmButtonText: "Entendido",
+          confirmButtonColor: "#ef4444",
+          background: "#ffffff",
+          color: "#1f2937",
+        });
+      }
+    };
+    input.click();
+  };
+
   const opcionesServidores = useMemo(() => {
     // Solo mostrar opciones si hay 3+ caracteres de búsqueda
     if (filtroSelectServidor.length < 5) {
@@ -391,6 +548,13 @@ export default function GestionPermisos() {
               >
                 <Users size={16} />
                 <span className="hidden sm:inline">Crear cuentas masivo</span>
+              </button>
+              <button
+                onClick={handleImportarPosicional}
+                className="flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-md text-sm font-medium"
+              >
+                <FileSpreadsheet size={16} />
+                <span className="hidden sm:inline">Importar Posicional</span>
               </button>
               <button
                 onClick={cargarDatos}
@@ -499,8 +663,8 @@ export default function GestionPermisos() {
                             "Servidor",
                             "Cédula",
                             "Unidad",
-                            "Usuario",
-                            "Estado",
+                            "Correo Institucional",
+                            "Fecha Ingreso",
                             "Acciones",
                           ].map((h) => (
                             <th
@@ -566,28 +730,28 @@ export default function GestionPermisos() {
                                   </span>
                                 </div>
                               </td>
-                              <td className="px-6 py-4">
-                                {s.usuario_id ? (
-                                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                                    <CheckCircle size={12} /> Creado
+                              <td className="px-6 py-4 text-sm text-gray-600">
+                                {s.email ? (
+                                  <span className="flex items-center gap-1">
+                                    <Mail size={13} className="text-gray-400" />
+                                    {s.email}
                                   </span>
                                 ) : (
-                                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">
-                                    <XCircle size={12} /> Sin usuario
-                                  </span>
+                                  <span className="text-gray-400">—</span>
                                 )}
                               </td>
-                              <td className="px-6 py-4">
-                                {s.usuario_id &&
-                                  (s.activo ? (
-                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
-                                      <CheckCircle size={12} /> Activo
-                                    </span>
-                                  ) : (
-                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-100 text-rose-700 rounded-full text-xs font-medium">
-                                      <XCircle size={12} /> Inactivo
-                                    </span>
-                                  ))}
+                              <td className="px-6 py-4 text-sm text-gray-600">
+                                {s.fecha_ingreso ? (
+                                  new Date(
+                                    s.fecha_ingreso + "T12:00:00",
+                                  ).toLocaleDateString("es-ES", {
+                                    day: "2-digit",
+                                    month: "short",
+                                    year: "numeric",
+                                  })
+                                ) : (
+                                  <span className="text-gray-400">—</span>
+                                )}
                               </td>
                               <td className="px-6 py-4">
                                 <div className="flex items-center gap-2">
@@ -912,7 +1076,10 @@ export default function GestionPermisos() {
                     options={opcionesServidores}
                     value={
                       todosServidores
-                        .map(s => ({ value: s.servidor_id, label: `${s.nombres} — ${s.cedula}` }))
+                        .map((s) => ({
+                          value: s.servidor_id,
+                          label: `${s.nombres} — ${s.cedula}`,
+                        }))
                         .find((o) => o.value === formSaldo.servidor_id) || null
                     }
                     onChange={(opt) =>
@@ -957,25 +1124,6 @@ export default function GestionPermisos() {
                       ({formSaldo.dias} días × 8 horas)
                     </p>
                   )}
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Fecha de ingreso <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={formSaldo.fecha_ingreso || ""}
-                    onChange={(e) =>
-                      setFormSaldo((p) => ({
-                        ...p,
-                        fecha_ingreso: e.target.value,
-                      }))
-                    }
-                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <p className="text-xs text-gray-400 mt-1">
-                    El saldo se acumulará cada mes en esta fecha
-                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
