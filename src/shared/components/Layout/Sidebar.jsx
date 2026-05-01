@@ -15,6 +15,7 @@ import {
   FileSignature,
   Bell,
   GitBranch,
+  ShieldCheck,
 } from "lucide-react";
 import LogoutButton from "./logoutButton";
 import { useAuth } from "../../../features/auth/AuthContext";
@@ -55,6 +56,22 @@ export default function Sidebar() {
             path: "/servidor/vacaciones",
             icon: <Umbrella size={20} />,
           },
+          {
+            title: "Mi Certificado",
+            path: "/permisos/mi-certificado",
+            icon: <ShieldCheck size={20} />,
+          },
+          {
+            title: "Configuración",
+            icon: <Settings size={20} />,
+            submenu: [
+              {
+                title: "Mi Certificado",
+                path: "/permisos/mi-certificado",
+                icon: <ShieldCheck size={16} />,
+              },
+            ],
+          },
         ]
       : esJefeArea
         ? [
@@ -77,6 +94,22 @@ export default function Sidebar() {
               title: "Mis Vacaciones",
               path: "/permisos/mis-vacaciones",
               icon: <Calendar size={20} />,
+            },
+            {
+              title: "Mi Certificado",
+              path: "/permisos/mi-certificado",
+              icon: <ShieldCheck size={20} />,
+            },
+            {
+              title: "Configuración",
+              icon: <Settings size={20} />,
+              submenu: [
+                {
+                  title: "Mi Certificado",
+                  path: "/permisos/mi-certificado",
+                  icon: <ShieldCheck size={16} />,
+                },
+              ],
             },
           ]
         : esGerente
@@ -120,6 +153,11 @@ export default function Sidebar() {
                     title: "Mis Vacaciones",
                     path: "/permisos/mis-vacaciones",
                     icon: <Calendar size={16} />,
+                  },
+                  {
+                    title: "Mi Certificado",
+                    path: "/permisos/mi-certificado",
+                    icon: <ShieldCheck size={16} />,
                   },
                 ],
               },
@@ -211,6 +249,11 @@ export default function Sidebar() {
                     title: "Adjuntar Distributivo",
                     path: "/AdjuntarDistributivo",
                     icon: <FileSpreadsheet size={16} />,
+                  },
+                  {
+                    title: "Mi Certificado",
+                    path: "/permisos/mi-certificado",
+                    icon: <ShieldCheck size={16} />,
                   },
                   ...(puedeVerUsuarios || esAsistenteUATH
                     ? [

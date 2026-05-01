@@ -16,6 +16,7 @@ import VacacionesServidor from "./features/permisos/pages/VacacionesServidor";
 import BandejaVacaciones from "./features/permisos/pages/BandejaVacaciones";
 import ReporteVacaciones from "./features/permisos/pages/ReporteVacaciones";
 import VacacionesFirmante from "./features/permisos/pages/VacacionesFirmante";
+import MiCertificado from "./features/permisos/pages/MiCertificado";
 
 
 export default function App() {
@@ -44,7 +45,6 @@ export default function App() {
         <Route path="/permisos/bandeja-vacaciones" element={<BandejaVacaciones />} />
         <Route path="/permisos/reporte-vacaciones" element={<ReporteVacaciones />} />
         <Route path="/permisos/mis-vacaciones" element={<VacacionesFirmante />} />
-
       </Route>
 
       {/* RUTAS SERVIDORES */}
@@ -57,7 +57,17 @@ export default function App() {
       >
         {<Route path="/servidor/permisos" element={<PermisosServidor />} />}
         <Route path="/servidor/vacaciones" element={<VacacionesServidor />} />
+      </Route>
 
+      {/* RUTAS PARA TODOS LOS USUARIOS AUTENTICADOS */}
+      <Route
+        element={
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/permisos/mi-certificado" element={<MiCertificado />} />
       </Route>
 
       {/* Redirección según tipo de usuario */}
