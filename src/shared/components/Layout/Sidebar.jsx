@@ -57,11 +57,6 @@ export default function Sidebar() {
             icon: <Umbrella size={20} />,
           },
           {
-            title: "Mi Certificado",
-            path: "/permisos/mi-certificado",
-            icon: <ShieldCheck size={20} />,
-          },
-          {
             title: "Configuración",
             icon: <Settings size={20} />,
             submenu: [
@@ -154,6 +149,12 @@ export default function Sidebar() {
                     path: "/permisos/mis-vacaciones",
                     icon: <Calendar size={16} />,
                   },
+                ],
+              },
+              {
+                title: "Configuración",
+                icon: <Settings size={20} />,
+                submenu: [
                   {
                     title: "Mi Certificado",
                     path: "/permisos/mi-certificado",
