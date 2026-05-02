@@ -79,6 +79,7 @@ const FirmanteRow = ({ firmante, onEdit, onToggleActive }) => {
     "RESPONSABLE DE LA UATH": "warning",
     "JEFE DE AREA": "success",
     "ADMINISTRADOR DEL SISTEMA": "default",
+    "GERENTE HOSPITALARIO ENCARGADO": "error",
   };
   return (
     <tr className="group hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-transparent transition-all duration-300">
@@ -235,6 +236,7 @@ export default function GestionFirmantesUATH() {
       nombre: f.nombre,
       password: "",
       activo: !!f.activo,
+      cargo: f.cargo_nombre || f.cargo || "ASISTENTE DE LA UATH",
     });
     setModalOpen(true);
   };
@@ -305,6 +307,7 @@ export default function GestionFirmantesUATH() {
         await api.put(`/firmantes/${editando.id}`, {
           nombre: form.nombre,
           activo: form.activo,
+          cargo: form.cargo,
         });
 
         Swal.fire({
@@ -721,6 +724,9 @@ export default function GestionFirmantesUATH() {
                       Responsable de la UATH
                     </option>
                     <option value="JEFE DE AREA">Jefe de Área</option>
+                    <option value="GERENTE HOSPITALARIO ENCARGADO">
+                      Gerente Hospitalario Encargado
+                    </option>
                     <option value="ADMINISTRADOR DEL SISTEMA">
                       Administrador del Sistema
                     </option>
@@ -757,6 +763,33 @@ export default function GestionFirmantesUATH() {
 
             {modalMode === "editar" && (
               <div className="space-y-3">
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Cargo <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={form.cargo}
+                    onChange={(e) =>
+                      setForm((prev) => ({ ...prev, cargo: e.target.value }))
+                    }
+                    className="w-full border-2 border-gray-300 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="ASISTENTE DE LA UATH">
+                      Asistente de la UATH
+                    </option>
+                    <option value="RESPONSABLE DE LA UATH">
+                      Responsable de la UATH
+                    </option>
+                    <option value="JEFE DE AREA">Jefe de Área</option>
+                    <option value="GERENTE HOSPITALARIO ENCARGADO">
+                      Gerente Hospitalario Encargado
+                    </option>
+                    <option value="ADMINISTRADOR DEL SISTEMA">
+                      Administrador del Sistema
+                    </option>
+                  </select>
+                </div>
+
                 <label className="block text-sm font-semibold text-gray-700">
                   Estado de la cuenta
                 </label>
