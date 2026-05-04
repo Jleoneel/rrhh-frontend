@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
 import dashboardAPI from "../hooks/dashboard";
 import StatCard from "../components/StatCard";
@@ -9,8 +9,9 @@ import {
   FiClock,
   FiFileText,
   FiXCircle,
+  FiTrendingUp,
+  FiTrendingDown,
 } from "react-icons/fi";
-
 
 export default function Dashboard() {
   const { setHeaderConfig } = useOutletContext();
@@ -25,6 +26,7 @@ export default function Dashboard() {
 
   const [resumen, setResumen] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [previousResumen, setPreviousResumen] = useState(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -32,6 +34,11 @@ export default function Dashboard() {
         const [resumenData] = await Promise.all([
           dashboardAPI.getAccionesResumen(),
         ]);
+        
+        // Guardar datos anteriores para calcular tendencias
+        if (resumen) {
+          setPreviousResumen(resumen);
+        }
         setResumen(resumenData);
       } catch (error) {
         console.error("Error cargando dashboard", error);
@@ -42,145 +49,256 @@ export default function Dashboard() {
     fetchDashboardData();
   }, []);
 
+  // Calcular tendencias entre períodos
+  const getTrend = (current, previous) => {
+    if (!previous) return { direction: "neutral", value: 0 };
+    const diff = current - previous;
+    const percent = previous !== 0 ? (diff / previous) * 100 : 0;
+    return {
+      direction: diff > 0 ? "up" : diff < 0 ? "down" : "neutral",
+      value: Math.abs(percent).toFixed(1),
+    };
+  };
+
+  const tendenciaTotal = previousResumen 
+    ? getTrend(resumen?.total || 0, previousResumen.total) 
+    : null;
+  const tendenciaAprobadas = previousResumen 
+    ? getTrend(resumen?.aprobadas || 0, previousResumen.aprobadas) 
+    : null;
+
+  const porcentajeAprobadas = resumen?.total > 0
+    ? Math.round((resumen.aprobadas / resumen.total) * 100)
+    : 0;
+
+  const porcentajeBorrador = resumen?.total > 0
+    ? Math.round((resumen.borrador / resumen.total) * 100)
+    : 0;
+
+  const porcentajeRechazadas = resumen?.total > 0
+    ? Math.round((resumen.rechazadas / resumen.total) * 100)
+    : 0;
+
+  const alertas = [];
+  if (resumen?.en_revision > 5) {
+    alertas.push(`${resumen.en_revision} acciones requieren revisión urgente`);
+  }
+  if (resumen?.borrador > 10) {
+    alertas.push(`${resumen.borrador} borradores pendientes por completar`);
+  }
+  if (resumen?.rechazadas > 3) {
+    alertas.push(`${resumen.rechazadas} acciones fueron insubsistentes`);
+  }
+
+  // Datos para el gráfico de tendencias
+  const datosTendencia = useMemo(() => {
+    if (!resumen) return null;
+    return {
+      labels: ["Borrador", "En Revisión", "Aprobadas", "Insubsistentes"],
+      values: [resumen.borrador, resumen.en_revision, resumen.aprobadas, resumen.rechazadas],
+      colors: ["#eab308", "#f97316", "#22c55e", "#ef4444"],
+    };
+  }, [resumen]);
+
   if (loading) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-[400px]">
+      <div className="p-8 flex items-center justify-center min-h-[500px]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando dashboard...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-6"></div>
+          <p className="text-gray-600 font-medium">Cargando dashboard...</p>
+          <p className="text-sm text-gray-400 mt-1">Obteniendo información actualizada</p>
         </div>
       </div>
     );
   }
 
-  const porcentajeAprobadas =
-    resumen.total > 0
-      ? Math.round((resumen.aprobadas / resumen.total) * 100)
-      : 0;
-
-  const alertas = [];
-  if (resumen.en_revision > 5) {
-    alertas.push(`${resumen.en_revision} acciones requieren revisión urgente`);
-  }
-  if (resumen.borrador > 10) {
-    alertas.push(`${resumen.borrador} borradores pendientes`);
-  }
-
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Dashboard de Acciones de Personal
-        </h1>
-        <p className="text-gray-600">
-          Resumen general del estado de las solicitudes
-          {resumen.ultimaActualizacion && (
-            <span className="text-sm text-gray-500 ml-2">
-              • Actualizado:{" "}
-              {new Date(resumen.ultimaActualizacion).toLocaleDateString()}
-            </span>
-          )}
-        </p>
-      </div>
-
-      {/* Alertas */}
-      {alertas.length > 0 && (
-        <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-r">
-          <div className="flex items-center">
-            <FiAlertCircle className="text-yellow-500 mr-3" size={20} />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-2">
+            <div className="p-3 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-lg shadow-blue-200">
+              <FiFileText className="h-6 w-6 text-white" />
+            </div>
             <div>
-              <h3 className="font-medium text-yellow-800">
-                Acciones requeridas
-              </h3>
-              <ul className="text-sm text-yellow-700 mt-1">
-                {alertas.map((alerta, idx) => (
-                  <li key={idx}>• {alerta}</li>
-                ))}
-              </ul>
+              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+                Dashboard de Acciones de Personal
+              </h1>
+              <p className="text-gray-500 mt-1">
+                Resumen general del estado de las solicitudes
+                {resumen?.ultimaActualizacion && (
+                  <span className="text-sm text-gray-400 ml-2">
+                    • Última actualización:{" "}
+                    {new Date(resumen.ultimaActualizacion).toLocaleDateString("es-ES", {
+                      day: "2-digit",
+                      month: "long",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                )}
+              </p>
             </div>
           </div>
         </div>
-      )}
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        <StatCard
-          title="Total"
-          value={resumen.total}
-          icon={<FiFileText />}
-          trend={resumen.total > 0 ? "positive" : "neutral"}
-          description="Total de solicitudes"
-        />
-        <StatCard
-          title="Borrador"
-          value={resumen.borrador}
-          icon={<FiClock />}
-          color="yellow"
-          description={`${Math.round((resumen.borrador / resumen.total) * 100)}% del total`}
-        />
-        <StatCard
-          title="En revisión"
-          value={resumen.en_revision}
-          icon={<FiAlertCircle />}
-          color="orange"
-          description="Requieren atención"
-        />
-        <StatCard
-          title="Aprobadas"
-          value={resumen.aprobadas}
-          icon={<FiCheckCircle />}
-          color="green"
-          description={`${porcentajeAprobadas}% tasa de aprobación`}
-        />
-        <StatCard
-          title="Insubsistentes"
-          value={resumen.rechazadas}
-          icon={<FiXCircle />}
-          color="red"
-          description={`${Math.round((resumen.rechazadas / resumen.total) * 100)}% del total`}
-        />
-      </div>
-
-      {/* Gráficos y visualizaciones */}
-      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6 mb-8">
-        {/* Gráfico de distribución por estado */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-300">
-          <h2 className="text-xl font-semibold mb-4">
-            Distribución por Estado
-          </h2>
-          <GraficoEstado data={resumen} />
-          <div className="mt-4 text-sm text-gray-600">
-            <p>
-              La mayoría de las acciones se encuentran en estado{" "}
-              <strong>Borrador</strong>.
-            </p>
-            {resumen.aprobadas === 0 && (
-              <p className="text-orange-600 mt-1">
-                No hay acciones aprobadas aún.
-              </p>
-            )}
+        {/* Alertas */}
+        {alertas.length > 0 && (
+          <div className="mb-6 bg-gradient-to-r from-amber-50 to-yellow-50 border-l-4 border-amber-500 rounded-xl shadow-sm">
+            <div className="p-5">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-amber-100 rounded-lg">
+                  <FiAlertCircle className="text-amber-600" size={20} />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-amber-800">
+                    Acciones requeridas
+                  </h3>
+                  <ul className="text-sm text-amber-700 mt-2 space-y-1">
+                    {alertas.map((alerta, idx) => (
+                      <li key={idx} className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                        {alerta}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
+        )}
+
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
+          <StatCard
+            title="Total Solicitudes"
+            value={resumen?.total || 0}
+            icon={<FiFileText size={22} />}
+            color="blue"
+            description="Total de acciones registradas"
+            trend={tendenciaTotal?.direction}
+            trendValue={tendenciaTotal?.value ? `${tendenciaTotal.value}%` : null}
+          />
+          <StatCard
+            title="Borrador"
+            value={resumen?.borrador || 0}
+            icon={<FiClock size={22} />}
+            color="yellow"
+            description={`${porcentajeBorrador}% del total · Pendientes de envío`}
+          />
+          <StatCard
+            title="En Revisión"
+            value={resumen?.en_revision || 0}
+            icon={<FiAlertCircle size={22} />}
+            color="orange"
+            description={`${resumen?.en_revision === 0 ? "Sin pendientes" : "Requieren atención inmediata"}`}
+          />
+          <StatCard
+            title="Aprobadas"
+            value={resumen?.aprobadas || 0}
+            icon={<FiCheckCircle size={22} />}
+            color="green"
+            description={`${porcentajeAprobadas}% tasa de aprobación`}
+            trend={tendenciaAprobadas?.direction}
+            trendValue={tendenciaAprobadas?.value ? `${tendenciaAprobadas.value}%` : null}
+          />
+          <StatCard
+            title="Insubsistentes"
+            value={resumen?.rechazadas || 0}
+            icon={<FiXCircle size={22} />}
+            color="red"
+            description={`${porcentajeRechazadas}% del total · Requieren revisión`}
+          />
         </div>
-      </div>
 
-      {/* Resumen rápido */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-300">
-        <h2 className="text-xl font-semibold mb-4">Resumen Ejecutivo</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-4 bg-blue-50 rounded-lg">
-            <h3 className="font-medium text-blue-800 mb-1">Productividad</h3>
-            <p className="text-sm text-blue-700">
-              {porcentajeAprobadas}% de las acciones han sido procesadas.
-            </p>
+        {/* Gráficos y visualizaciones */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Gráfico de distribución por estado */}
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl border border-gray-200 p-6 hover:shadow-2xl transition-shadow">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  Distribución por Estado
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Visualización del flujo de acciones
+                </p>
+              </div>
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <FiTrendingUp className="text-gray-500" size={18} />
+              </div>
+            </div>
+            {datosTendencia && (
+              <GraficoEstado data={resumen} />
+            )}
+            <div className="mt-6 p-4 bg-gray-50 rounded-xl">
+              <p className="text-sm text-gray-600">
+                <span className="font-semibold">Análisis:</span>{" "}
+                {resumen?.borrador > resumen?.aprobadas + resumen?.en_revision
+                  ? "Hay una alta cantidad de borradores pendientes. Se recomienda completar y enviar a revisión."
+                  : resumen?.en_revision > 5
+                  ? "Existen varias acciones en revisión que requieren atención prioritaria."
+                  : "El flujo de aprobación se encuentra dentro de parámetros normales."}
+              </p>
+            </div>
           </div>
-          <div className="p-4 bg-green-50 rounded-lg">
-            <h3 className="font-medium text-green-800 mb-1">Velocidad</h3>
-            <p className="text-sm text-green-700">
-              {resumen.en_revision === 0
-                ? "Sin pendientes"
-                : `${resumen.en_revision} en revisión`}
-            </p>
+
+          {/* Resumen ejecutivo */}
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6 hover:shadow-2xl transition-shadow">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <FiTrendingUp className="text-blue-600" size={20} />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900">
+                Resumen Ejecutivo
+              </h2>
+            </div>
+
+            <div className="space-y-4">
+              {/* Indicador de productividad */}
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
+                <h3 className="font-semibold text-blue-800 mb-1">Productividad</h3>
+                <p className="text-2xl font-bold text-blue-600">
+                  {porcentajeAprobadas}%
+                </p>
+                <p className="text-sm text-blue-700 mt-1">
+                  de las acciones han sido procesadas
+                </p>
+                <div className="mt-3 h-2 bg-blue-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-blue-600 rounded-full transition-all duration-500"
+                    style={{ width: `${porcentajeAprobadas}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Indicador de eficiencia */}
+              <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl">
+                <h3 className="font-semibold text-green-800 mb-1">Eficiencia</h3>
+                <p className="text-sm text-green-700">
+                  {resumen?.en_revision === 0
+                    ? "✅ Sin acciones pendientes de revisión"
+                    : `⏳ ${resumen.en_revision} acciones en proceso de revisión`}
+                </p>
+                {resumen?.en_revision > 0 && (
+                  <div className="mt-2 text-xs text-green-600">
+                    Tiempo estimado de respuesta: <strong>24-48 horas</strong>
+                  </div>
+                )}
+              </div>
+
+              {/* Indicador de calidad */}
+              <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
+                <h3 className="font-semibold text-purple-800 mb-1">Calidad</h3>
+                <p className="text-sm text-purple-700">
+                  {porcentajeRechazadas < 10
+                    ? "✅ Índice de insubsistencias bajo"
+                    : "⚠️ Alto índice de insubsistencias. Revisar criterios de aprobación"}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
