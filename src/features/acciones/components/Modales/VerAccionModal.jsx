@@ -20,6 +20,7 @@ import {
   Calendar,
   Trash2,
   Bell,
+  Loader2,
 } from "lucide-react";
 
 export default function VerAccionModal({ open, accion, onClose, onChanged }) {
@@ -30,10 +31,16 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
   const [loadingAnexos, setLoadingAnexos] = useState(false);
   const [detalleAccion, setDetalleAccion] = useState(null);
   const [loadingDetalle, setLoadingDetalle] = useState(false);
+  const [archivosAccion, setArchivosAccion] = useState(null);
 
   // Estados para notificación
   const [notificacion, setNotificacion] = useState(null);
   const [openNotificacionModal, setOpenNotificacionModal] = useState(false);
+
+  // Estados para firma
+  const [modalFirma, setModalFirma] = useState(false);
+  const [passwordToken, setPasswordToken] = useState("");
+  const [firmando, setFirmando] = useState(false);
 
   //HOOK DE FIRMAS
   const {
@@ -85,6 +92,16 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
       try {
         const { data } = await api.get(`/acciones/${accionId}`);
         setDetalleAccion(data.accion);
+
+        // Cargar archivos firmados
+        const archivos = {
+          ELABORA: data.accion.archivo_elabora,
+          REGISTRA_CONTROLA: data.accion.archivo_registra,
+          REVISA: data.accion.archivo_revisa,
+          APRUEBA_TH: data.accion.archivo_aprueba_th,
+          APRUEBA_AUTORIDAD: data.accion.archivo_aprueba_autoridad,
+        };
+        setArchivosAccion(archivos);
       } catch (error) {
         console.error("Error cargando detalle:", error);
       } finally {
@@ -152,76 +169,38 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
     window.open(`${apiBase}${archivo_path}`, "_blank");
   };
 
-  const handleUploadFirmado = async () => {
-    if (!accionId) return;
+  const handleFirmarDigital = async () => {
+    if (!passwordToken.trim()) return;
 
-    const { value: file } = await Swal.fire({
-      title: "Subir PDF firmado",
-      input: "file",
-      inputAttributes: {
-        accept: "application/pdf",
-        "aria-label": "Subir PDF",
-      },
-      confirmButtonText: "Subir",
-      showCancelButton: true,
-      cancelButtonText: "Cancelar",
-      background: "#1f2937",
-      color: "#f9fafb",
-      confirmButtonColor: "#10b981",
-    });
-
-    if (!file) return;
-
-    if (file.type !== "application/pdf") {
-      Swal.fire({
-        icon: "error",
-        title: "Archivo inválido",
-        text: "Debe ser un PDF.",
-        background: "#1f2937",
-        color: "#f9fafb",
-      });
-      return;
-    }
-
-    const fd = new FormData();
-    fd.append("file", file);
-
-    Swal.fire({
-      title: "Subiendo...",
-      text: "Registrando firma",
-      allowOutsideClick: false,
-      didOpen: () => Swal.showLoading(),
-      background: "#1f2937",
-      color: "#f9fafb",
-    });
-
+    setFirmando(true);
     try {
-      await api.post(`/acciones/${accionId}/firmas/subir`, fd, {
-        headers: { "Content-Type": "multipart/form-data" },
+      await api.post(`/firmas/acciones/${accionId}/firmar`, {
+        password: passwordToken,
       });
 
       Swal.fire({
         toast: true,
         icon: "success",
-        title: "Firma registrada",
+        title: "¡Firmado digitalmente!",
+        text: "La acción fue firmada con tu certificado BCE Ecuador",
+        timer: 3000,
         showConfirmButton: false,
-        timer: 1500,
         position: "top-end",
-        background: "#1f2937",
-        color: "#f9fafb",
       });
 
-      // Refrescar datos
+      setModalFirma(false);
+      setPasswordToken("");
       await refreshFirmas();
       if (onChanged) await onChanged();
-    } catch (e) {
+    } catch (err) {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: e.response?.data?.message || "No se pudo registrar la firma",
-        background: "#1f2937",
-        color: "#f9fafb",
+        text: err.response?.data?.message || "No se pudo firmar",
+        confirmButtonColor: "#ef4444",
       });
+    } finally {
+      setFirmando(false);
     }
   };
 
@@ -514,11 +493,14 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
 
               {puedeSubirFirmado && (
                 <button
-                  onClick={handleUploadFirmado}
-                  className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all flex items-center gap-2 text-sm"
+                  onClick={() => {
+                    setPasswordToken("");
+                    setModalFirma(true);
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all flex items-center gap-2 text-sm"
                 >
-                  <Upload size={16} />
-                  Subir PDF firmado
+                  <ShieldCheck size={16} />
+                  Firmar digitalmente
                 </button>
               )}
             </div>
@@ -543,11 +525,13 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
                         isPending={
                           pendiente?.orden === f.orden && f.estado !== "FIRMADO"
                         }
-                        onDownload={() =>
-                          handleDownloadFirmado(f.documento_path)
-                        }
+                        onDownload={() => {
+                          const archivo = archivosAccion[f.rol_firma];
+                          if (archivo) handleDownloadFirmado(archivo);
+                        }}
                         onDelete={handleDeleteFirmado}
                         user={user}
+                        tieneArchivo={!!archivosAccion[f.rol_firma]}
                       />
                     ))
                 ) : (
@@ -689,6 +673,96 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
         </div>
       </div>
 
+      {modalFirma && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setModalFirma(false)}
+          />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-900 to-blue-800 text-white px-6 py-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/10 rounded-lg">
+                    <ShieldCheck className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold">Firma Digital</h2>
+                    <p className="text-sm opacity-90">Acción de Personal</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setModalFirma(false)}
+                  className="p-2 hover:bg-white/10 rounded-lg"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                <p className="text-sm text-blue-800">
+                  Se firmará digitalmente este documento usando tu certificado
+                  .p12 del BCE Ecuador.
+                </p>
+                {pendiente && (
+                  <p className="text-xs text-blue-600 mt-2 font-medium">
+                    Rol: {pendiente.rol_firma} — Orden #{pendiente.orden}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Contraseña del token <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  value={passwordToken}
+                  onChange={(e) => setPasswordToken(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleFirmarDigital()}
+                  placeholder="Ingresa la contraseña de tu certificado"
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  autoFocus
+                />
+                <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
+                  <AlertCircle size={12} />
+                  Tu contraseña no se guarda — solo se usa para firmar este
+                  documento
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setModalFirma(false)}
+                  className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleFirmarDigital}
+                  disabled={!passwordToken.trim() || firmando}
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
+                >
+                  {firmando ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Firmando...
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck size={16} />
+                      Firmar
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal de Notificación */}
       <NotificacionModal
         open={openNotificacionModal}
@@ -716,7 +790,7 @@ function MiniInfo({ icon: Icon, label, value }) {
   );
 }
 
-function FirmaRow({ firma, isPending, onDownload, onDelete, user }) {
+function FirmaRow({ firma, isPending, onDownload, onDelete, user, tieneArchivo }) {
   const isFirmado = firma.estado === "FIRMADO";
   const puedeEliminar = user?.cargo_id === firma.cargo_id;
 
@@ -791,8 +865,7 @@ function FirmaRow({ firma, isPending, onDownload, onDelete, user }) {
       </div>
 
       {/* Botón de descarga */}
-
-      {isFirmado && firma.documento_path && (
+      {isFirmado && tieneArchivo && (
         <div className="flex gap-2">
           {/* Botón Descargar - visible para todos */}
           <button
