@@ -13,12 +13,10 @@ import {
   CheckCircle2,
   AlertCircle,
   Download,
-  Upload,
   User,
   ShieldCheck,
   Paperclip,
   Calendar,
-  Trash2,
   Bell,
   Loader2,
 } from "lucide-react";
@@ -31,7 +29,7 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
   const [loadingAnexos, setLoadingAnexos] = useState(false);
   const [detalleAccion, setDetalleAccion] = useState(null);
   const [loadingDetalle, setLoadingDetalle] = useState(false);
-  const [archivosAccion, setArchivosAccion] = useState(null);
+  const [archivosAccion, setArchivosAccion] = useState({});
 
   // Estados para notificación
   const [notificacion, setNotificacion] = useState(null);
@@ -204,40 +202,6 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
     }
   };
 
-  const handleDeleteFirmado = async (firmaId) => {
-    const result = await Swal.fire({
-      title: "¿Eliminar documento firmado?",
-      text: "Esta acción no se puede deshacer",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Sí, eliminar",
-      cancelButtonText: "Cancelar",
-    });
-
-    if (result.isConfirmed) {
-      try {
-        await api.delete(`/firmas/acciones/${accionId}/firmas/${firmaId}`);
-        await refreshFirmas();
-        if (onChanged) await onChanged();
-        Swal.fire({
-          toast: true,
-          icon: "success",
-          title: "Documento eliminado",
-          showConfirmButton: false,
-          timer: 1500,
-          position: "top-end",
-        });
-      } catch (e) {
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: e.response?.data?.message || "No se pudo eliminar el documento",
-        });
-      }
-    }
-  };
 
   const handleDownloadAnexo = async (anexoId) => {
     try {
@@ -526,12 +490,11 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
                           pendiente?.orden === f.orden && f.estado !== "FIRMADO"
                         }
                         onDownload={() => {
-                          const archivo = archivosAccion[f.rol_firma];
+                          const archivo = archivosAccion?.[f.rol_firma];
                           if (archivo) handleDownloadFirmado(archivo);
                         }}
-                        onDelete={handleDeleteFirmado}
+                        tieneArchivo={!!archivosAccion?.[f.rol_firma]}
                         user={user}
-                        tieneArchivo={!!archivosAccion[f.rol_firma]}
                       />
                     ))
                 ) : (
@@ -790,9 +753,13 @@ function MiniInfo({ icon: Icon, label, value }) {
   );
 }
 
-function FirmaRow({ firma, isPending, onDownload, onDelete, user, tieneArchivo }) {
+function FirmaRow({
+  firma,
+  isPending,
+  onDownload,
+  tieneArchivo,
+}) {
   const isFirmado = firma.estado === "FIRMADO";
-  const puedeEliminar = user?.cargo_id === firma.cargo_id;
 
   return (
     <div
@@ -876,16 +843,6 @@ function FirmaRow({ firma, isPending, onDownload, onDelete, user, tieneArchivo }
             <Download size={18} />
           </button>
 
-          {/* Botón Eliminar - solo para quien firmó */}
-          {puedeEliminar && (
-            <button
-              onClick={() => onDelete(firma.id)}
-              className="p-2.5 bg-white hover:bg-red-50 border border-gray-200 rounded-lg text-gray-700 hover:text-red-600 transition-colors flex-shrink-0"
-              title="Eliminar documento"
-            >
-              <Trash2 size={18} />
-            </button>
-          )}
         </div>
       )}
     </div>
