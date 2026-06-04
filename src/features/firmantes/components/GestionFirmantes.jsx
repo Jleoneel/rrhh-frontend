@@ -76,6 +76,7 @@ const StatCard = ({ label, value, icon: Icon, color = "blue", trend }) => {
 const FirmanteRow = ({ firmante, onEdit, onToggleActive }) => {
   const cargoColor = {
     "ASISTENTE DE LA UATH": "info",
+    "AUXILIAR DE LA UATH": "info",
     "RESPONSABLE DE LA UATH": "warning",
     "JEFE DE AREA": "success",
     "ADMINISTRADOR DEL SISTEMA": "default",
@@ -641,7 +642,7 @@ export default function GestionFirmantesUATH() {
               <p className="text-gray-600 ml-16">
                 Rol:{" "}
                 <span className="font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg ml-2">
-                  ASISTENTE DE LA UATH
+                  {form.cargo}
                 </span>
               </p>
             </div>
@@ -720,6 +721,9 @@ export default function GestionFirmantesUATH() {
                     <option value="ASISTENTE DE LA UATH">
                       Asistente de la UATH
                     </option>
+                    <option value="AUXILIAR DE LA UATH">
+                      Auxiliar de la UATH
+                    </option>
                     <option value="RESPONSABLE DE LA UATH">
                       Responsable de la UATH
                     </option>
@@ -776,6 +780,9 @@ export default function GestionFirmantesUATH() {
                   >
                     <option value="ASISTENTE DE LA UATH">
                       Asistente de la UATH
+                    </option>
+                    <option value="AUXILIAR DE LA UATH">
+                      Auxiliar de la UATH
                     </option>
                     <option value="RESPONSABLE DE LA UATH">
                       Responsable de la UATH

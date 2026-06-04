@@ -11,6 +11,7 @@ import api from "../../../shared/api/axios";
 // Constantes para IDs de roles
 const ROLES = {
   ASISTENTE_UATH: "78de3b9c-a2f4-41ed-9823-bb72ee56d1f4",
+  AUXILIAR_UATH: "5a7d49dd-926e-4eaa-8127-b05e9dae7e53",
 };
 
 const initialFilters = {
@@ -299,7 +300,10 @@ const handleInsubsistente = async (accion) => {
   };
 
   // Verificar permisos de usuario
-  const esAsistenteUATH = user?.cargo_id === ROLES.ASISTENTE_UATH;
+  const esAsistenteUATH = [
+    ROLES.ASISTENTE_UATH,
+    ROLES.AUXILIAR_UATH,
+  ].includes(user?.cargo_id);
   const esAdmin = user?.es_admin === true; // ← aquí
 
 

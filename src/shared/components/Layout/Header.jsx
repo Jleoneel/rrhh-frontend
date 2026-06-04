@@ -17,7 +17,9 @@ import { NotificacionesBell } from "../../../features/notificaciones/components/
 
 export default function Header({ title, showNewAction = true, onNuevaAccion }) {
   const { user } = useAuth();
-  const isUATH = user?.cargo_nombre === "ASISTENTE DE LA UATH";
+  const isUATH = ["ASISTENTE DE LA UATH", "AUXILIAR DE LA UATH"].includes(
+    user?.cargo_nombre,
+  );
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);

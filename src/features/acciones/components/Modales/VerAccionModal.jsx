@@ -21,6 +21,22 @@ import {
   Loader2,
 } from "lucide-react";
 
+const CARGO_IDS_EQUIVALENTES = {
+  "78de3b9c-a2f4-41ed-9823-bb72ee56d1f4": [
+    "78de3b9c-a2f4-41ed-9823-bb72ee56d1f4",
+    "5a7d49dd-926e-4eaa-8127-b05e9dae7e53",
+  ],
+  "5a7d49dd-926e-4eaa-8127-b05e9dae7e53": [
+    "78de3b9c-a2f4-41ed-9823-bb72ee56d1f4",
+    "5a7d49dd-926e-4eaa-8127-b05e9dae7e53",
+  ],
+};
+
+const cargoPuedeActuarComo = (cargoActualId, cargoRequeridoId) =>
+  (CARGO_IDS_EQUIVALENTES[cargoRequeridoId] || [cargoRequeridoId]).includes(
+    cargoActualId,
+  );
+
 export default function VerAccionModal({ open, accion, onClose, onChanged }) {
   const accionId = accion?.id;
 
@@ -60,7 +76,7 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
 
   const puedeSubirFirmado = useMemo(() => {
     if (!pendiente || !user?.cargo_id) return false;
-    return pendiente.cargo_id === user.cargo_id;
+    return cargoPuedeActuarComo(user.cargo_id, pendiente.cargo_id);
   }, [pendiente, user]);
 
   const puedeNotificar = useMemo(() => {
@@ -70,7 +86,11 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
 
     if (estadoActual !== "APROBADO") return false;
 
-    const cargosPermitidos = ["ASISTENTE DE LA UATH", "RESPONSABLE DE LA UATH"];
+    const cargosPermitidos = [
+      "ASISTENTE DE LA UATH",
+      "AUXILIAR DE LA UATH",
+      "RESPONSABLE DE LA UATH",
+    ];
 
     return cargosPermitidos.includes(user.cargo_nombre);
   }, [user, detalleAccion, accion]);

@@ -40,7 +40,10 @@ export default function Sidebar() {
   const esJefeArea = cargoNombre === "JEFE DE AREA";
   const esGerente = cargoNombre === "GERENTE HOSPITALARIO ENCARGADO";
   const esResponsableUATH = cargoNombre === "RESPONSABLE DE LA UATH";
-  const esAsistenteUATH = cargoNombre === "ASISTENTE DE LA UATH";
+  const esAsistenteUATH = [
+    "ASISTENTE DE LA UATH",
+    "AUXILIAR DE LA UATH",
+  ].includes(cargoNombre);
   const esAdmin = cargoNombre === "ADMINISTRADOR DEL SISTEMA";
 
   const menuItems =
