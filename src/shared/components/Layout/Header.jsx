@@ -17,7 +17,7 @@ import { NotificacionesBell } from "../../../features/notificaciones/components/
 
 export default function Header({ title, showNewAction = true, onNuevaAccion }) {
   const { user } = useAuth();
-  const isUATH = ["ASISTENTE DE LA UATH", "AUXILIAR DE LA UATH"].includes(
+  const isUATH = ["ASISTENTE DE LA UATH", "TRABAJADORA SOCIAL INSTITUCIONAL"].includes(
     user?.cargo_nombre,
   );
 

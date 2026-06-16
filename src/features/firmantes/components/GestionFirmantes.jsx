@@ -76,7 +76,7 @@ const StatCard = ({ label, value, icon: Icon, color = "blue", trend }) => {
 const FirmanteRow = ({ firmante, onEdit, onToggleActive }) => {
   const cargoColor = {
     "ASISTENTE DE LA UATH": "info",
-    "AUXILIAR DE LA UATH": "info",
+    "TRABAJADORA SOCIAL INSTITUCIONAL": "info",
     "RESPONSABLE DE LA UATH": "warning",
     "JEFE DE AREA": "success",
     "ADMINISTRADOR DEL SISTEMA": "default",
@@ -721,8 +721,8 @@ export default function GestionFirmantesUATH() {
                     <option value="ASISTENTE DE LA UATH">
                       Asistente de la UATH
                     </option>
-                    <option value="AUXILIAR DE LA UATH">
-                      Auxiliar de la UATH
+                    <option value="TRABAJADORA SOCIAL INSITITUCIONAL">
+                      Trabajadora Social Insititucional
                     </option>
                     <option value="RESPONSABLE DE LA UATH">
                       Responsable de la UATH
@@ -781,8 +781,8 @@ export default function GestionFirmantesUATH() {
                     <option value="ASISTENTE DE LA UATH">
                       Asistente de la UATH
                     </option>
-                    <option value="AUXILIAR DE LA UATH">
-                      Auxiliar de la UATH
+                    <option value="TRABAJADORA SOCIAL INSITITUCIONAL">
+                      Trabajadora Social Insititucional
                     </option>
                     <option value="RESPONSABLE DE LA UATH">
                       Responsable de la UATH

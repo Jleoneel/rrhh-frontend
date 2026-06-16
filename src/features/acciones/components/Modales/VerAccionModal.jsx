@@ -88,7 +88,7 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
 
     const cargosPermitidos = [
       "ASISTENTE DE LA UATH",
-      "AUXILIAR DE LA UATH",
+      "TRABAJADORA SOCIAL INSTITUCIONAL",
       "RESPONSABLE DE LA UATH",
     ];
 
