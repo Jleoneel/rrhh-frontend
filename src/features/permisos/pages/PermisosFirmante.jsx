@@ -298,7 +298,20 @@ export default function PermisosFirmante() {
     }
   };
 
-  const horasADias = (horas) => (parseFloat(horas) / 8).toFixed(1);
+  function horasADias(horas) {
+    if (horas === null || horas === undefined) return "0";
+
+    const diasCompletos = Math.floor(horas / 8);
+    const horasRestantes = horas % 8;
+
+    if (horasRestantes === 0) {
+      return `${diasCompletos}`;
+    }
+    if (diasCompletos === 0) {
+      return `${horasRestantes} horas`;
+    }
+    return `${diasCompletos} días y ${horasRestantes} horas`;
+  }
   const porcentajeUsado = saldo
     ? Math.round((saldo.horas_usadas / saldo.horas_totales) * 100)
     : 0;
@@ -352,7 +365,7 @@ export default function PermisosFirmante() {
                   </div>
                   <div className="text-right">
                     <p className="text-3xl font-bold text-blue-600">
-                      {horasADias(saldo?.horas_disponibles ?? 0)} días
+                      {horasADias(saldo?.horas_disponibles ?? 0)}
                     </p>
                     <p className="text-xs text-gray-400">disponibles</p>
                   </div>
@@ -363,14 +376,14 @@ export default function PermisosFirmante() {
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">
                       <span className="font-semibold text-gray-900">
-                        {horasADias(saldo?.horas_usadas ?? 0)} días
+                        {horasADias(saldo?.horas_usadas ?? 0)}
                       </span>{" "}
                       usados
                     </span>
                     <span className="text-gray-600">
                       de{" "}
                       <span className="font-semibold text-gray-900">
-                        {horasADias(saldo?.horas_totales ?? 0)} días
+                        {horasADias(saldo?.horas_totales ?? 0)}
                       </span>
                     </span>
                   </div>
@@ -747,52 +760,54 @@ export default function PermisosFirmante() {
                     placeholder="Describa brevemente el motivo del permiso..."
                   />
                 </div>
-              </div>
-            </div>
-            {/* Adjuntar evidencia - Calamidad Doméstica o Enfermedad */}
-            {["Calamidad Doméstica", "Enfermedad"].includes(
-              tipos.find((t) => t.id == form.permiso_tipo_id)?.nombre,
-            ) && (
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-gray-700">
-                  Documento de evidencia <span className="text-red-500">*</span>
-                </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-blue-400 transition-colors">
-                  <input
-                    type="file"
-                    accept="application/pdf"
-                    onChange={(e) =>
-                      setForm((p) => ({
-                        ...p,
-                        archivo_evidencia: e.target.files[0] || null,
-                      }))
-                    }
-                    className="hidden"
-                    id="archivo_evidencia"
-                  />
-                  <label
-                    htmlFor="archivo_evidencia"
-                    className="flex flex-col items-center gap-2 cursor-pointer"
-                  >
-                    <FileText size={24} className="text-gray-400" />
-                    <span className="text-sm text-gray-500">
-                      {form.archivo_evidencia
-                        ? form.archivo_evidencia.name
-                        : "Haz clic para subir PDF de evidencia"}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      Certificado médico, receta, etc.
-                    </span>
-                  </label>
-                </div>
-                {form.archivo_evidencia && (
-                  <p className="text-xs text-green-600 flex items-center gap-1">
-                    <CheckCircle2 size={12} /> {form.archivo_evidencia.name}{" "}
-                    seleccionado
-                  </p>
+
+                {/* Adjuntar evidencia - Calamidad Doméstica o Enfermedad */}
+                {["Calamidad Doméstica", "Enfermedad"].includes(
+                  tipos.find((t) => t.id == form.permiso_tipo_id)?.nombre,
+                ) && (
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Documento de evidencia{" "}
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-blue-400 transition-colors">
+                      <input
+                        type="file"
+                        accept="application/pdf"
+                        onChange={(e) =>
+                          setForm((p) => ({
+                            ...p,
+                            archivo_evidencia: e.target.files[0] || null,
+                          }))
+                        }
+                        className="hidden"
+                        id="archivo_evidencia"
+                      />
+                      <label
+                        htmlFor="archivo_evidencia"
+                        className="flex flex-col items-center gap-2 cursor-pointer"
+                      >
+                        <FileText size={24} className="text-gray-400" />
+                        <span className="text-sm text-gray-500">
+                          {form.archivo_evidencia
+                            ? form.archivo_evidencia.name
+                            : "Haz clic para subir PDF de evidencia"}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          Certificado médico, receta, etc.
+                        </span>
+                      </label>
+                    </div>
+                    {form.archivo_evidencia && (
+                      <p className="text-xs text-green-600 flex items-center gap-1">
+                        <CheckCircle2 size={12} /> {form.archivo_evidencia.name}{" "}
+                        seleccionado
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
+            </div>
 
             {/* Footer */}
             <div className="sticky bottom-0 bg-linear-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-8 py-5">

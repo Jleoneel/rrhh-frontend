@@ -302,7 +302,21 @@ export default function PermisosServidor() {
     }
   };
 
-  const horasADias = (horas) => (parseFloat(horas) / 8).toFixed(1);
+  function horasADias(horas) {
+    if (horas === null || horas === undefined) return "0";
+
+    const diasCompletos = Math.floor(horas / 8);
+    const horasRestantes = horas % 8;
+
+    if (horasRestantes === 0) {
+      return `${diasCompletos}`;
+    }
+    if (diasCompletos === 0) {
+      return `${horasRestantes} horas`;
+    }
+    return `${diasCompletos} días y ${horasRestantes} horas`;
+  }
+
   const porcentajeUsado = saldo
     ? Math.round((saldo.horas_usadas / saldo.horas_totales) * 100)
     : 0;
@@ -356,7 +370,7 @@ export default function PermisosServidor() {
                   </div>
                   <div className="text-right">
                     <p className="text-3xl font-bold text-blue-600">
-                      {horasADias(saldo?.horas_disponibles ?? 0)} días
+                      {horasADias(saldo?.horas_disponibles ?? 0)}
                     </p>
                     <p className="text-xs text-gray-400">disponibles</p>
                   </div>
@@ -367,14 +381,14 @@ export default function PermisosServidor() {
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">
                       <span className="font-semibold text-gray-900">
-                        {horasADias(saldo?.horas_usadas ?? 0)} días
+                        {horasADias(saldo?.horas_usadas ?? 0)}
                       </span>{" "}
                       usados
                     </span>
                     <span className="text-gray-600">
                       de{" "}
                       <span className="font-semibold text-gray-900">
-                        {horasADias(saldo?.horas_totales ?? 0)} días
+                        {horasADias(saldo?.horas_totales ?? 0)}
                       </span>
                     </span>
                   </div>
