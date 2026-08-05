@@ -740,9 +740,10 @@ export default function PermisosServidor() {
                   />
                 </div>
 
-                {/* Adjuntar evidencia - solo Calamidad Doméstica */}
-                {tipos.find((t) => t.id == form.permiso_tipo_id)?.nombre ===
-                  "Calamidad Doméstica" && (
+                {/* Adjuntar evidencia - Calamidad Doméstica o Enfermedad */}
+                {["Calamidad Doméstica", "Enfermedad"].includes(
+                  tipos.find((t) => t.id == form.permiso_tipo_id)?.nombre,
+                ) && (
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
                       Documento de evidencia{" "}
