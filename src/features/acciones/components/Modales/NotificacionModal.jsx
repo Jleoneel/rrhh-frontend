@@ -143,7 +143,7 @@ export default function NotificacionModal({
       className="max-w-2xl"
     >
       {/* Header con gradiente mejorado */}
-      <div className="sticky top-0 bg-gradient-to-r from-gray-900 to-gray-800 text-white px-8 py-6 z-10 rounded-t-xl">
+      <div className="sticky top-0 bg-linear-to-r from-gray-900 to-gray-800 text-white px-8 py-6 z-10 rounded-t-xl">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-white/10 rounded-xl">
@@ -177,7 +177,7 @@ export default function NotificacionModal({
       {/* Contenido */}
       <div className="p-8 max-h-[70vh] overflow-y-auto">
         {/* Base legal */}
-        <div className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5">
+        <div className="mb-8 bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5">
           <div className="flex items-start gap-3">
             <div className="p-2 bg-blue-100 rounded-lg">
               <FileText className="h-5 w-5 text-blue-600" />
@@ -326,7 +326,7 @@ export default function NotificacionModal({
       </div>
 
       {/* Footer con botones */}
-      <div className="sticky bottom-0 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-8 py-6 rounded-b-xl">
+      <div className="sticky bottom-0 bg-linear-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-8 py-6 rounded-b-xl">
         <div className="flex items-center justify-end gap-3">
           <button
             type="button"
@@ -341,7 +341,7 @@ export default function NotificacionModal({
             type="submit"
             onClick={handleSubmit}
             disabled={loading}
-            className="px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed min-w-[180px] justify-center"
+            className="px-5 py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed min-w-[180px] justify-center"
           >
             {loading ? (
               <>

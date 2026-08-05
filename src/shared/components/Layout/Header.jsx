@@ -145,7 +145,7 @@ export default function Header({ title, showNewAction = true, onNuevaAccion }) {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-gradient-to-r from-white to-gray-50 border-b border-gray-200 shadow-sm">
+      <header className="sticky top-0 z-40 bg-linear-to-r from-white to-gray-50 border-b border-gray-200 shadow-sm">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
@@ -154,7 +154,7 @@ export default function Header({ title, showNewAction = true, onNuevaAccion }) {
               {showNewAction && isUATH && (
                 <button
                   onClick={handleNuevaAccion}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all duration-300 group"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all duration-300 group"
                 >
                   <PlusCircle
                     size={20}
@@ -177,7 +177,7 @@ export default function Header({ title, showNewAction = true, onNuevaAccion }) {
                   className="flex items-center gap-3 pl-3 border-l border-gray-300 hover:bg-gray-50 rounded-lg px-2 py-1 transition-colors"
                 >
                   <div className="relative">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold shadow-md">
+                    <div className="w-10 h-10 bg-linear-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold shadow-md">
                       {user?.nombre?.charAt(0) || "U"}
                     </div>
                     <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
@@ -369,7 +369,7 @@ export default function Header({ title, showNewAction = true, onNuevaAccion }) {
               <button
                 onClick={handleCambiarPassword}
                 disabled={loading}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 font-medium transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 font-medium transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <span className="flex items-center gap-2">

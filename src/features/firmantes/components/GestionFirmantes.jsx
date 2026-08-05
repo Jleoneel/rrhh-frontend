@@ -64,7 +64,7 @@ const StatCard = ({ label, value, icon: Icon, color = "blue", trend }) => {
           )}
         </div>
         <div
-          className={`p-4 bg-gradient-to-br ${colors[color]} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}
+          className={`p-4 bg-linear-to-br ${colors[color]} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}
         >
           <Icon className="h-6 w-6 text-white" />
         </div>
@@ -83,14 +83,14 @@ const FirmanteRow = ({ firmante, onEdit, onToggleActive }) => {
     "GERENTE HOSPITALARIO ENCARGADO": "error",
   };
   return (
-    <tr className="group hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-transparent transition-all duration-300">
+    <tr className="group hover:bg-linear-to-r hover:from-blue-50/50 hover:to-transparent transition-all duration-300">
       <td className="py-5 px-6">
         <div className="flex items-center gap-4">
           <div className="relative">
             <div
               className={`p-3 rounded-xl transition-all duration-300 ${
                 firmante.activo
-                  ? "bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-200"
+                  ? "bg-linear-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-200"
                   : "bg-gray-200"
               }`}
             >
@@ -402,14 +402,14 @@ export default function GestionFirmantesUATH() {
   }, [firmantes]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-8">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-10">
           <div className="flex items-center justify-between mb-8">
             <div>
               <div className="flex items-center gap-4 mb-3">
-                <div className="p-4 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-xl shadow-blue-200">
+                <div className="p-4 bg-linear-to-br from-blue-600 to-blue-700 rounded-2xl shadow-xl shadow-blue-200">
                   <Users className="h-8 w-8 text-white" />
                 </div>
                 <div>
@@ -432,7 +432,7 @@ export default function GestionFirmantesUATH() {
 
             <button
               onClick={abrirCrear}
-              className="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 hover:scale-105 font-medium"
+              className="px-6 py-3.5 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 hover:scale-105 font-medium"
             >
               <UserPlus className="h-5 w-5" />
               Nuevo firmante
@@ -509,7 +509,7 @@ export default function GestionFirmantesUATH() {
             <div className="p-20 text-center">
               <div className="relative">
                 <Loader2 className="h-12 w-12 text-blue-600 animate-spin mx-auto mb-4" />
-                <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
+                <div className="absolute inset-0 bg-linear-to-t from-white via-transparent to-transparent"></div>
               </div>
               <p className="text-gray-600 font-medium text-lg">
                 Cargando firmantes...
@@ -518,7 +518,7 @@ export default function GestionFirmantesUATH() {
             </div>
           ) : firmantesFiltrados.length === 0 ? (
             <div className="p-20 text-center">
-              <div className="inline-flex p-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl mb-6">
+              <div className="inline-flex p-8 bg-linear-to-br from-gray-50 to-gray-100 rounded-2xl mb-6">
                 <Users className="h-16 w-16 text-gray-400" />
               </div>
               <h3 className="text-2xl font-bold text-gray-700 mb-3">
@@ -532,7 +532,7 @@ export default function GestionFirmantesUATH() {
               {!search && filterActivo === "todos" && (
                 <button
                   onClick={abrirCrear}
-                  className="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all inline-flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105 font-medium"
+                  className="px-6 py-3.5 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all inline-flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105 font-medium"
                 >
                   <UserPlus className="h-5 w-5" />
                   Crear primer firmante
@@ -543,7 +543,7 @@ export default function GestionFirmantesUATH() {
             <>
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
+                  <thead className="bg-linear-to-r from-gray-50 to-white border-b border-gray-200">
                     <tr>
                       <th className="text-left py-5 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wider">
                         Firmante
@@ -573,7 +573,7 @@ export default function GestionFirmantesUATH() {
               </div>
 
               {/* Footer de tabla */}
-              <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-t border-gray-200">
+              <div className="px-6 py-4 bg-linear-to-r from-gray-50 to-white border-t border-gray-200">
                 <div className="flex items-center justify-between text-sm text-gray-600">
                   <span>
                     Mostrando{" "}
@@ -808,7 +808,7 @@ export default function GestionFirmantesUATH() {
                     }
                     className={`py-5 rounded-xl border-2 transition-all duration-300 ${
                       form.activo
-                        ? "border-green-500 bg-gradient-to-br from-green-50 to-green-100 text-green-700 shadow-lg scale-105"
+                        ? "border-green-500 bg-linear-to-br from-green-50 to-green-100 text-green-700 shadow-lg scale-105"
                         : "border-gray-200 hover:bg-gray-50 text-gray-600"
                     }`}
                   >
@@ -830,7 +830,7 @@ export default function GestionFirmantesUATH() {
                     }
                     className={`py-5 rounded-xl border-2 transition-all duration-300 ${
                       !form.activo
-                        ? "border-red-500 bg-gradient-to-br from-red-50 to-red-100 text-red-700 shadow-lg scale-105"
+                        ? "border-red-500 bg-linear-to-br from-red-50 to-red-100 text-red-700 shadow-lg scale-105"
                         : "border-gray-200 hover:bg-gray-50 text-gray-600"
                     }`}
                   >
@@ -859,7 +859,7 @@ export default function GestionFirmantesUATH() {
 
             <button
               onClick={handleSubmit}
-              className="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl flex items-center gap-2 font-medium hover:scale-105"
+              className="px-6 py-3.5 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl flex items-center gap-2 font-medium hover:scale-105"
             >
               {modalMode === "crear" ? (
                 <>

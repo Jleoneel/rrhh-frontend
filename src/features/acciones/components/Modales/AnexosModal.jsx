@@ -293,11 +293,11 @@ export default function AnexosModal({ open, onClose, accion, maxFiles = 5 }) {
       />
 
       <div className="absolute left-1/2 top-1/2 w-[95%] max-w-3xl -translate-x-1/2 -translate-y-1/2">
-        <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-2xl border border-gray-200 overflow-hidden">
+        <div className="bg-linear-to-br from-white to-gray-50 rounded-3xl shadow-2xl border border-gray-200 overflow-hidden">
           {/* Header */}
-          <div className="px-8 py-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white flex items-center justify-between">
+          <div className="px-8 py-6 border-b border-gray-200 bg-linear-to-r from-gray-50 to-white flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-md">
+              <div className="p-3 bg-linear-to-br from-blue-500 to-blue-600 rounded-2xl shadow-md">
                 <Paperclip className="h-7 w-7 text-white" />
               </div>
               <div>
@@ -330,10 +330,10 @@ export default function AnexosModal({ open, onClose, accion, maxFiles = 5 }) {
 
           <div className="px-8 py-6 space-y-6 max-h-[70vh] overflow-y-auto">
             {/* Sección de subida */}
-            <div className="bg-gradient-to-br from-blue-50/50 to-white border border-blue-100 rounded-2xl p-6 shadow-sm">
+            <div className="bg-linear-to-br from-blue-50/50 to-white border border-blue-100 rounded-2xl p-6 shadow-sm">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl shadow-sm">
+                  <div className="p-3 bg-linear-to-br from-blue-100 to-blue-200 rounded-xl shadow-sm">
                     <Upload className="h-6 w-6 text-blue-600" />
                   </div>
                   <div>
@@ -368,7 +368,7 @@ export default function AnexosModal({ open, onClose, accion, maxFiles = 5 }) {
                 }
               `}
               >
-                <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center rounded-full bg-gradient-to-br from-white to-blue-50 shadow-inner">
+                <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center rounded-full bg-linear-to-br from-white to-blue-50 shadow-inner">
                   {uploading ? (
                     <Loader2 className="h-10 w-10 text-blue-500 animate-spin" />
                   ) : (
@@ -393,7 +393,7 @@ export default function AnexosModal({ open, onClose, accion, maxFiles = 5 }) {
                   inline-flex items-center gap-3 px-6 py-3 rounded-xl font-medium transition-all duration-300 shadow-md
                   ${
                     canEdit
-                      ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 hover:shadow-lg cursor-pointer"
+                      ? "bg-linear-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 hover:shadow-lg cursor-pointer"
                       : "bg-gray-300 text-gray-400 cursor-not-allowed"
                   }
                 `}
@@ -437,9 +437,9 @@ export default function AnexosModal({ open, onClose, accion, maxFiles = 5 }) {
                     </span>
                     <span className="font-bold">{uploadProgress}%</span>
                   </div>
-                  <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-100 rounded-full overflow-hidden shadow-inner">
+                  <div className="h-3 bg-linear-to-r from-gray-200 to-gray-100 rounded-full overflow-hidden shadow-inner">
                     <div
-                      className="h-full bg-gradient-to-r from-blue-400 to-blue-500 rounded-full transition-all duration-500 shadow-md"
+                      className="h-full bg-linear-to-r from-blue-400 to-blue-500 rounded-full transition-all duration-500 shadow-md"
                       style={{ width: `${uploadProgress}%` }}
                     />
                   </div>
@@ -472,7 +472,7 @@ export default function AnexosModal({ open, onClose, accion, maxFiles = 5 }) {
                           ${
                             !canEdit || uploading
                               ? "bg-gray-200 text-gray-400"
-                              : "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 hover:shadow-lg"
+                              : "bg-linear-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 hover:shadow-lg"
                           }
                         `}
                       >
@@ -526,7 +526,7 @@ export default function AnexosModal({ open, onClose, accion, maxFiles = 5 }) {
             </div>
 
             {/* Lista de anexos guardados */}
-            <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+            <div className="bg-linear-to-br from-gray-50 to-white border border-gray-200 rounded-2xl p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-gray-100 rounded-lg">

@@ -74,7 +74,7 @@ export default function LogoutButton({ expanded = true }) {
     return (
       <button
         onClick={handleLogout}
-        className="relative p-3 bg-gradient-to-br from-red-500/20 to-red-600/10 hover:from-red-500/30 hover:to-red-600/20 text-red-300 hover:text-white rounded-xl transition-all duration-300 hover:scale-105 group"
+        className="relative p-3 bg-linear-to-br from-red-500/20 to-red-600/10 hover:from-red-500/30 hover:to-red-600/20 text-red-300 hover:text-white rounded-xl transition-all duration-300 hover:scale-105 group"
         title="Cerrar sesión"
       >
         <LogOut size={20} />
@@ -89,10 +89,10 @@ export default function LogoutButton({ expanded = true }) {
   return (
     <button
       onClick={handleLogout}
-      className="relative w-full flex items-center justify-between p-3 bg-gradient-to-r from-red-500/10 via-red-600/5 to-transparent hover:from-red-500/20 hover:via-red-600/10 hover:to-transparent text-red-300 hover:text-white rounded-xl transition-all duration-300 group overflow-hidden"
+      className="relative w-full flex items-center justify-between p-3 bg-linear-to-r from-red-500/10 via-red-600/5 to-transparent hover:from-red-500/20 hover:via-red-600/10 hover:to-transparent text-red-300 hover:text-white rounded-xl transition-all duration-300 group overflow-hidden"
     >
       {/* Efecto de fondo animado */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+      <div className="absolute inset-0 bg-linear-to-r from-transparent via-red-500/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
       
       <div className="flex items-center gap-3 relative z-10">
         <div className="p-2 bg-red-500/20 rounded-lg group-hover:bg-red-500/30 transition-colors">

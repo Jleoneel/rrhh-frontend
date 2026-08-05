@@ -37,7 +37,7 @@ function StatCard({ title, value, icon: Icon, color = "blue" }) {
           <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
           <p className="text-2xl font-bold text-gray-900">{value}</p>
         </div>
-        <div className={`p-3 bg-gradient-to-br ${colors[color]} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+        <div className={`p-3 bg-linear-to-br ${colors[color]} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}>
           <Icon className="h-5 w-5 text-white" />
         </div>
       </div>
@@ -49,7 +49,7 @@ function StatCard({ title, value, icon: Icon, color = "blue" }) {
 function SectionCard({ title, description, icon: Icon, children }) {
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-      <div className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-linear-to-r from-gray-50 to-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-blue-100 rounded-xl">
             <Icon className="h-5 w-5 text-blue-600" />
@@ -176,12 +176,12 @@ export default function AdjuntarDistributivo() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-8">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header de la página - Título visible pero el del layout ya está configurado */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-3">
-            <div className="p-4 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-xl shadow-blue-200">
+            <div className="p-4 bg-linear-to-br from-blue-600 to-blue-700 rounded-2xl shadow-xl shadow-blue-200">
               <HardDrive className="h-8 w-8 text-white" />
             </div>
             <div>
@@ -259,7 +259,7 @@ export default function AdjuntarDistributivo() {
                   type="button"
                   onClick={handleUpload}
                   disabled={loading || !file}
-                  className="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium min-w-[200px] justify-center"
+                  className="px-6 py-3.5 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium min-w-[200px] justify-center"
                 >
                   {loading ? (
                     <>

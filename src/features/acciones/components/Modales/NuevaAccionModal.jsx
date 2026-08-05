@@ -822,7 +822,7 @@ export default function NuevaAccionModal({
       className="max-h-[90vh]"
     >
       {/* Header */}
-      <div className="sticky top-0 bg-gradient-to-r from-gray-900 to-gray-800 text-white px-8 py-6 z-10 rounded-md">
+      <div className="sticky top-0 bg-linear-to-r from-gray-900 to-gray-800 text-white px-8 py-6 z-10 rounded-md">
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center gap-3">
             {mode === "edit" ? (
@@ -965,7 +965,7 @@ export default function NuevaAccionModal({
         ) : (
           <>
             {error && (
-              <div className="mb-6 bg-gradient-to-r from-red-500/10 to-red-600/5 border-l-4 border-red-500 p-5 rounded-r-xl animate-fadeIn">
+              <div className="mb-6 bg-linear-to-r from-red-500/10 to-red-600/5 border-l-4 border-red-500 p-5 rounded-r-xl animate-fadeIn">
                 <div className="flex items-start gap-3">
                   <AlertCircle className="h-6 w-6 text-red-500 flex-shrink-0 mt-0.5" />
                   <div>
@@ -982,7 +982,7 @@ export default function NuevaAccionModal({
             {step === 1 && (
               <div className="space-y-8">
                 {/* Card Información del Servidor */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6 shadow-sm">
+                <div className="bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6 shadow-sm">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="p-3 bg-blue-100 rounded-xl">
                       <User className="h-6 w-6 text-blue-600" />
@@ -1071,7 +1071,7 @@ export default function NuevaAccionModal({
                     {/* Estado búsqueda */}
                     <div className="flex items-end">
                       {showServidorFound ? (
-                        <div className="w-full px-5 py-3.5 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl flex items-center justify-between shadow-sm">
+                        <div className="w-full px-5 py-3.5 bg-linear-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl flex items-center justify-between shadow-sm">
                           <div className="flex items-center gap-3">
                             <div className="p-2 bg-green-100 rounded-lg">
                               <BadgeCheck className="h-5 w-5 text-green-600" />
@@ -1084,7 +1084,7 @@ export default function NuevaAccionModal({
                           </div>
                         </div>
                       ) : (
-                        <div className="w-full px-5 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl text-center">
+                        <div className="w-full px-5 py-4 bg-linear-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl text-center">
                           <p className="text-gray-700 font-medium mb-1">
                             {mode === "edit"
                               ? "Servidor cargado para edición"
@@ -1113,7 +1113,7 @@ export default function NuevaAccionModal({
                 </div>
 
                 {/* Card Detalles de la Acción */}
-                <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-2xl p-6 shadow-sm">
+                <div className="bg-linear-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-2xl p-6 shadow-sm">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="p-3 bg-blue-100 rounded-xl">
                       <FileText className="h-6 w-6 text-blue-600" />
@@ -1270,7 +1270,7 @@ export default function NuevaAccionModal({
             {step === 2 && (
               <div className="space-y-8">
                 {/* Card Motivación */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6 shadow-sm">
+                <div className="bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6 shadow-sm">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="p-3 bg-blue-100 rounded-xl">
                       <FileText className="h-6 w-6 text-blue-600" />
@@ -1326,7 +1326,7 @@ export default function NuevaAccionModal({
             {step === 3 && (
               <div className="space-y-8">
                 {/* Card Situación Laboral */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6 shadow-sm">
+                <div className="bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6 shadow-sm">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="p-3 bg-blue-100 rounded-xl">
                       <Briefcase className="h-6 w-6 text-blue-600" />
@@ -1343,7 +1343,7 @@ export default function NuevaAccionModal({
                   </div>
 
                   {!form.situacionActual ? (
-                    <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-2xl p-8 text-center">
+                    <div className="bg-linear-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-2xl p-8 text-center">
                       <div className="inline-flex items-center justify-center w-16 h-16 bg-yellow-100 rounded-full mb-4">
                         <AlertCircle className="h-8 w-8 text-yellow-600" />
                       </div>
@@ -1359,7 +1359,7 @@ export default function NuevaAccionModal({
                         <button
                           type="button"
                           onClick={() => setStep(1)}
-                          className="px-6 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-xl hover:from-yellow-600 hover:to-yellow-700 transition-all shadow-md"
+                          className="px-6 py-3 bg-linear-to-r from-yellow-500 to-yellow-600 text-white rounded-xl hover:from-yellow-600 hover:to-yellow-700 transition-all shadow-md"
                         >
                           Volver al paso 1
                         </button>
@@ -1389,7 +1389,7 @@ export default function NuevaAccionModal({
                         </div>
                         {/* Información normativa */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                          <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-xl p-5 shadow-lg">
+                          <div className="bg-linear-to-r from-gray-900 to-gray-800 text-white rounded-xl p-5 shadow-lg">
                             <div className="flex items-center gap-3 mb-3">
                               <div className="p-2 bg-white/20 rounded-lg">
                                 <Shield className="h-5 w-5" />
@@ -1432,7 +1432,7 @@ export default function NuevaAccionModal({
                             </p>
                           </div>
 
-                          <div className="bg-gradient-to-r from-blue-900 to-blue-800 text-white rounded-xl p-5 shadow-lg">
+                          <div className="bg-linear-to-r from-blue-900 to-blue-800 text-white rounded-xl p-5 shadow-lg">
                             <div className="flex items-center gap-3 mb-3">
                               <div className="p-2 bg-white/20 rounded-lg">
                                 <Building2 className="h-5 w-5" />
@@ -1515,7 +1515,7 @@ export default function NuevaAccionModal({
 
                       {/* Situación Propuesta */}
                       {form.tipoAccion?.requiere_propuesta ? (
-                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6">
+                        <div className="bg-linear-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6">
                           {/* Proceso Institucional y Nivel de Gestión */}
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                             <SelectPremium
@@ -1873,7 +1873,7 @@ export default function NuevaAccionModal({
                           )}
                         </div>
                       ) : (
-                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-300 rounded-2xl p-6">
+                        <div className="bg-linear-to-r from-gray-50 to-gray-100 border border-gray-300 rounded-2xl p-6">
                           <div className="flex items-center gap-3">
                             <Info className="h-5 w-5 text-gray-500" />
                             <div>
@@ -1900,7 +1900,7 @@ export default function NuevaAccionModal({
             {step === 4 && (
               <div className="space-y-8">
                 {/* Card Revisión Final */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6 shadow-sm">
+                <div className="bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6 shadow-sm">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="p-3 bg-blue-100 rounded-xl">
                       <CheckCircle className="h-6 w-6 text-blue-600" />
@@ -1919,7 +1919,7 @@ export default function NuevaAccionModal({
                   </div>
 
                   {/* Declaración Jurada */}
-                  <div className="mb-8 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-6">
+                  <div className="mb-8 bg-linear-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-6">
                     <div className="flex items-start gap-4">
                       <div className="flex-shrink-0">
                         <div className="p-3 bg-amber-100 rounded-xl">
@@ -2383,7 +2383,7 @@ export default function NuevaAccionModal({
                   )}
 
                   {/* Resumen final */}
-                  <div className="mt-8 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6">
+                  <div className="mt-8 bg-linear-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6">
                     <div className="flex items-center gap-4">
                       <div className="p-3 bg-green-100 rounded-xl">
                         <FileCheck className="h-6 w-6 text-green-600" />
@@ -2415,7 +2415,7 @@ export default function NuevaAccionModal({
       </div>
 
       {/* Footer */}
-      <div className="sticky bottom-0 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-8 py-6">
+      <div className="sticky bottom-0 bg-linear-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-8 py-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
@@ -2448,7 +2448,7 @@ export default function NuevaAccionModal({
                   (step === 2 && form.motivo.length < 25) ||
                   (step === 3 && !form.situacionActual)
                 }
-                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none flex items-center gap-2"
+                className="px-6 py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none flex items-center gap-2"
               >
                 {step === 1 ? (
                   <>
@@ -2469,7 +2469,7 @@ export default function NuevaAccionModal({
                 type="button"
                 onClick={finish}
                 disabled={form.presentoDeclaracionJurada === null}
-                className="px-8 py-3.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none flex items-center gap-3"
+                className="px-8 py-3.5 bg-linear-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none flex items-center gap-3"
               >
                 <CheckCircle className="h-5 w-5" />
                 <div className="text-left">

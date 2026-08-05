@@ -34,7 +34,7 @@ const StatCard = ({ label, value, icon: Icon, color = "blue" }) => {
           <p className="text-gray-500 text-sm font-medium mb-1">{label}</p>
           <p className="text-3xl font-bold text-gray-900">{value}</p>
         </div>
-        <div className={`p-3 bg-gradient-to-br ${colors[color]} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+        <div className={`p-3 bg-linear-to-br ${colors[color]} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}>
           <Icon className="h-5 w-5 text-white" />
         </div>
       </div>
@@ -165,13 +165,13 @@ export default function GestionJefes() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-8">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-10">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-xl shadow-blue-200">
+              <div className="p-4 bg-linear-to-br from-blue-600 to-blue-700 rounded-2xl shadow-xl shadow-blue-200">
                 <Shield className="h-8 w-8 text-white" />
               </div>
               <div>
@@ -304,9 +304,9 @@ export default function GestionJefes() {
                   <div 
                     className={`h-full transition-all duration-500 ${
                       u.jefe_id && u.jefe_superior_id 
-                        ? "w-full bg-gradient-to-r from-green-500 to-green-600" 
+                        ? "w-full bg-linear-to-r from-green-500 to-green-600" 
                         : u.jefe_id 
-                          ? "w-1/2 bg-gradient-to-r from-yellow-500 to-yellow-600" 
+                          ? "w-1/2 bg-linear-to-r from-yellow-500 to-yellow-600" 
                           : "w-0"
                     }`}
                   />
@@ -326,7 +326,7 @@ export default function GestionJefes() {
           />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in fade-in zoom-in duration-200">
             {/* Header */}
-            <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white px-6 py-5">
+            <div className="bg-linear-to-r from-gray-900 to-gray-800 text-white px-6 py-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-white/10 rounded-lg">
@@ -423,7 +423,7 @@ export default function GestionJefes() {
             </div>
 
             {/* Footer */}
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-6 py-5">
+            <div className="bg-linear-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-6 py-5">
               <div className="flex gap-3">
                 <button
                   onClick={() => setModalOpen(false)}
@@ -434,7 +434,7 @@ export default function GestionJefes() {
                 <button
                   onClick={handleGuardar}
                   disabled={submitting}
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {submitting ? (
                     <>

@@ -156,11 +156,11 @@ export default function MiCertificado() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-8">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 p-8">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <div className="p-4 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-xl shadow-blue-200">
+          <div className="p-4 bg-linear-to-br from-blue-600 to-blue-700 rounded-2xl shadow-xl shadow-blue-200">
             <ShieldCheck className="h-8 w-8 text-white" />
           </div>
           <div>
@@ -190,7 +190,7 @@ export default function MiCertificado() {
               <span className="text-gray-500">Verificando certificado...</span>
             </div>
           ) : certificado?.tiene_certificado ? (
-            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
+            <div className="flex items-center gap-4 p-4 bg-linear-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
               <div className="p-3 bg-green-100 rounded-xl">
                 <CheckCircle className="h-6 w-6 text-green-600" />
               </div>
@@ -215,7 +215,7 @@ export default function MiCertificado() {
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-red-50 to-rose-50 rounded-xl border border-red-200">
+            <div className="flex items-center gap-4 p-4 bg-linear-to-r from-red-50 to-rose-50 rounded-xl border border-red-200">
               <div className="p-3 bg-red-100 rounded-xl">
                 <XCircle className="h-6 w-6 text-red-600" />
               </div>
@@ -304,7 +304,7 @@ export default function MiCertificado() {
             <button
               onClick={handleSubir}
               disabled={!file || uploading}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
               {uploading ? (
                 <>
@@ -322,7 +322,7 @@ export default function MiCertificado() {
         </div>
 
         {/* Info importante - Mejorada */}
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-5">
+        <div className="bg-linear-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-5">
           <div className="flex items-start gap-3">
             <div className="p-2 bg-amber-100 rounded-lg">
               <Info size={18} className="text-amber-600" />

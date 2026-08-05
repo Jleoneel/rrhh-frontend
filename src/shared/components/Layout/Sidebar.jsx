@@ -274,7 +274,7 @@ export default function Sidebar() {
 
   return (
     <aside
-      className={`bg-gradient-to-b from-gray-900 to-gray-800 text-white h-screen flex flex-col transition-all duration-300 shadow-xl ${expanded ? "w-64" : "w-20"}`}
+      className={`bg-linear-to-b from-gray-900 to-gray-800 text-white h-screen flex flex-col transition-all duration-300 shadow-xl ${expanded ? "w-64" : "w-20"}`}
     >
       {/* Header */}
       <div className="p-4 border-b border-gray-700/50 flex items-center justify-between">
@@ -327,7 +327,7 @@ export default function Sidebar() {
                 className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200
                   ${
                     isActive
-                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/20"
+                      ? "bg-linear-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/20"
                       : "hover:bg-gray-700/70 text-gray-300"
                   }
                   ${!expanded && "justify-center"}`}

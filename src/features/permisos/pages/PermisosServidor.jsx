@@ -322,12 +322,12 @@ export default function PermisosServidor() {
     : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-8">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-10">
           <div className="flex items-center gap-4 mb-3">
-            <div className="p-4 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-xl shadow-blue-200">
+            <div className="p-4 bg-linear-to-br from-blue-600 to-blue-700 rounded-2xl shadow-xl shadow-blue-200">
               <Clock className="h-8 w-8 text-white" />
             </div>
             <div>
@@ -356,7 +356,7 @@ export default function PermisosServidor() {
               <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl border border-gray-200 p-6 hover:shadow-2xl transition-shadow duration-300">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-4">
-                    <div className="p-3 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl">
+                    <div className="p-3 bg-linear-to-br from-blue-100 to-blue-200 rounded-xl">
                       <Clock className="h-6 w-6 text-blue-600" />
                     </div>
                     <div>
@@ -396,10 +396,10 @@ export default function PermisosServidor() {
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${
                         porcentajeUsado > 80
-                          ? "bg-gradient-to-r from-red-500 to-red-600"
+                          ? "bg-linear-to-r from-red-500 to-red-600"
                           : porcentajeUsado > 50
-                            ? "bg-gradient-to-r from-yellow-500 to-yellow-600"
-                            : "bg-gradient-to-r from-blue-500 to-blue-600"
+                            ? "bg-linear-to-r from-yellow-500 to-yellow-600"
+                            : "bg-linear-to-r from-blue-500 to-blue-600"
                       }`}
                       style={{ width: `${porcentajeUsado}%` }}
                     />
@@ -418,7 +418,7 @@ export default function PermisosServidor() {
               </div>
 
               {/* Botón nueva solicitud */}
-              <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-xl p-6 flex flex-col items-center justify-center text-white hover:shadow-2xl transition-all duration-300">
+              <div className="bg-linear-to-br from-blue-600 to-blue-700 rounded-2xl shadow-xl p-6 flex flex-col items-center justify-center text-white hover:shadow-2xl transition-all duration-300">
                 <div className="p-4 bg-white/20 rounded-2xl mb-4">
                   <Plus className="h-10 w-10" />
                 </div>
@@ -450,7 +450,7 @@ export default function PermisosServidor() {
 
             {/* Historial de permisos */}
             <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
-              <div className="px-8 py-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+              <div className="px-8 py-5 border-b border-gray-200 bg-linear-to-r from-gray-50 to-white">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-gray-100 rounded-lg">
@@ -540,7 +540,7 @@ export default function PermisosServidor() {
                         {p.estado === "PENDIENTE" && (
                           <button
                             onClick={() => handleCancelar(p)}
-                            className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl transition-all duration-200 flex-shrink-0"
+                            className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl transition-all duration-200 shrink-0"
                             title="Cancelar solicitud"
                           >
                             <Trash2 size={16} />
@@ -568,7 +568,7 @@ export default function PermisosServidor() {
           />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden animate-in fade-in zoom-in duration-200">
             {/* Header */}
-            <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white px-8 py-6">
+            <div className="bg-linear-to-r from-gray-900 to-gray-800 text-white px-8 py-6">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4">
                   <div className="p-3 bg-white/10 rounded-xl">
@@ -820,7 +820,7 @@ export default function PermisosServidor() {
             </div>
 
             {/* Footer */}
-            <div className="sticky bottom-0 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-8 py-5">
+            <div className="sticky bottom-0 bg-linear-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-8 py-5">
               <div className="flex gap-3">
                 <button
                   onClick={() => setModalOpen(false)}
@@ -841,7 +841,7 @@ export default function PermisosServidor() {
                       "Calamidad Doméstica" &&
                       !form.archivo_evidencia)
                   }
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {submitting ? (
                     <>

@@ -81,7 +81,7 @@ const StatCard = ({ label, value, icon: Icon, color = "blue" }) => {
           <p className="text-3xl font-bold text-gray-900">{value}</p>
         </div>
         <div
-          className={`p-3 bg-gradient-to-br ${colors[color]} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}
+          className={`p-3 bg-linear-to-br ${colors[color]} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}
         >
           <Icon className="h-5 w-5 text-white" />
         </div>
@@ -245,13 +245,13 @@ export default function ReporteVacaciones() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-green-50 p-8">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-green-50 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-10">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-br from-green-600 to-green-700 rounded-2xl shadow-xl shadow-green-200">
+              <div className="p-4 bg-linear-to-br from-green-600 to-green-700 rounded-2xl shadow-xl shadow-green-200">
                 <Umbrella className="h-8 w-8 text-white" />
               </div>
               <div>
@@ -368,7 +368,7 @@ export default function ReporteVacaciones() {
 
         {/* Tabla de vacaciones */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+          <div className="px-6 py-4 border-b border-gray-200 bg-linear-to-r from-gray-50 to-white">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-green-100 rounded-lg">
                 <FileText size={18} className="text-green-600" />
@@ -406,7 +406,7 @@ export default function ReporteVacaciones() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-gradient-to-r from-gray-100 to-gray-50 border-b border-gray-200">
+                  <tr className="bg-linear-to-r from-gray-100 to-gray-50 border-b border-gray-200">
                     {[
                       "Servidor",
                       "Cédula",
@@ -431,7 +431,7 @@ export default function ReporteVacaciones() {
                   {filtrados.map((v) => (
                     <tr
                       key={v.id}
-                      className="hover:bg-gradient-to-r hover:from-green-50/50 hover:to-transparent transition-all duration-200 group"
+                      className="hover:bg-linear-to-r hover:from-green-50/50 hover:to-transparent transition-all duration-200 group"
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
@@ -508,7 +508,7 @@ export default function ReporteVacaciones() {
                         {v.estado === "APROBADO" && (
                           <button
                             onClick={() => handleDescargarPdf(v)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-md hover:shadow-lg text-xs font-medium"
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-linear-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-md hover:shadow-lg text-xs font-medium"
                             title="Descargar PDF de vacaciones"
                           >
                             <Download size={13} />

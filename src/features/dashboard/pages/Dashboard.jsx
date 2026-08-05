@@ -113,12 +113,12 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-8">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-2">
-            <div className="p-3 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-lg shadow-blue-200">
+            <div className="p-3 bg-linear-to-br from-blue-600 to-blue-700 rounded-2xl shadow-lg shadow-blue-200">
               <FiFileText className="h-6 w-6 text-white" />
             </div>
             <div>
@@ -146,7 +146,7 @@ export default function Dashboard() {
 
         {/* Alertas */}
         {alertas.length > 0 && (
-          <div className="mb-6 bg-gradient-to-r from-amber-50 to-yellow-50 border-l-4 border-amber-500 rounded-xl shadow-sm">
+          <div className="mb-6 bg-linear-to-r from-amber-50 to-yellow-50 border-l-4 border-amber-500 rounded-xl shadow-sm">
             <div className="p-5">
               <div className="flex items-start gap-3">
                 <div className="p-2 bg-amber-100 rounded-lg">
@@ -258,7 +258,7 @@ export default function Dashboard() {
 
             <div className="space-y-4">
               {/* Indicador de productividad */}
-              <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
+              <div className="p-4 bg-linear-to-r from-blue-50 to-indigo-50 rounded-xl">
                 <h3 className="font-semibold text-blue-800 mb-1">Productividad</h3>
                 <p className="text-2xl font-bold text-blue-600">
                   {porcentajeAprobadas}%
@@ -275,7 +275,7 @@ export default function Dashboard() {
               </div>
 
               {/* Indicador de eficiencia */}
-              <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl">
+              <div className="p-4 bg-linear-to-r from-green-50 to-emerald-50 rounded-xl">
                 <h3 className="font-semibold text-green-800 mb-1">Eficiencia</h3>
                 <p className="text-sm text-green-700">
                   {resumen?.en_revision === 0
@@ -290,7 +290,7 @@ export default function Dashboard() {
               </div>
 
               {/* Indicador de calidad */}
-              <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
+              <div className="p-4 bg-linear-to-r from-purple-50 to-pink-50 rounded-xl">
                 <h3 className="font-semibold text-purple-800 mb-1">Calidad</h3>
                 <p className="text-sm text-purple-700">
                   {porcentajeRechazadas < 10

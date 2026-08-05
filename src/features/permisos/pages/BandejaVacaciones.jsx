@@ -74,7 +74,7 @@ const StatCard = ({ label, value, icon: Icon, color = "blue" }) => {
           <p className="text-3xl font-bold text-gray-900">{value}</p>
         </div>
         <div
-          className={`p-3 bg-gradient-to-br ${colors[color]} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}
+          className={`p-3 bg-linear-to-br ${colors[color]} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}
         >
           <Icon className="h-5 w-5 text-white" />
         </div>
@@ -373,13 +373,13 @@ export default function BandejaVacaciones() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-green-50 p-8">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-green-50 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-10">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-br from-green-600 to-green-700 rounded-2xl shadow-xl shadow-green-200">
+              <div className="p-4 bg-linear-to-br from-green-600 to-green-700 rounded-2xl shadow-xl shadow-green-200">
                 <Umbrella className="h-8 w-8 text-white" />
               </div>
               <div>
@@ -434,7 +434,7 @@ export default function BandejaVacaciones() {
 
         {/* Lista de solicitudes */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+          <div className="px-6 py-4 border-b border-gray-200 bg-linear-to-r from-gray-50 to-white">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-green-100 rounded-lg">
                 <FileText size={18} className="text-green-600" />
@@ -479,12 +479,12 @@ export default function BandejaVacaciones() {
               {vacaciones.map((v) => (
                 <div
                   key={v.id}
-                  className="p-6 hover:bg-gradient-to-r hover:from-green-50/50 hover:to-transparent transition-all duration-300 group"
+                  className="p-6 hover:bg-linear-to-r hover:from-green-50/50 hover:to-transparent transition-all duration-300 group"
                 >
                   <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
                     {/* Contenido izquierdo */}
                     <div className="flex items-start gap-4 flex-1 min-w-0">
-                      <div className="p-3 bg-gradient-to-br from-green-100 to-green-200 rounded-xl flex-shrink-0 group-hover:scale-110 transition-transform">
+                      <div className="p-3 bg-linear-to-br from-green-100 to-green-200 rounded-xl flex-shrink-0 group-hover:scale-110 transition-transform">
                         <User className="h-5 w-5 text-green-600" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -653,8 +653,8 @@ export default function BandejaVacaciones() {
             <div
               className={`px-6 py-5 ${
                 selected.accion
-                  ? "bg-gradient-to-r from-green-900 to-green-800"
-                  : "bg-gradient-to-r from-red-900 to-red-800"
+                  ? "bg-linear-to-r from-green-900 to-green-800"
+                  : "bg-linear-to-r from-red-900 to-red-800"
               } text-white`}
             >
               <div className="flex items-center justify-between">
@@ -691,7 +691,7 @@ export default function BandejaVacaciones() {
             {/* Content */}
             <div className="p-6">
               {/* Resumen */}
-              <div className="bg-gradient-to-r from-gray-50 to-white rounded-xl p-4 mb-6 space-y-3 border border-gray-200">
+              <div className="bg-linear-to-r from-gray-50 to-white rounded-xl p-4 mb-6 space-y-3 border border-gray-200">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Tipo:</span>
                   <span className="font-semibold text-gray-900">
@@ -754,7 +754,7 @@ export default function BandejaVacaciones() {
             </div>
 
             {/* Footer */}
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-6 py-5">
+            <div className="bg-linear-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-6 py-5">
               <div className="flex gap-3">
                 <button
                   onClick={() => setModalOpen(false)}
@@ -769,8 +769,8 @@ export default function BandejaVacaciones() {
                   }
                   className={`flex-1 px-4 py-3 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
                     selected.accion
-                      ? "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
-                      : "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800"
+                      ? "bg-linear-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+                      : "bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800"
                   }`}
                 >
                   {submitting ? (
@@ -805,7 +805,7 @@ export default function BandejaVacaciones() {
             onClick={() => setModalPassword(false)}
           />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-900 to-blue-800 text-white px-6 py-5">
+            <div className="bg-linear-to-r from-blue-900 to-blue-800 text-white px-6 py-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-white/10 rounded-lg">
@@ -866,7 +866,7 @@ export default function BandejaVacaciones() {
                 <button
                   onClick={handleFirmar}
                   disabled={!passwordToken.trim() || firmando}
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
+                  className="flex-1 px-4 py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
                 >
                   {firmando ? (
                     <>

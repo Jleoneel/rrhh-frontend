@@ -272,7 +272,7 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
       className="max-h-[90vh]"
     >
       {/* Header */}
-      <div className="sticky top-0 bg-gradient-to-r from-gray-900 to-gray-800 text-white px-8 py-6 z-10 rounded-t-xl">
+      <div className="sticky top-0 bg-linear-to-r from-gray-900 to-gray-800 text-white px-8 py-6 z-10 rounded-t-xl">
         <div className="flex items-start justify-between gap-6">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-4">
@@ -346,7 +346,7 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
       {/* Content */}
       <div className="p-8 max-h-[calc(90vh-200px)] overflow-y-auto">
         {error && (
-          <div className="mb-6 bg-gradient-to-r from-red-500/10 to-red-600/5 border-l-4 border-red-500 p-5 rounded-r-xl">
+          <div className="mb-6 bg-linear-to-r from-red-500/10 to-red-600/5 border-l-4 border-red-500 p-5 rounded-r-xl">
             <div className="flex items-start gap-3">
               <AlertCircle className="h-6 w-6 text-red-500 mt-0.5 flex-shrink-0" />
               <div>
@@ -481,7 +481,7 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
                     setPasswordToken("");
                     setModalFirma(true);
                   }}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all flex items-center gap-2 text-sm"
+                  className="px-4 py-2 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all flex items-center gap-2 text-sm"
                 >
                   <ShieldCheck size={16} />
                   Firmar digitalmente
@@ -627,7 +627,7 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
       </div>
 
       {/* Footer */}
-      <div className="sticky bottom-0 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-8 py-5 rounded-b-xl">
+      <div className="sticky bottom-0 bg-linear-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-8 py-5 rounded-b-xl">
         <div className="flex items-center justify-between">
           <div className="flex gap-3">
             <button
@@ -641,7 +641,7 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
             {puedeNotificar && (
               <button
                 onClick={() => setOpenNotificacionModal(true)}
-                className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all flex items-center gap-2"
+                className="px-5 py-2.5 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all flex items-center gap-2"
               >
                 <Bell size={18} />
                 {notificacion ? "Ver Notificación" : "Registrar Notificación"}
@@ -663,7 +663,7 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
             onClick={() => setModalFirma(false)}
           />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-900 to-blue-800 text-white px-6 py-5">
+            <div className="bg-linear-to-r from-blue-900 to-blue-800 text-white px-6 py-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-white/10 rounded-lg">
@@ -726,7 +726,7 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
                 <button
                   onClick={handleFirmarDigital}
                   disabled={!passwordToken.trim() || firmando}
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
+                  className="flex-1 px-4 py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
                 >
                   {firmando ? (
                     <>

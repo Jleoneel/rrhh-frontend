@@ -2,7 +2,7 @@ import { Search, X, Calendar, User, FileText } from "lucide-react";
 
 export default function AccionesFilters({ filters, onChange, onBuscar, onLimpiar }) {
   return (
-    <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-200 p-6 mb-6">
+    <div className="bg-linear-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-200 p-6 mb-6">
       {/* Formulario de filtros */}
       <form onSubmit={onBuscar} className="space-y-6">
         {/* Filtros principales */}
@@ -104,7 +104,7 @@ export default function AccionesFilters({ filters, onChange, onBuscar, onLimpiar
 
             <button
               type="submit"
-              className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-xl font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 group"
+              className="flex items-center gap-2 px-3 py-2 bg-linear-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-xl font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 group"
             >
               <Search size={18} className="group-hover:rotate-12 transition-transform" />
               <span>Buscar acciones</span>

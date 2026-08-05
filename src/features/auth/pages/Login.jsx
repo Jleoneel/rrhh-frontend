@@ -88,10 +88,10 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-white to-black-100 p-4 bg-gradient-to-b from-blue-700 to-blue-800">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-linear-to-br from-blue-50 via-white to-black-100 p-4 bg-linear-to-b from-blue-700 to-blue-800">
       <div className="w-full max-w-4xl flex overflow-hidden rounded-3xl shadow-2xl">
         {/* Panel izquierdo - Branding institucional */}
-        <div className="hidden md:flex md:w-2/5 bg-gradient-to-b from-blue-700 to-blue-800 p-8 flex-col justify-between text-white">
+        <div className="hidden md:flex md:w-2/5 bg-linear-to-b from-blue-700 to-blue-800 p-8 flex-col justify-between text-white">
           <div>
             <div className="flex items-center gap-3 mb-2">
               <div
@@ -311,7 +311,7 @@ const Login = () => {
             onClick={() => setAboutOpen(false)}
           />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-6 py-8 text-white text-center overflow-hidden">
+            <div className="relative bg-linear-to-br from-blue-600 via-blue-700 to-indigo-800 px-6 py-8 text-white text-center overflow-hidden">
               <div className="absolute inset-0 opacity-10">
                 <div className="absolute top-0 -right-10 w-40 h-40 bg-white rounded-full blur-3xl" />
                 <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white rounded-full blur-3xl" />
@@ -346,7 +346,7 @@ const Login = () => {
               </div>
 
               {/* Badge de título */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 rounded-full text-sm font-medium shadow-sm">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-linear-to-r from-blue-50 to-indigo-50 text-blue-700 rounded-full text-sm font-medium shadow-sm">
                 <GraduationCap size={16} />
                 <span>Ingeniería en Software — UTM</span>
               </div>
@@ -380,7 +380,7 @@ const Login = () => {
               </div>
 
               {/* Frase motivacional */}
-              <div className="mt-3 p-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-200">
+              <div className="mt-3 p-3 bg-linear-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-200">
                 <p className="text-sm text-amber-800 italic flex items-center justify-center gap-2">
                   <Coffee size={16} className="text-amber-600" />
                   "Hecho con ☕ y muchas horas de debugging"
@@ -393,7 +393,7 @@ const Login = () => {
             <div className="px-6 pb-6">
               <button
                 onClick={() => setAboutOpen(false)}
-                className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all font-medium text-sm shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                className="w-full py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all font-medium text-sm shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
               >
                 <X size={16} />
                 Cerrar

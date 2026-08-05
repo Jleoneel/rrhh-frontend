@@ -52,7 +52,7 @@ const StatCard = ({ label, value, icon: Icon, color = "blue" }) => {
           <p className="text-3xl font-bold text-gray-900">{value}</p>
         </div>
         <div
-          className={`p-3 bg-gradient-to-br ${colors[color]} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}
+          className={`p-3 bg-linear-to-br ${colors[color]} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}
         >
           <Icon className="h-5 w-5 text-white" />
         </div>
@@ -522,13 +522,13 @@ export default function GestionPermisos() {
   }, [filtroSelectServidor, todosServidores]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-8">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-10">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-xl shadow-blue-200">
+              <div className="p-4 bg-linear-to-br from-blue-600 to-blue-700 rounded-2xl shadow-xl shadow-blue-200">
                 <Settings className="h-8 w-8 text-white" />
               </div>
               <div>
@@ -596,7 +596,7 @@ export default function GestionPermisos() {
 
         {/* Tabs */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
-          <div className="flex border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+          <div className="flex border-b border-gray-200 bg-linear-to-r from-gray-50 to-white">
             {TABS.map((t) => {
               const Icon = t.icon;
               return (
@@ -658,7 +658,7 @@ export default function GestionPermisos() {
                   <div className="overflow-x-auto rounded-xl border border-gray-200">
                     <table className="w-full">
                       <thead>
-                        <tr className="bg-gradient-to-r from-gray-100 to-gray-50 border-b border-gray-200">
+                        <tr className="bg-linear-to-r from-gray-100 to-gray-50 border-b border-gray-200">
                           {[
                             "Servidor",
                             "Cédula",
@@ -868,7 +868,7 @@ export default function GestionPermisos() {
                         setModalSaldo(true);
                         setFiltroSelectServidor("");
                       }}
-                      className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl"
+                      className="flex items-center gap-2 px-5 py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl"
                     >
                       <Plus size={16} /> Asignar saldo
                     </button>
@@ -877,7 +877,7 @@ export default function GestionPermisos() {
                   <div className="overflow-x-auto rounded-xl border border-gray-200">
                     <table className="w-full">
                       <thead>
-                        <tr className="bg-gradient-to-r from-gray-100 to-gray-50 border-b border-gray-200">
+                        <tr className="bg-linear-to-r from-gray-100 to-gray-50 border-b border-gray-200">
                           {[
                             "Servidor",
                             "Cédula",
@@ -974,7 +974,7 @@ export default function GestionPermisos() {
             onClick={() => setModalUsuario(false)}
           />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
-            <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white px-6 py-5">
+            <div className="bg-linear-to-r from-gray-900 to-gray-800 text-white px-6 py-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-white/10 rounded-lg">
@@ -1023,7 +1023,7 @@ export default function GestionPermisos() {
                 </button>
                 <button
                   onClick={handleCrearUsuario}
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg"
+                  className="flex-1 px-4 py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg"
                 >
                   Crear Usuario
                 </button>
@@ -1044,7 +1044,7 @@ export default function GestionPermisos() {
             }}
           />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
-            <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white px-6 py-5">
+            <div className="bg-linear-to-r from-gray-900 to-gray-800 text-white px-6 py-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-white/10 rounded-lg">
@@ -1156,7 +1156,7 @@ export default function GestionPermisos() {
                 </button>
                 <button
                   onClick={handleCrearSaldo}
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg"
+                  className="flex-1 px-4 py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg"
                 >
                   Asignar Saldo
                 </button>

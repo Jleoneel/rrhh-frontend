@@ -62,7 +62,7 @@ const StatCard = ({ label, value, icon: Icon, color = "blue", onClick }) => {
           <p className="text-3xl font-bold text-gray-900">{value}</p>
         </div>
         <div
-          className={`p-3 bg-gradient-to-br ${colors[color]} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}
+          className={`p-3 bg-linear-to-br ${colors[color]} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}
         >
           <Icon className="h-5 w-5 text-white" />
         </div>
@@ -242,13 +242,13 @@ export default function BandejaJefe() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-8">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-10">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-xl shadow-blue-200">
+              <div className="p-4 bg-linear-to-br from-blue-600 to-blue-700 rounded-2xl shadow-xl shadow-blue-200">
                 <Users className="h-8 w-8 text-white" />
               </div>
               <div>
@@ -361,11 +361,11 @@ export default function BandejaJefe() {
               {permisosFiltrados.map((p) => (
                 <div
                   key={p.id}
-                  className="p-6 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-transparent transition-all duration-300 group"
+                  className="p-6 hover:bg-linear-to-r hover:from-blue-50/50 hover:to-transparent transition-all duration-300 group"
                 >
                   <div className="flex items-start justify-between gap-6">
                     <div className="flex items-start gap-5 flex-1 min-w-0">
-                      <div className="p-3 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex-shrink-0 group-hover:scale-110 transition-transform">
+                      <div className="p-3 bg-linear-to-br from-blue-100 to-blue-200 rounded-xl flex-shrink-0 group-hover:scale-110 transition-transform">
                         <User className="h-5 w-5 text-blue-600" />
                       </div>
 
@@ -452,7 +452,7 @@ export default function BandejaJefe() {
                       <div className="flex items-center gap-3 flex-shrink-0">
                         <button
                           onClick={() => abrirModal(p, "APROBADO")}
-                          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 transition-all shadow-md hover:shadow-lg text-sm font-medium"
+                          className="flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 transition-all shadow-md hover:shadow-lg text-sm font-medium"
                         >
                           <CheckCircle size={16} />
                           Aprobar
@@ -486,8 +486,8 @@ export default function BandejaJefe() {
             <div
               className={`px-6 py-5 ${
                 selected.accion === "APROBADO"
-                  ? "bg-gradient-to-r from-green-900 to-green-800"
-                  : "bg-gradient-to-r from-red-900 to-red-800"
+                  ? "bg-linear-to-r from-green-900 to-green-800"
+                  : "bg-linear-to-r from-red-900 to-red-800"
               } text-white`}
             >
               <div className="flex items-center justify-between">
@@ -522,7 +522,7 @@ export default function BandejaJefe() {
             {/* Content */}
             <div className="p-6">
               {/* Resumen */}
-              <div className="bg-gradient-to-r from-gray-50 to-white rounded-xl p-4 mb-6 space-y-3 border border-gray-200">
+              <div className="bg-linear-to-r from-gray-50 to-white rounded-xl p-4 mb-6 space-y-3 border border-gray-200">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Tipo de permiso:</span>
                   <span className="font-semibold text-gray-900">
@@ -582,7 +582,7 @@ export default function BandejaJefe() {
             </div>
 
             {/* Footer */}
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-6 py-5">
+            <div className="bg-linear-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-6 py-5">
               <div className="flex gap-3">
                 <button
                   onClick={() => setModalOpen(false)}
@@ -598,8 +598,8 @@ export default function BandejaJefe() {
                   }
                   className={`flex-1 px-4 py-3 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
                     selected.accion === "APROBADO"
-                      ? "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
-                      : "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800"
+                      ? "bg-linear-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+                      : "bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800"
                   }`}
                 >
                   {submitting ? (

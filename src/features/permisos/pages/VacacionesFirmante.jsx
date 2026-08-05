@@ -255,11 +255,11 @@ export default function VacacionesFirmante() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-8">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 p-8">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-10 flex items-center gap-4">
-          <div className="p-4 bg-gradient-to-br from-green-600 to-green-700 rounded-2xl shadow-xl">
+          <div className="p-4 bg-linear-to-br from-green-600 to-green-700 rounded-2xl shadow-xl">
             <Calendar className="h-8 w-8 text-white" />
           </div>
           <div>
@@ -322,7 +322,7 @@ export default function VacacionesFirmante() {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-2xl shadow-xl p-6 flex flex-col items-center justify-center text-white">
+              <div className="bg-linear-to-br from-green-600 to-green-700 rounded-2xl shadow-xl p-6 flex flex-col items-center justify-center text-white">
                 <div className="p-4 bg-white/20 rounded-2xl mb-4">
                   <Plus className="h-10 w-10" />
                 </div>
@@ -351,7 +351,7 @@ export default function VacacionesFirmante() {
 
             {/* Historial */}
             <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
-              <div className="px-8 py-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white flex items-center justify-between">
+              <div className="px-8 py-5 border-b border-gray-200 bg-linear-to-r from-gray-50 to-white flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-gray-100 rounded-lg">
                     <FileText className="h-5 w-5 text-gray-600" />
@@ -473,7 +473,7 @@ export default function VacacionesFirmante() {
             onClick={() => setModalOpen(false)}
           />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
-            <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white px-8 py-6">
+            <div className="bg-linear-to-r from-gray-900 to-gray-800 text-white px-8 py-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="p-3 bg-white/10 rounded-xl">
@@ -664,7 +664,7 @@ export default function VacacionesFirmante() {
                   parseFloat(form.dias_solicitados) >
                     parseFloat(saldo?.horas_disponibles || 0) / 8
                 }
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-3 bg-linear-to-r from-green-600 to-green-700 text-white rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {submitting ? (
                   <>
