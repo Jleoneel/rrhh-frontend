@@ -749,9 +749,10 @@ export default function PermisosFirmante() {
                 </div>
               </div>
             </div>
-            {/* Adjuntar evidencia - solo Calamidad Doméstica */}
-            {tipos.find((t) => t.id == form.permiso_tipo_id)?.nombre ===
-              "Calamidad Doméstica" && (
+            {/* Adjuntar evidencia - Calamidad Doméstica o Enfermedad */}
+            {["Calamidad Doméstica", "Enfermedad"].includes(
+              tipos.find((t) => t.id == form.permiso_tipo_id)?.nombre,
+            ) && (
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-gray-700">
                   Documento de evidencia <span className="text-red-500">*</span>
@@ -794,7 +795,7 @@ export default function PermisosFirmante() {
             )}
 
             {/* Footer */}
-            <div className="sticky bottom-0 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-8 py-5">
+            <div className="sticky bottom-0 bg-linear-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-8 py-5">
               <div className="flex gap-3">
                 <button
                   onClick={() => setModalOpen(false)}
