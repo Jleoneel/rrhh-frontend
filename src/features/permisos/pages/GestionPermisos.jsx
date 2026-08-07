@@ -536,7 +536,7 @@ export default function GestionPermisos() {
                   Gestión de Permisos
                 </h1>
                 <p className="text-gray-500 mt-1">
-                  Administración de usuarios, saldos y jefes de área
+                  Administración de usuarios y saldos
                 </p>
               </div>
             </div>
@@ -644,7 +644,7 @@ export default function GestionPermisos() {
                       <select
                         value={filtroUsuario}
                         onChange={(e) => handleFiltro(e.target.value)}
-                        className="border-2 border-gray-200 rounded-xl px-5 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none pr-10 min-w-[180px] bg-white cursor-pointer"
+                        className="border-2 border-gray-200 rounded-xl px-5 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none pr-10 min-w-45 bg-white cursor-pointer"
                       >
                         <option value="todos">Todos los usuarios</option>
                         <option value="con_usuario">Con usuario creado</option>

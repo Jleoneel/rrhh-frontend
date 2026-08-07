@@ -339,7 +339,7 @@ export default function GestionFirmantesUATH() {
 
   const toggleActivo = async (f) => {
     const confirm = await Swal.fire({
-      title: f.activo ? "¿Desactivar usuario UATH?" : "¿Activar usuario UATH?",
+      title: f.activo ? "¿Desactivar usuario administrativo?" : "¿Activar usuario administrativo?",
       text: f.activo
         ? "No podrá iniciar sesión ni realizar acciones en el sistema."
         : "Podrá acceder al sistema y realizar acciones nuevamente.",
@@ -359,7 +359,7 @@ export default function GestionFirmantesUATH() {
       await api.put(`/firmantes/${f.id}`, { activo: !f.activo });
       Swal.fire({
         toast: true,
-        text: `✓ Usuario UATH ${!f.activo ? "activado" : "desactivado"} correctamente`,
+        text: `✓ Usuario administrativo ${!f.activo ? "activado" : "desactivado"} correctamente`,
         icon: "success",
         showConfirmButton: false,
         timer: 2000,
@@ -414,16 +414,16 @@ export default function GestionFirmantesUATH() {
                 </div>
                 <div>
                   <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
-                    GESTION DE USUARIOS UATH
+                    GESTION DE USUARIOS ADMINISTRATIVOS
                   </h1>
                   <div className="flex items-center gap-2 mt-2">
                     <Badge variant="info">
                       <Shield className="h-4 w-4" />
-                      ASISTENTES DE LA UATH
+                      ADMINISTRACIÓN DE USUARIOS.
                     </Badge>
                     <span className="text-gray-300">|</span>
                     <p className="text-gray-600">
-                      Gestión de cuentas con permisos especiales
+                      Gestión de usuarios con permisos especiales
                     </p>
                   </div>
                 </div>
@@ -435,14 +435,14 @@ export default function GestionFirmantesUATH() {
               className="px-6 py-3.5 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 hover:scale-105 font-medium"
             >
               <UserPlus className="h-5 w-5" />
-              Nuevo firmante
+              Nuevo Usuario
             </button>
           </div>
 
-          {/* Stats Cards - Mejoradas */}
+          {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <StatCard
-              label="Total Firmantes"
+              label="Usuarios totales"
               value={stats.total}
               icon={Users}
               color="blue"
@@ -453,7 +453,7 @@ export default function GestionFirmantesUATH() {
               value={stats.activos}
               icon={UserCheck}
               color="green"
-              trend="Pueden crear acciones"
+              trend="Con permisos especiales"
             />
             <StatCard
               label="Inactivos"
@@ -483,7 +483,7 @@ export default function GestionFirmantesUATH() {
                 <select
                   value={filterActivo}
                   onChange={(e) => setFilterActivo(e.target.value)}
-                  className="bg-white border border-gray-200 rounded-xl pl-9 pr-10 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all appearance-none cursor-pointer min-w-[160px]"
+                  className="bg-white border border-gray-200 rounded-xl pl-9 pr-10 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all appearance-none cursor-pointer min-w-40"
                 >
                   <option value="todos">Todos los estados</option>
                   <option value="activos">Activos</option>
@@ -512,7 +512,7 @@ export default function GestionFirmantesUATH() {
                 <div className="absolute inset-0 bg-linear-to-t from-white via-transparent to-transparent"></div>
               </div>
               <p className="text-gray-600 font-medium text-lg">
-                Cargando firmantes...
+                Cargando usuarios...
               </p>
               <p className="text-sm text-gray-400 mt-2">Por favor espere</p>
             </div>
@@ -522,11 +522,11 @@ export default function GestionFirmantesUATH() {
                 <Users className="h-16 w-16 text-gray-400" />
               </div>
               <h3 className="text-2xl font-bold text-gray-700 mb-3">
-                No hay firmantes
+                No hay usuarios
               </h3>
               <p className="text-gray-500 mb-8 max-w-md mx-auto">
                 {search || filterActivo !== "todos"
-                  ? "No se encontraron firmantes con los filtros aplicados. Prueba con otros criterios de búsqueda."
+                  ? "No se encontraron usuarios con los filtros aplicados. Prueba con otros criterios de búsqueda."
                   : "Comienza creando el primer firmante UATH para gestionar las acciones de personal."}
               </p>
               {!search && filterActivo === "todos" && (
@@ -535,7 +535,7 @@ export default function GestionFirmantesUATH() {
                   className="px-6 py-3.5 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all inline-flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105 font-medium"
                 >
                   <UserPlus className="h-5 w-5" />
-                  Crear primer firmante
+                  Crear primer usuario
                 </button>
               )}
             </div>
@@ -610,7 +610,7 @@ export default function GestionFirmantesUATH() {
         </div>
       </div>
 
-      {/* Modal - Mejorado */}
+      {/* Modal */}
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} size="lg">
         <div className="p-8">
           <div className="flex items-center justify-between mb-8">
@@ -635,8 +635,8 @@ export default function GestionFirmantesUATH() {
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900">
                   {modalMode === "crear"
-                    ? "Nuevo Usuario UATH"
-                    : "Editar Usuario UATH"}
+                    ? "Nuevo Usuario Administrativo"
+                    : "Editar Usuario Administrativo"}
                 </h2>
               </div>
               <p className="text-gray-600 ml-16">
@@ -700,7 +700,7 @@ export default function GestionFirmantesUATH() {
                     }))
                   }
                   className="w-full border-2 border-gray-300 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="NOMBRES APELLIDOS"
+                  placeholder="APELLIDOS Y NOMBRES"
                 />
               </div>
             </div>
@@ -864,7 +864,7 @@ export default function GestionFirmantesUATH() {
               {modalMode === "crear" ? (
                 <>
                   <UserPlus className="h-5 w-5" />
-                  Crear Firmante
+                  Crear usuario
                 </>
               ) : (
                 <>

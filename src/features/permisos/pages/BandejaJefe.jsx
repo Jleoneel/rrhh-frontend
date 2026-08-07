@@ -312,7 +312,7 @@ export default function BandejaJefe() {
             <select
               value={filtroEstado}
               onChange={(e) => setFiltroEstado(e.target.value)}
-              className="border-2 border-gray-200 rounded-xl pl-10 pr-10 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white cursor-pointer min-w-[180px]"
+              className="border-2 border-gray-200 rounded-xl pl-10 pr-10 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white cursor-pointer min-w-45"
             >
               <option value="TODOS">Todos los estados</option>
               <option value="PENDIENTE">Pendientes</option>

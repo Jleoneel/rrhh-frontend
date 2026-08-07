@@ -179,7 +179,7 @@ export default function GestionJefes() {
                   Gestión de Jefes por Unidad
                 </h1>
                 <p className="text-gray-500 mt-1">
-                  Asigna el jefe y jefe superior de cada unidad orgánica para el flujo de aprobación de permisos
+                  Asigna el jefe inmediato y el jefe superior de cada unidad orgánica para el flujo de aprobación de permisos
                 </p>
               </div>
             </div>
@@ -195,7 +195,7 @@ export default function GestionJefes() {
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <StatCard label="Total Unidades" value={stats.total} icon={Building2} color="blue" />
-            <StatCard label="Con Jefe Asignado" value={stats.conJefe} icon={UserCheck} color="green" />
+            <StatCard label="Con Jefe Inmediato" value={stats.conJefe} icon={UserCheck} color="green" />
             <StatCard label="Con Jefe Superior" value={stats.conJefeSuperior} icon={Users} color="purple" />
             <StatCard label="Completas" value={stats.completas} icon={CheckCircle} color="orange" />
           </div>
