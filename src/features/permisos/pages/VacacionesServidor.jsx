@@ -466,7 +466,7 @@ export default function VacacionesServidor() {
                         {v.estado === "PENDIENTE_JEFE" && (
                           <button
                             onClick={() => handleCancelar(v)}
-                            className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl transition-all flex-shrink-0"
+                            className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl transition-all shrink-0"
                           >
                             <Trash2 size={16} />
                             <span className="text-sm font-medium hidden sm:inline">

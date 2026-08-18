@@ -12,6 +12,7 @@ import api from "../../../shared/api/axios";
 const ROLES = {
   ASISTENTE_UATH: "78de3b9c-a2f4-41ed-9823-bb72ee56d1f4",
   AUXILIAR_UATH: "5a7d49dd-926e-4eaa-8127-b05e9dae7e53",
+  ANALISTA_TALENTO_HUMANO: "ae067d84-f43e-4c73-bab4-985f963331fa",
 };
 
 const initialFilters = {
@@ -303,6 +304,7 @@ const handleInsubsistente = async (accion) => {
   const esAsistenteUATH = [
     ROLES.ASISTENTE_UATH,
     ROLES.AUXILIAR_UATH,
+    ROLES.ANALISTA_TALENTO_HUMANO,
   ].includes(user?.cargo_id);
   const esAdmin = user?.es_admin === true; // ← aquí
 

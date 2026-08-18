@@ -25,10 +25,17 @@ const CARGO_IDS_EQUIVALENTES = {
   "78de3b9c-a2f4-41ed-9823-bb72ee56d1f4": [
     "78de3b9c-a2f4-41ed-9823-bb72ee56d1f4",
     "5a7d49dd-926e-4eaa-8127-b05e9dae7e53",
+    "ae067d84-f43e-4c73-bab4-985f963331fa",
   ],
   "5a7d49dd-926e-4eaa-8127-b05e9dae7e53": [
     "78de3b9c-a2f4-41ed-9823-bb72ee56d1f4",
     "5a7d49dd-926e-4eaa-8127-b05e9dae7e53",
+    "ae067d84-f43e-4c73-bab4-985f963331fa",
+  ],
+  "ae067d84-f43e-4c73-bab4-985f963331fa": [
+    "78de3b9c-a2f4-41ed-9823-bb72ee56d1f4",
+    "5a7d49dd-926e-4eaa-8127-b05e9dae7e53",
+    "ae067d84-f43e-4c73-bab4-985f963331fa",
   ],
 };
 
@@ -89,6 +96,7 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
     const cargosPermitidos = [
       "ASISTENTE DE LA UATH",
       "TRABAJADORA SOCIAL INSTITUCIONAL",
+      "ANALISTA DE TALENTO HUMANO",
       "RESPONSABLE DE LA UATH",
     ];
 

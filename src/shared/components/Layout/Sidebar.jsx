@@ -43,6 +43,7 @@ export default function Sidebar() {
   const esAsistenteUATH = [
     "ASISTENTE DE LA UATH",
     "TRABAJADORA SOCIAL INSTITUCIONAL",
+    "ANALISTA DE TALENTO HUMANO",
   ].includes(cargoNombre);
   const esAdmin = cargoNombre === "ADMINISTRADOR DEL SISTEMA";
 

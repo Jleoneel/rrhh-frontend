@@ -77,6 +77,7 @@ const FirmanteRow = ({ firmante, onEdit, onToggleActive }) => {
   const cargoColor = {
     "ASISTENTE DE LA UATH": "info",
     "TRABAJADORA SOCIAL INSTITUCIONAL": "info",
+    "ANALISTA DE TALENTO HUMANO": "info",
     "RESPONSABLE DE LA UATH": "warning",
     "JEFE DE AREA": "success",
     "ADMINISTRADOR DEL SISTEMA": "default",
@@ -734,6 +735,9 @@ export default function GestionFirmantesUATH() {
                     <option value="ADMINISTRADOR DEL SISTEMA">
                       Administrador del Sistema
                     </option>
+                    <option value="ANALISTA DE TALENTO HUMANO">
+                      Analista de Talento Humano
+                    </option>
                   </select>
                 </div>
 
@@ -793,6 +797,9 @@ export default function GestionFirmantesUATH() {
                     </option>
                     <option value="ADMINISTRADOR DEL SISTEMA">
                       Administrador del Sistema
+                    </option>
+                    <option value="ANALISTA DE TALENTO HUMANO">
+                      Analista de Talento Humano
                     </option>
                   </select>
                 </div>
