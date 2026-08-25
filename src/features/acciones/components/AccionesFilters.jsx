@@ -1,5 +1,16 @@
 import { useState } from "react";
-import { Search, X, Calendar, User, FileText, Tag, Plus, Loader2 } from "lucide-react";
+import {
+  Search,
+  X,
+  Calendar,
+  User,
+  FileText,
+  Tag,
+  Plus,
+  Loader2,
+  ListOrdered,
+  AlertTriangle,
+} from "lucide-react";
 import Swal from "sweetalert2";
 import api from "../../../shared/api/axios";
 import Modal from "../../../shared/components/ui/Modal";
@@ -19,10 +30,22 @@ function toastSwal(text, icon) {
   });
 }
 
-export default function AccionesFilters({ filters, onChange, onBuscar, onLimpiar }) {
+export default function AccionesFilters({
+  filters,
+  onChange,
+  onBuscar,
+  onLimpiar,
+  puedeConfigurarNumeracion,
+}) {
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState(initialDenominacionForm);
   const [saving, setSaving] = useState(false);
+
+  const [numeracionModalOpen, setNumeracionModalOpen] = useState(false);
+  const [proximoNumero, setProximoNumero] = useState(null);
+  const [loadingProximo, setLoadingProximo] = useState(false);
+  const [nuevoNumero, setNuevoNumero] = useState("");
+  const [savingNumeracion, setSavingNumeracion] = useState(false);
 
   const abrirModal = () => {
     setForm(initialDenominacionForm);
@@ -68,6 +91,90 @@ export default function AccionesFilters({ filters, onChange, onBuscar, onLimpiar
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const abrirModalNumeracion = async () => {
+    setNumeracionModalOpen(true);
+    setNuevoNumero("");
+    setLoadingProximo(true);
+    try {
+      const { data } = await api.get("/acciones/numeracion/proximo");
+      setProximoNumero(data?.proximo_numero_elaboracion ?? null);
+    } catch (error) {
+      setProximoNumero(null);
+      Swal.fire({
+        title: "Error",
+        text:
+          error.response?.data?.message ||
+          "No se pudo consultar la numeración actual",
+        icon: "error",
+        confirmButtonColor: "#3b82f6",
+      });
+      setNumeracionModalOpen(false);
+    } finally {
+      setLoadingProximo(false);
+    }
+  };
+
+  const cerrarModalNumeracion = () => {
+    if (savingNumeracion) return;
+    setNumeracionModalOpen(false);
+  };
+
+  const handleConfirmarNumeracion = async () => {
+    if (savingNumeracion) return;
+
+    const valor = Number(nuevoNumero);
+    if (!nuevoNumero.trim() || !Number.isInteger(valor) || valor < 1) {
+      toastSwal("Ingrese un número de elaboración válido", "error");
+      return;
+    }
+
+    const confirm = await Swal.fire({
+      title: "Confirmar cambio de numeración",
+      html: `
+        <div class="text-left space-y-2">
+          <p>Próximo número actual: <b>${proximoNumero ?? "—"}</b></p>
+          <p>Nuevo próximo número: <b>${valor}</b></p>
+          <p class="text-sm text-gray-600 mt-2">La próxima Acción de Personal utilizará el número ${valor}. Esta operación modifica la secuencia de numeración.</p>
+        </div>
+      `,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Confirmar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#3b82f6",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    setSavingNumeracion(true);
+    try {
+      const { data } = await api.put("/acciones/numeracion", {
+        restart_with: valor,
+      });
+      const nuevoProximo = data?.proximo_numero_elaboracion ?? valor;
+      setProximoNumero(nuevoProximo);
+      toastSwal(
+        `✓ Numeración configurada. Próximo número: ${nuevoProximo}`,
+        "success",
+      );
+      setNumeracionModalOpen(false);
+      setNuevoNumero("");
+    } catch (error) {
+      Swal.fire({
+        title: "No se pudo configurar la numeración",
+        text:
+          error.response?.data?.message ||
+          "Ocurrió un error al configurar la numeración",
+        icon: "error",
+        confirmButtonColor: "#3b82f6",
+      });
+    } finally {
+      setSavingNumeracion(false);
     }
   };
 
@@ -171,6 +278,17 @@ export default function AccionesFilters({ filters, onChange, onBuscar, onLimpiar
               <Tag size={18} />
               <span>Nueva denominación</span>
             </button>
+
+            {puedeConfigurarNumeracion && (
+              <button
+                type="button"
+                onClick={abrirModalNumeracion}
+                className="flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-100 hover:border-gray-100 rounded-xl font-medium transition-all duration-300"
+              >
+                <ListOrdered size={18} />
+                <span>Configurar numeración</span>
+              </button>
+            )}
 
             <button
               type="button"
@@ -281,6 +399,104 @@ export default function AccionesFilters({ filters, onChange, onBuscar, onLimpiar
                 <>
                   <Plus size={18} />
                   <span>Crear denominación</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal: configurar numeración de elaboración */}
+      <Modal open={numeracionModalOpen} onClose={cerrarModalNumeracion} size="sm">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-blue-100 rounded-xl">
+                <ListOrdered className="h-5 w-5 text-blue-600" />
+              </div>
+              <h2 className="text-lg font-bold text-gray-900">
+                Configurar numeración
+              </h2>
+            </div>
+            <button
+              type="button"
+              onClick={cerrarModalNumeracion}
+              disabled={savingNumeracion}
+              className="p-2 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50"
+            >
+              <X className="h-5 w-5 text-gray-500" />
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+              <p className="text-sm text-gray-500">
+                Próximo número de elaboración actual
+              </p>
+              <p className="text-lg font-bold text-gray-900">
+                {loadingProximo ? (
+                  <span className="inline-flex items-center gap-2 text-sm font-normal text-gray-500">
+                    <Loader2 size={16} className="animate-spin" />
+                    Consultando...
+                  </span>
+                ) : (
+                  (proximoNumero ?? "—")
+                )}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">
+                Nuevo próximo número de elaboración{" "}
+                <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                min="1"
+                step="1"
+                value={nuevoNumero}
+                onChange={(e) => setNuevoNumero(e.target.value)}
+                disabled={savingNumeracion || loadingProximo}
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                placeholder="Ej: 111"
+              />
+            </div>
+
+            <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+              <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-amber-800">
+                Esta operación modificará la numeración de futuras Acciones
+                de Personal. Si el número elegido ya está en uso, la
+                operación será rechazada.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-6 mt-6 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={cerrarModalNumeracion}
+              disabled={savingNumeracion}
+              className="px-4 py-2.5 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl transition-all font-medium disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="button"
+              onClick={handleConfirmarNumeracion}
+              disabled={savingNumeracion || loadingProximo}
+              className="flex items-center gap-2 px-4 py-2.5 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl font-medium disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:from-blue-600 disabled:hover:to-blue-700"
+            >
+              {savingNumeracion ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" />
+                  <span>Guardando...</span>
+                </>
+              ) : (
+                <>
+                  <ListOrdered size={18} />
+                  <span>Continuar</span>
                 </>
               )}
             </button>

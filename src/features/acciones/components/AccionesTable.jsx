@@ -1,7 +1,9 @@
-import { Eye, Edit, Filter, Download, Paperclip, FileText, XCircle } from "lucide-react";
+import { Eye, Edit, Filter, Download, Paperclip, FileText, XCircle, Trash2, Loader2 } from "lucide-react";
 import EstadoBadge from "./EstadoBadge";
 import { useState } from "react";
 import VerAccionModal from "./Modales/VerAccionModal";
+
+const ESTADOS_ELIMINABLES = ["BORRADOR", "EN_FIRMA"];
 
 export default function AccionesTable({
   acciones,
@@ -12,6 +14,10 @@ export default function AccionesTable({
   esAsistenteUATH,
   esAdmin,
   onInsubsistente,
+  puedeEditarAccion,
+  puedeEliminarAccion,
+  onEliminar,
+  eliminandoId,
 }) {
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [sortConfig, setSortConfig] = useState({
@@ -255,7 +261,7 @@ export default function AccionesTable({
                           >
                             <Eye size={15} />
                           </button>
-                          {accion.estado === "BORRADOR" && esAsistenteUATH && (
+                          {accion.estado === "BORRADOR" && puedeEditarAccion && (
                             <button
                               onClick={() => onEdit?.(accion)}
                               className="p-1.5 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-lg transition-colors"
@@ -292,6 +298,21 @@ export default function AccionesTable({
                               <XCircle size={15} />
                             </button>
                           )}
+                          {puedeEliminarAccion &&
+                            ESTADOS_ELIMINABLES.includes(accion.estado) && (
+                              <button
+                                onClick={() => onEliminar?.(accion)}
+                                disabled={eliminandoId === accion.id}
+                                className="p-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Eliminar definitivamente"
+                              >
+                                {eliminandoId === accion.id ? (
+                                  <Loader2 size={15} className="animate-spin" />
+                                ) : (
+                                  <Trash2 size={15} />
+                                )}
+                              </button>
+                            )}
                         </div>
                       </td>
                     </tr>

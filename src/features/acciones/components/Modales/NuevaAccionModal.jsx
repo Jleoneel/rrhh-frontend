@@ -73,6 +73,7 @@ export default function NuevaAccionModal({
   onSuccess,
   mode = "create",
   accionId = null,
+  initialCedula = null,
 }) {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(initialForm);
@@ -484,6 +485,16 @@ export default function NuevaAccionModal({
       fetchSituacionActual();
     }
   };
+
+  // Si el modal se abre en modo create con una cédula ya conocida (por
+  // ejemplo, un servidor recién registrado como "no distributivo"),
+  // precarga el campo y dispara la misma búsqueda que el botón/Enter.
+  useEffect(() => {
+    if (!open || mode !== "create" || !initialCedula) return;
+    setForm((p) => ({ ...p, cedula: initialCedula }));
+    fetchSituacionActual(initialCedula, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, mode, initialCedula]);
 
   // Validación Step 1
   const canGoStep2 = useMemo(() => {

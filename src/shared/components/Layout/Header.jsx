@@ -14,6 +14,8 @@ import api from "../../api/axios";
 import Swal from "sweetalert2";
 import LogoutButton from "../Layout/logoutButton";
 import { NotificacionesBell } from "../../../features/notificaciones/components/FirmaNotificacionesBell";
+import TipoServidorModal from "../../../features/acciones/components/Modales/TipoServidorModal";
+import RegistrarServidorManualModal from "../../../features/acciones/components/Modales/RegistrarServidorManualModal";
 
 export default function Header({ title, showNewAction = true, onNuevaAccion }) {
   const { user } = useAuth();
@@ -28,6 +30,8 @@ export default function Header({ title, showNewAction = true, onNuevaAccion }) {
   const [showActual, setShowActual] = useState(false);
   const [showNueva, setShowNueva] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [tipoServidorOpen, setTipoServidorOpen] = useState(false);
+  const [registrarManualOpen, setRegistrarManualOpen] = useState(false);
   const [form, setForm] = useState({
     passwordActual: "",
     passwordNueva: "",
@@ -126,23 +130,23 @@ export default function Header({ title, showNewAction = true, onNuevaAccion }) {
     }
   };
 
-  const handleNuevaAccion = async () => {
-    const result = await Swal.fire({
-      title: "¿Crear nueva acción?",
-      text: "Serás redirigido al formulario de creación",
-      icon: "info",
-      showCancelButton: true,
-      confirmButtonColor: "#3b82f6",
-      cancelButtonColor: "#6b7280",
-      confirmButtonText: "Sí, continuar",
-      cancelButtonText: "Cancelar",
-      background: "#ffffff",
-      color: "#1f2937",
-    });
+  const handleNuevaAccion = () => {
+    setTipoServidorOpen(true);
+  };
 
-    if (result.isConfirmed && onNuevaAccion) {
-      onNuevaAccion();
-    }
+  const handleElegirDistributivo = () => {
+    setTipoServidorOpen(false);
+    if (onNuevaAccion) onNuevaAccion();
+  };
+
+  const handleElegirNoDistributivo = () => {
+    setTipoServidorOpen(false);
+    setRegistrarManualOpen(true);
+  };
+
+  const handleServidorManualCreado = (cedula) => {
+    setRegistrarManualOpen(false);
+    if (onNuevaAccion) onNuevaAccion(cedula);
   };
 
   return (
@@ -389,6 +393,21 @@ export default function Header({ title, showNewAction = true, onNuevaAccion }) {
           </div>
         </div>
       )}
+
+      {/* Selector de tipo de servidor para "Nueva acción" */}
+      <TipoServidorModal
+        open={tipoServidorOpen}
+        onClose={() => setTipoServidorOpen(false)}
+        onElegirDistributivo={handleElegirDistributivo}
+        onElegirNoDistributivo={handleElegirNoDistributivo}
+      />
+
+      {/* Registro de servidor no distributivo */}
+      <RegistrarServidorManualModal
+        open={registrarManualOpen}
+        onClose={() => setRegistrarManualOpen(false)}
+        onCreated={handleServidorManualCreado}
+      />
     </>
   );
 }

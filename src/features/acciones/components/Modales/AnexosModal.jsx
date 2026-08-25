@@ -19,6 +19,11 @@ import Swal from "sweetalert2";
 
 const API = `${import.meta.env.VITE_API_URL || ""}/api`;
 
+// Estados en los que la Acción de Personal permite agregar/eliminar
+// anexos. En cualquier otro estado (APROBADO, INSUBSISTENTE) los anexos
+// quedan en modo solo lectura, pero siempre se pueden ver/descargar.
+const ESTADOS_ANEXOS_EDITABLES = ["BORRADOR", "EN_FIRMA"];
+
 // Función para formatear bytes a KB o MB
 function formatBytes(bytes = 0) {
   const mb = bytes / 1024 / 1024;
@@ -42,7 +47,7 @@ function getFileIcon(filename = "") {
 // Componente principal del modal de anexos
 export default function AnexosModal({ open, onClose, accion, maxFiles = 5 }) {
   const accionId = accion?.id;
-  const canEdit = accion?.estado === "BORRADOR";
+  const canEdit = ESTADOS_ANEXOS_EDITABLES.includes(accion?.estado);
 
   const [anexos, setAnexos] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -422,7 +427,8 @@ export default function AnexosModal({ open, onClose, accion, maxFiles = 5 }) {
                 {!canEdit && (
                   <p className="text-sm text-amber-700 mt-4 bg-amber-50 px-4 py-2 rounded-lg inline-flex items-center gap-2">
                     <AlertCircle className="h-4 w-4" />
-                    Solo lectura. Esta acción no está en estado BORRADOR.
+                    Solo lectura. Esta Acción de Personal ya no admite
+                    cambios en sus anexos (estado {accion?.estado}).
                   </p>
                 )}
               </div>
