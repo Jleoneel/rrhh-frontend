@@ -18,6 +18,7 @@ import {
   X,
   FileSpreadsheet,
   Mail,
+  Pencil,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import api from "../../../shared/api/axios";
@@ -29,6 +30,7 @@ import {
   resetPasswordServidor,
 } from "../hooks/permisos.uath.service";
 import SelectPremium from "../../../shared/components/Layout/SelectPremiun";
+import EditarServidorManualModal from "../components/EditarServidorManualModal";
 
 const TABS = [
   { id: "usuarios", label: "Usuarios Servidor", icon: Users },
@@ -94,6 +96,8 @@ export default function GestionPermisos() {
   const [modalUsuario, setModalUsuario] = useState(false);
   const [servidorSeleccionado, setServidorSeleccionado] = useState(null);
   const [submittingReset, setSubmittingReset] = useState(false);
+  const [modalEditarServidor, setModalEditarServidor] = useState(false);
+  const [servidorIdEditar, setServidorIdEditar] = useState(null);
 
   // Filtro de búsqueda para select de servidores
   const [filtroSelectServidor, setFiltroSelectServidor] = useState("");
@@ -776,6 +780,21 @@ export default function GestionPermisos() {
                                       <RefreshCw size={16} />
                                     </button>
                                   )}
+                                  {/* Solo servidores registrados manualmente
+                                      (origen MANUAL) son editables: los que
+                                      vienen del distributivo (EXCEL) no. */}
+                                  {s.origen === "MANUAL" && (
+                                    <button
+                                      onClick={() => {
+                                        setServidorIdEditar(s.servidor_id);
+                                        setModalEditarServidor(true);
+                                      }}
+                                      className="p-2 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-all hover:scale-110"
+                                      title="Editar datos del servidor"
+                                    >
+                                      <Pencil size={16} />
+                                    </button>
+                                  )}
                                 </div>
                               </td>
                             </tr>
@@ -1165,6 +1184,20 @@ export default function GestionPermisos() {
           </div>
         </div>
       )}
+
+      <EditarServidorManualModal
+        open={modalEditarServidor}
+        servidorId={servidorIdEditar}
+        onClose={() => {
+          setModalEditarServidor(false);
+          setServidorIdEditar(null);
+        }}
+        onUpdated={() => {
+          setModalEditarServidor(false);
+          setServidorIdEditar(null);
+          cargarServidores({ page, limit, search, filtro: filtroUsuario });
+        }}
+      />
     </div>
   );
 }

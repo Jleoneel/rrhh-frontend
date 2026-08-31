@@ -14,6 +14,13 @@ export const toggleUsuarioServidor = (id, activo) =>
 export const resetPasswordServidor = (servidorId, password) =>
   api.patch(`/servidores/${servidorId}/reset-password`, { password }).then((r) => r.data);
 
+// Servidor manual (origen='MANUAL'): edición de los datos con los que
+// se creó, usados luego al generar una Acción de Personal.
+export const getServidorManual = (servidorId) =>
+  api.get(`/servidores/manual/${servidorId}`).then((r) => r.data);
+export const actualizarServidorManual = (servidorId, data) =>
+  api.put(`/servidores/manual/${servidorId}`, data).then((r) => r.data);
+
 // Saldos
 export const getSaldos = () => api.get("/permisos/saldos").then((r) => r.data);
 export const crearSaldo = (data) =>
