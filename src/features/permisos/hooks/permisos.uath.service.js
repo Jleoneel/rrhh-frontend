@@ -25,6 +25,8 @@ export const actualizarServidorManual = (servidorId, data) =>
 export const getSaldos = () => api.get("/permisos/saldos").then((r) => r.data);
 export const crearSaldo = (data) =>
   api.post("/permisos/saldos", data).then((r) => r.data);
+export const actualizarSaldo = (id, data) =>
+  api.put(`/permisos/saldos/${id}`, data).then((r) => r.data);
 
 // Jefes
 export const getJefes = () => api.get("/permisos/jefes").then((r) => r.data);

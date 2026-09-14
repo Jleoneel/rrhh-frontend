@@ -23,6 +23,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import Swal from "sweetalert2";
+import { horasADias } from "../../../shared/utils/horasADias";
 
 const estadoBadge = (estado) => {
   const map = {
@@ -115,8 +116,6 @@ export default function VacacionesServidor() {
     }
   }, [form.fecha_inicio, form.fecha_fin]);
 
-  const horasADias = (horas) => (parseFloat(horas || 0) / 8).toFixed(1);
-
   const tienePendiente = vacaciones.some(
     (v) => !["APROBADO", "NEGADO"].includes(v.estado),
   );
@@ -168,7 +167,7 @@ export default function VacacionesServidor() {
       Swal.fire({
         toast: true,
         icon: "error",
-        text: `Saldo insuficiente. Disponible: ${diasDisponibles.toFixed(1)} días`,
+        text: `Saldo insuficiente. Disponible: ${horasADias(saldo?.horas_disponibles || 0)}`,
         timer: 2500,
         showConfirmButton: false,
         position: "top-end",
@@ -315,7 +314,7 @@ export default function VacacionesServidor() {
                   </div>
                   <div className="text-right">
                     <p className="text-3xl font-bold text-green-600">
-                      {horasADias(saldo?.horas_disponibles ?? 0)} días
+                      {horasADias(saldo?.horas_disponibles ?? 0)}
                     </p>
                     <p className="text-xs text-gray-400">disponibles</p>
                   </div>
@@ -323,10 +322,10 @@ export default function VacacionesServidor() {
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">
-                      Usados: <b>{horasADias(saldo?.horas_usadas ?? 0)} días</b>
+                      Usados: <b>{horasADias(saldo?.horas_usadas ?? 0)}</b>
                     </span>
                     <span className="text-gray-600">
-                      Total: <b>{horasADias(saldo?.horas_totales ?? 0)} días</b>
+                      Total: <b>{horasADias(saldo?.horas_totales ?? 0)}</b>
                     </span>
                   </div>
                   <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
@@ -503,7 +502,7 @@ export default function VacacionesServidor() {
                     <p className="text-gray-300 text-sm mt-1">
                       Disponible:{" "}
                       <span className="font-semibold text-green-300">
-                        {horasADias(saldo?.horas_disponibles)} días
+                        {horasADias(saldo?.horas_disponibles)}
                       </span>
                     </p>
                   </div>

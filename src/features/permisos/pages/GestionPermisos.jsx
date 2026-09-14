@@ -27,10 +27,12 @@ import {
   crearUsuarioServidor,
   getSaldos,
   crearSaldo,
+  actualizarSaldo,
   resetPasswordServidor,
 } from "../hooks/permisos.uath.service";
 import SelectPremium from "../../../shared/components/Layout/SelectPremiun";
 import EditarServidorManualModal from "../components/EditarServidorManualModal";
+import { horasADias } from "../../../shared/utils/horasADias";
 
 const TABS = [
   { id: "usuarios", label: "Usuarios Servidor", icon: Users },
@@ -109,6 +111,16 @@ export default function GestionPermisos() {
     fecha_ingreso: "",
   });
   const [formPassword, setFormPassword] = useState("");
+
+  // Editar saldo (corrección de un saldo ya asignado)
+  const [modalEditarSaldo, setModalEditarSaldo] = useState(false);
+  const [saldoEditando, setSaldoEditando] = useState(null);
+  const [formEditarSaldo, setFormEditarSaldo] = useState({
+    diasTotales: 0,
+    diasUsadas: 0,
+    descripcion: "",
+  });
+  const [savingEditarSaldo, setSavingEditarSaldo] = useState(false);
 
   // Funciones de paginación y filtros
   const handlePageChange = (newPage) => {
@@ -357,6 +369,80 @@ export default function GestionPermisos() {
     }
   };
 
+  const handleAbrirEditarSaldo = (s) => {
+    setSaldoEditando(s);
+    setFormEditarSaldo({
+      diasTotales: parseFloat(s.horas_totales) / 8,
+      diasUsadas: parseFloat(s.horas_usadas) / 8,
+      descripcion: "",
+    });
+    setModalEditarSaldo(true);
+  };
+
+  const handleGuardarEditarSaldo = async () => {
+    if (
+      formEditarSaldo.diasTotales === "" ||
+      formEditarSaldo.diasUsadas === "" ||
+      Number.isNaN(parseFloat(formEditarSaldo.diasTotales)) ||
+      Number.isNaN(parseFloat(formEditarSaldo.diasUsadas))
+    ) {
+      Swal.fire({
+        toast: true,
+        icon: "warning",
+        title: "Campos incompletos",
+        text: "Completa el total y las horas usadas",
+        timer: 2000,
+        showConfirmButton: false,
+        position: "top-end",
+      });
+      return;
+    }
+    if (
+      parseFloat(formEditarSaldo.diasUsadas) >
+      parseFloat(formEditarSaldo.diasTotales)
+    ) {
+      Swal.fire({
+        toast: true,
+        icon: "warning",
+        title: "Datos inconsistentes",
+        text: "Las usadas no pueden superar el total",
+        timer: 2500,
+        showConfirmButton: false,
+        position: "top-end",
+      });
+      return;
+    }
+
+    setSavingEditarSaldo(true);
+    try {
+      await actualizarSaldo(saldoEditando.id, {
+        horas_totales: parseFloat(formEditarSaldo.diasTotales) * 8,
+        horas_usadas: parseFloat(formEditarSaldo.diasUsadas) * 8,
+        descripcion: formEditarSaldo.descripcion || undefined,
+      });
+      Swal.fire({
+        toast: true,
+        icon: "success",
+        title: "¡Saldo corregido!",
+        timer: 2000,
+        showConfirmButton: false,
+        position: "top-end",
+      });
+      setModalEditarSaldo(false);
+      setSaldoEditando(null);
+      cargarDatos();
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: err.response?.data?.message || "Error corrigiendo saldo",
+        confirmButtonColor: "#ef4444",
+      });
+    } finally {
+      setSavingEditarSaldo(false);
+    }
+  };
+
   const handleImportarPosicional = async () => {
     const input = document.createElement("input");
     input.type = "file";
@@ -511,14 +597,18 @@ export default function GestionPermisos() {
   };
 
   const opcionesServidores = useMemo(() => {
-    // Solo mostrar opciones si hay 3+ caracteres de búsqueda
+    // Solo mostrar opciones si hay 5+ caracteres de búsqueda
     if (filtroSelectServidor.length < 5) {
       return [];
     }
 
     const searchLower = filtroSelectServidor.toLowerCase();
     return todosServidores
-      .filter((s) => s.cedula.toLowerCase().includes(searchLower))
+      .filter(
+        (s) =>
+          s.cedula.toLowerCase().includes(searchLower) ||
+          s.nombres.toLowerCase().includes(searchLower),
+      )
       .map((s) => ({
         value: s.servidor_id,
         label: `${s.nombres} — ${s.cedula}`,
@@ -905,6 +995,7 @@ export default function GestionPermisos() {
                             "Usadas",
                             "Disponibles",
                             "Año",
+                            "Acciones",
                           ].map((h) => (
                             <th
                               key={h}
@@ -918,7 +1009,7 @@ export default function GestionPermisos() {
                       <tbody className="divide-y divide-gray-100">
                         {saldos.length === 0 ? (
                           <tr>
-                            <td colSpan={7} className="px-6 py-20 text-center">
+                            <td colSpan={8} className="px-6 py-20 text-center">
                               <Clock className="h-12 w-12 text-gray-300 mx-auto mb-3" />
                               <p className="text-gray-500 font-medium">
                                 No hay saldos asignados
@@ -945,13 +1036,11 @@ export default function GestionPermisos() {
                               </td>
                               <td className="px-6 py-4">
                                 <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-semibold">
-                                  {(parseFloat(s.horas_totales) / 8).toFixed(1)}{" "}
-                                  días
+                                  {horasADias(s.horas_totales)}
                                 </span>
                               </td>
                               <td className="px-6 py-4 text-amber-600 font-medium">
-                                {(parseFloat(s.horas_usadas) / 8).toFixed(1)}{" "}
-                                días
+                                {horasADias(s.horas_usadas)}
                               </td>
                               <td className="px-6 py-4">
                                 <span
@@ -961,16 +1050,22 @@ export default function GestionPermisos() {
                                       : "bg-green-100 text-green-600"
                                   }`}
                                 >
-                                  {(
-                                    parseFloat(s.horas_disponibles) / 8
-                                  ).toFixed(1)}{" "}
-                                  días
+                                  {horasADias(s.horas_disponibles)}
                                 </span>
                               </td>
                               <td className="px-6 py-4">
                                 <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 rounded-lg text-xs font-mono">
                                   <Calendar size={12} /> {s.anio}
                                 </span>
+                              </td>
+                              <td className="px-6 py-4">
+                                <button
+                                  onClick={() => handleAbrirEditarSaldo(s)}
+                                  className="p-2 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-all hover:scale-110"
+                                  title="Corregir saldo"
+                                >
+                                  <Pencil size={16} />
+                                </button>
                               </td>
                             </tr>
                           ))
@@ -1091,7 +1186,7 @@ export default function GestionPermisos() {
                   <SelectPremium
                     label="Servidor"
                     required
-                    placeholder="Escribe 5+ dígitos de cédula..."
+                    placeholder="Escribe cédula o nombres (5+ caracteres)..."
                     options={opcionesServidores}
                     value={
                       todosServidores
@@ -1112,8 +1207,8 @@ export default function GestionPermisos() {
                   {filtroSelectServidor.length > 0 &&
                     filtroSelectServidor.length < 5 && (
                       <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
-                        <AlertCircle size={12} /> Escribe al menos 5 dígitos de
-                        cédula para ver resultados
+                        <AlertCircle size={12} /> Escribe al menos 5
+                        caracteres de cédula o nombres para ver resultados
                       </p>
                     )}
                 </div>
@@ -1178,6 +1273,143 @@ export default function GestionPermisos() {
                   className="flex-1 px-4 py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg"
                 >
                   Asignar Saldo
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {modalEditarSaldo && saldoEditando && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => {
+              if (savingEditarSaldo) return;
+              setModalEditarSaldo(false);
+              setSaldoEditando(null);
+            }}
+          />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+            <div className="bg-linear-to-r from-gray-900 to-gray-800 text-white px-6 py-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/10 rounded-lg">
+                    <Pencil className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold">Corregir Saldo</h2>
+                    <p className="text-sm text-gray-300">
+                      {saldoEditando.nombres}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    if (savingEditarSaldo) return;
+                    setModalEditarSaldo(false);
+                    setSaldoEditando(null);
+                  }}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-all"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                <p className="text-xs text-amber-700">
+                  Esto reemplaza directamente el total y las horas usadas.
+                  A diferencia de "Asignar saldo" (que suma), aquí se
+                  corrige el valor exacto.
+                </p>
+              </div>
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Total (días)
+                  </label>
+                  <input
+                    type="number"
+                    value={formEditarSaldo.diasTotales}
+                    disabled={savingEditarSaldo}
+                    onChange={(e) =>
+                      setFormEditarSaldo((p) => ({
+                        ...p,
+                        diasTotales: e.target.value,
+                      }))
+                    }
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                    min={0}
+                    max={60}
+                    step={0.5}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Usadas (días)
+                  </label>
+                  <input
+                    type="number"
+                    value={formEditarSaldo.diasUsadas}
+                    disabled={savingEditarSaldo}
+                    onChange={(e) =>
+                      setFormEditarSaldo((p) => ({
+                        ...p,
+                        diasUsadas: e.target.value,
+                      }))
+                    }
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                    min={0}
+                    max={60}
+                    step={0.5}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Motivo de la corrección{" "}
+                    <span className="text-gray-400 text-xs">(opcional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formEditarSaldo.descripcion}
+                    disabled={savingEditarSaldo}
+                    onChange={(e) =>
+                      setFormEditarSaldo((p) => ({
+                        ...p,
+                        descripcion: e.target.value,
+                      }))
+                    }
+                    placeholder="Ej: Se asignaron días de más por error"
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => {
+                    setModalEditarSaldo(false);
+                    setSaldoEditando(null);
+                  }}
+                  disabled={savingEditarSaldo}
+                  className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-all disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleGuardarEditarSaldo}
+                  disabled={savingEditarSaldo}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-linear-to-r from-amber-500 to-amber-600 text-white rounded-xl font-medium hover:from-amber-600 hover:to-amber-700 transition-all shadow-lg disabled:opacity-60"
+                >
+                  {savingEditarSaldo ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      Guardando...
+                    </>
+                  ) : (
+                    "Guardar corrección"
+                  )}
                 </button>
               </div>
             </div>

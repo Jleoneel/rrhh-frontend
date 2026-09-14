@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import Swal from "sweetalert2";
 import api from "../../../shared/api/axios";
+import { horasADias } from "../../../shared/utils/horasADias";
 
 const estadoBadge = (estado) => {
   const map = {
@@ -298,20 +299,6 @@ export default function PermisosFirmante() {
     }
   };
 
-  function horasADias(horas) {
-    if (horas === null || horas === undefined) return "0";
-
-    const diasCompletos = Math.floor(horas / 8);
-    const horasRestantes = horas % 8;
-
-    if (horasRestantes === 0) {
-      return `${diasCompletos}`;
-    }
-    if (diasCompletos === 0) {
-      return `${horasRestantes} horas`;
-    }
-    return `${diasCompletos} días y ${horasRestantes} horas`;
-  }
   const porcentajeUsado = saldo
     ? Math.round((saldo.horas_usadas / saldo.horas_totales) * 100)
     : 0;
@@ -577,7 +564,7 @@ export default function PermisosFirmante() {
                     <p className="text-gray-300 text-sm mt-1">
                       Disponible:{" "}
                       <span className="font-semibold text-blue-300">
-                        {horasADias(saldo?.horas_disponibles)} días
+                        {horasADias(saldo?.horas_disponibles)}
                       </span>
                     </p>
                   </div>
