@@ -25,6 +25,16 @@ export function useNotificaciones() {
       try {
         const promesas = [];
 
+        // Recepción de Acciones de Personal → para cualquier usuario
+        // autenticado (servidor, o firmante que también existe como
+        // servidor con la misma cédula, ej. un Jefe de Área)
+        promesas.push(
+          api
+            .get("/recepcion-notificaciones")
+            .then((r) => r.data.map((n) => ({ ...n, categoria: "RECEPCION" })))
+            .catch(() => []),
+        );
+
         // Firmantes UATH/Gerente/Responsable (no Jefe de Área) → firmas + permisos + vacaciones
         if (esFirmante && !esJefeArea) {
           promesas.push(
@@ -169,6 +179,35 @@ export function useNotificaciones() {
     return () => es.close();
   }, [esServidor]);
 
+  // SSE recepción de Acciones de Personal (cualquier usuario autenticado)
+  useEffect(() => {
+    if (!user) return;
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const es = new EventSource(
+      `${API_BASE}/api/recepcion-notificaciones/stream?token=${token}`,
+    );
+
+    es.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        setNotificaciones((prev) => {
+          const existe = prev.some(
+            (n) =>
+              n.accion_id === data.accion_id && n.categoria === "RECEPCION",
+          );
+          return existe ? prev : [{ ...data, categoria: "RECEPCION" }, ...prev];
+        });
+      } catch (err) {
+        console.error("[SSE Recepción]", err);
+      }
+    };
+
+    es.onerror = () => es.close();
+    return () => es.close();
+  }, [user]);
+
   const marcarLeida = async (notif) => {
     if (!notif.id) {
       // Si no tiene id, solo removerla del estado local
@@ -178,6 +217,8 @@ export function useNotificaciones() {
     try {
       if (notif.categoria === "FIRMA") {
         await api.patch(`/firma-notificaciones/${notif.id}/leer`);
+      } else if (notif.categoria === "RECEPCION") {
+        await api.patch(`/recepcion-notificaciones/${notif.id}/leer`);
       } else {
         await api.patch(`/permisos/notificaciones/${notif.id}/leer`);
       }
@@ -207,9 +248,14 @@ export function useNotificaciones() {
       const tienePermisosServidor = notificaciones.some(
         (n) => n.categoria === "PERMISO" && esServidor,
       );
+      const tieneRecepcion = notificaciones.some(
+        (n) => n.categoria === "RECEPCION",
+      );
 
       if (tieneFirmas)
         promesas.push(api.patch("/firma-notificaciones/leer-todas"));
+      if (tieneRecepcion)
+        promesas.push(api.patch("/recepcion-notificaciones/leer-todas"));
       if (tienePermisosFirmante)
         promesas.push(
           api.patch("/permisos/notificaciones/leer-todas-firmante"),

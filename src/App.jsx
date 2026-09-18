@@ -17,6 +17,7 @@ import BandejaVacaciones from "./features/permisos/pages/BandejaVacaciones";
 import ReporteVacaciones from "./features/permisos/pages/ReporteVacaciones";
 import VacacionesFirmante from "./features/permisos/pages/VacacionesFirmante";
 import MiCertificado from "./features/permisos/pages/MiCertificado";
+import AccionesRecepcionServidor from "./features/acciones/pages/AccionesRecepcionServidor";
 
 
 export default function App() {
@@ -59,7 +60,9 @@ export default function App() {
         <Route path="/servidor/vacaciones" element={<VacacionesServidor />} />
       </Route>
 
-      {/* RUTAS PARA TODOS LOS USUARIOS AUTENTICADOS */}
+      {/* RUTAS PARA TODOS LOS USUARIOS AUTENTICADOS — incluye a firmantes
+          que también existen como servidor con la misma cédula (ej. un
+          Jefe de Área a quien también se le hace una Acción de Personal) */}
       <Route
         element={
           <ProtectedRoute>
@@ -68,6 +71,10 @@ export default function App() {
         }
       >
         <Route path="/permisos/mi-certificado" element={<MiCertificado />} />
+        <Route
+          path="/servidor/acciones"
+          element={<AccionesRecepcionServidor />}
+        />
       </Route>
 
       {/* Redirección según tipo de usuario */}

@@ -61,6 +61,11 @@ export default function Sidebar() {
             icon: <Umbrella size={20} />,
           },
           {
+            title: "Mis Acciones de Personal",
+            path: "/servidor/acciones",
+            icon: <FileSignature size={20} />,
+          },
+          {
             title: "Configuración",
             icon: <Settings size={20} />,
             submenu: [
@@ -95,9 +100,9 @@ export default function Sidebar() {
               icon: <Calendar size={20} />,
             },
             {
-              title: "Mi Certificado",
-              path: "/permisos/mi-certificado",
-              icon: <ShieldCheck size={20} />,
+              title: "Mis Acciones de Personal",
+              path: "/servidor/acciones",
+              icon: <FileSignature size={20} />,
             },
             {
               title: "Configuración",
@@ -126,6 +131,11 @@ export default function Sidebar() {
                     title: "Lista de Acciones",
                     path: "/acciones",
                     icon: <FileText size={16} />,
+                  },
+                  {
+                    title: "Mis Acciones de Personal",
+                    path: "/servidor/acciones",
+                    icon: <FileSignature size={16} />,
                   },
                 ],
               },
@@ -181,6 +191,11 @@ export default function Sidebar() {
                     title: "Lista de Acciones",
                     path: "/acciones",
                     icon: <FileText size={16} />,
+                  },
+                  {
+                    title: "Mis Acciones de Personal",
+                    path: "/servidor/acciones",
+                    icon: <FileSignature size={16} />,
                   },
                 ],
               },

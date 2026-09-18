@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Bell, FileText, Clock, CheckCircle, XCircle, Calendar } from "lucide-react";
+import {
+  Bell,
+  FileText,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Calendar,
+  FileSignature,
+} from "lucide-react";
 import { useNotificaciones } from "../hooks/useNotificaciones";
 
 export function NotificacionesBell() {
@@ -10,6 +18,8 @@ export function NotificacionesBell() {
   const renderIcono = (n) => {
     if (n.categoria === "FIRMA")
       return <FileText size={14} className="text-blue-500" />;
+    if (n.categoria === "RECEPCION")
+      return <FileSignature size={14} className="text-blue-500" />;
     if (n.categoria === "VACACION")
       return <Calendar size={14} className="text-green-500" />;
     if (n.tipo === "APROBADO")
@@ -30,6 +40,21 @@ export function NotificacionesBell() {
             <p className="text-xs text-gray-500">
               Acción: {n.codigo_elaboracion}
             </p>
+          )}
+        </>
+      );
+    }
+    if (n.categoria === "RECEPCION") {
+      return (
+        <>
+          <p className="text-sm font-medium text-gray-800">
+            Acción de Personal para firmar como recibida
+          </p>
+          {n.tipo_accion && (
+            <p className="text-xs text-gray-500">{n.tipo_accion}</p>
+          )}
+          {n.codigo_elaboracion && (
+            <p className="text-xs text-gray-400">{n.codigo_elaboracion}</p>
           )}
         </>
       );
@@ -80,6 +105,8 @@ export function NotificacionesBell() {
 
   const colorBadge = (n) => {
     if (n.categoria === "FIRMA")
+      return "bg-blue-100 border-l-4 border-blue-400";
+    if (n.categoria === "RECEPCION")
       return "bg-blue-100 border-l-4 border-blue-400";
     if (n.categoria === "VACACION")
       return "bg-green-50 border-l-4 border-green-400";

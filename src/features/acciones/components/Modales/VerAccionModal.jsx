@@ -126,6 +126,7 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
           REVISA: data.accion.archivo_revisa,
           APRUEBA_TH: data.accion.archivo_aprueba_th,
           APRUEBA_AUTORIDAD: data.accion.archivo_aprueba_autoridad,
+          RECIBIDO: data.accion.archivo_recibido,
         };
         setArchivosAccion(archivos);
       } catch (error) {
@@ -427,7 +428,7 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
               </div>
             ) : (
               <>
-                {pendiente?.cargo_nombre && (
+                {(pendiente?.cargo_nombre || pendiente?.servidor_nombre) && (
                   <div className="mt-2 p-4 bg-blue-50 border border-blue-200 rounded-xl">
                     <div className="flex items-start gap-2">
                       <div className="w-2 h-2 mt-2 bg-blue-500 rounded-full animate-pulse" />
@@ -436,7 +437,7 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
                           Siguiente en firmar
                         </p>
                         <p className="text-blue-700 font-medium mt-1">
-                          {pendiente.cargo_nombre}
+                          {pendiente.cargo_nombre || pendiente.servidor_nombre}
                         </p>
                         <p className="text-xs text-blue-600 mt-1">
                           Orden #{pendiente.orden} · {pendiente.rol_firma}
@@ -817,6 +818,7 @@ function FirmaRow({
         <div className="min-w-0 flex-1">
           <p className="font-bold text-gray-900 truncate">
             {firma.cargo_nombre ||
+              firma.servidor_nombre ||
               firma.cargo_requerido ||
               "Cargo sin especificar"}
           </p>

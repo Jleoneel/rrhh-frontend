@@ -164,6 +164,9 @@ export default function GestionFirmantesUATH() {
 
   const [search, setSearch] = useState("");
   const [filterActivo, setFilterActivo] = useState("todos");
+  const [filterCargo, setFilterCargo] = useState("todos");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("crear");
@@ -381,6 +384,10 @@ export default function GestionFirmantesUATH() {
     }
   };
 
+  const cargosDisponibles = useMemo(() => {
+    return [...new Set(firmantes.map((f) => f.cargo_nombre).filter(Boolean))].sort();
+  }, [firmantes]);
+
   const firmantesFiltrados = useMemo(() => {
     return firmantes.filter((f) => {
       const text = `${f.cedula} ${f.nombre}`.toLowerCase();
@@ -391,9 +398,36 @@ export default function GestionFirmantesUATH() {
         (filterActivo === "activos" && f.activo) ||
         (filterActivo === "inactivos" && !f.activo);
 
-      return matchesSearch && matchesFilter;
+      const matchesCargo =
+        filterCargo === "todos" || f.cargo_nombre === filterCargo;
+
+      return matchesSearch && matchesFilter && matchesCargo;
     });
-  }, [firmantes, search, filterActivo]);
+  }, [firmantes, search, filterActivo, filterCargo]);
+
+  // firmantes se carga completo de una vez (sin paginación server-side),
+  // así que la paginación es client-side sobre el array ya filtrado.
+  useEffect(() => {
+    setPage(1);
+  }, [search, filterActivo, filterCargo]);
+
+  const totalPages = Math.max(1, Math.ceil(firmantesFiltrados.length / limit));
+
+  const firmantesPaginados = useMemo(() => {
+    const inicio = (page - 1) * limit;
+    return firmantesFiltrados.slice(inicio, inicio + limit);
+  }, [firmantesFiltrados, page, limit]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+    }
+  };
+
+  const handleLimitChange = (newLimit) => {
+    setLimit(newLimit);
+    setPage(1);
+  };
 
   const stats = useMemo(() => {
     const total = firmantes.length;
@@ -493,6 +527,23 @@ export default function GestionFirmantesUATH() {
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
               </div>
 
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <select
+                  value={filterCargo}
+                  onChange={(e) => setFilterCargo(e.target.value)}
+                  className="bg-white border border-gray-200 rounded-xl pl-9 pr-10 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all appearance-none cursor-pointer min-w-48"
+                >
+                  <option value="todos">Todos los roles</option>
+                  {cargosDisponibles.map((cargo) => (
+                    <option key={cargo} value={cargo}>
+                      {cargo}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              </div>
+
               <button
                 onClick={cargarFirmantes}
                 className="px-5 py-3.5 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl transition-all shadow-sm hover:shadow-md flex items-center gap-2"
@@ -526,11 +577,11 @@ export default function GestionFirmantesUATH() {
                 No hay usuarios
               </h3>
               <p className="text-gray-500 mb-8 max-w-md mx-auto">
-                {search || filterActivo !== "todos"
+                {search || filterActivo !== "todos" || filterCargo !== "todos"
                   ? "No se encontraron usuarios con los filtros aplicados. Prueba con otros criterios de búsqueda."
                   : "Comienza creando el primer firmante UATH para gestionar las acciones de personal."}
               </p>
-              {!search && filterActivo === "todos" && (
+              {!search && filterActivo === "todos" && filterCargo === "todos" && (
                 <button
                   onClick={abrirCrear}
                   className="px-6 py-3.5 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all inline-flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105 font-medium"
@@ -561,7 +612,7 @@ export default function GestionFirmantesUATH() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {firmantesFiltrados.map((f) => (
+                    {firmantesPaginados.map((f) => (
                       <FirmanteRow
                         key={f.id}
                         firmante={f}
@@ -575,35 +626,78 @@ export default function GestionFirmantesUATH() {
 
               {/* Footer de tabla */}
               <div className="px-6 py-4 bg-linear-to-r from-gray-50 to-white border-t border-gray-200">
-                <div className="flex items-center justify-between text-sm text-gray-600">
-                  <span>
-                    Mostrando{" "}
-                    <span className="font-semibold text-gray-900">
-                      {firmantesFiltrados.length}
-                    </span>{" "}
-                    de{" "}
-                    <span className="font-semibold text-gray-900">
-                      {firmantes.length}
-                    </span>{" "}
-                    USUARIOS
-                  </span>
-                  <div className="flex items-center gap-4">
-                    <button
-                      className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
-                      disabled
-                    >
-                      Anterior
-                    </button>
-                    <span className="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-medium">
-                      1
+                <div className="flex items-center justify-between text-sm text-gray-600 flex-wrap gap-3">
+                  <div className="flex items-center gap-3">
+                    <span>
+                      Mostrando{" "}
+                      <span className="font-semibold text-gray-900">
+                        {firmantesPaginados.length}
+                      </span>{" "}
+                      de{" "}
+                      <span className="font-semibold text-gray-900">
+                        {firmantesFiltrados.length}
+                      </span>{" "}
+                      USUARIOS
                     </span>
-                    <button
-                      className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
-                      disabled
+                    <select
+                      value={limit}
+                      onChange={(e) => handleLimitChange(Number(e.target.value))}
+                      className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm bg-white"
                     >
-                      Siguiente
-                    </button>
+                      <option value={10}>10 por página</option>
+                      <option value={25}>25 por página</option>
+                      <option value={50}>50 por página</option>
+                    </select>
                   </div>
+
+                  {totalPages > 1 && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handlePageChange(page - 1)}
+                        disabled={page === 1}
+                        className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Anterior
+                      </button>
+                      <div className="flex items-center gap-1">
+                        {Array.from(
+                          { length: Math.min(5, totalPages) },
+                          (_, i) => {
+                            let pageNum;
+                            if (totalPages <= 5) {
+                              pageNum = i + 1;
+                            } else if (page <= 3) {
+                              pageNum = i + 1;
+                            } else if (page >= totalPages - 2) {
+                              pageNum = totalPages - 4 + i;
+                            } else {
+                              pageNum = page - 2 + i;
+                            }
+                            return (
+                              <button
+                                key={pageNum}
+                                onClick={() => handlePageChange(pageNum)}
+                                className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${
+                                  page === pageNum
+                                    ? "bg-blue-600 text-white shadow-md"
+                                    : "text-gray-600 hover:bg-gray-100"
+                                }`}
+                              >
+                                {pageNum}
+                              </button>
+                            );
+                          },
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handlePageChange(page + 1)}
+                        disabled={page === totalPages}
+                        className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Siguiente
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </>

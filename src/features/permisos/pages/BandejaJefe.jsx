@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import Swal from "sweetalert2";
 import api from "../../../shared/api/axios";
+import { horasADias } from "../../../shared/utils/horasADias";
 
 const estadoBadge = (estado) => {
   const map = {
@@ -178,7 +179,7 @@ export default function BandejaJefe() {
           </div>
           <div class="flex justify-between">
             <span class="text-gray-600">Horas:</span>
-            <span class="font-semibold text-blue-600">${selected.horas_solicitadas}h</span>
+            <span class="font-semibold text-blue-600">${horasADias(selected.horas_solicitadas)}</span>
           </div>
           ${
             observacion
@@ -402,7 +403,7 @@ export default function BandejaJefe() {
                               {p.hora_salida} - {p.hora_regreso}
                             </span>
                             <span className="font-semibold text-blue-600 ml-1">
-                              {p.horas_solicitadas}h
+                              {horasADias(p.horas_solicitadas)}
                             </span>
                           </div>
                           <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -548,7 +549,7 @@ export default function BandejaJefe() {
                 <div className="flex justify-between text-sm pt-2 border-t border-gray-200">
                   <span className="text-gray-500">Horas solicitadas:</span>
                   <span className="font-bold text-blue-600 text-lg">
-                    {selected.horas_solicitadas}h
+                    {horasADias(selected.horas_solicitadas)}
                   </span>
                 </div>
               </div>

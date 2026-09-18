@@ -92,6 +92,9 @@ export default function GestionPermisos() {
   // Filtros
   const [search, setSearch] = useState("");
   const [filtroUsuario, setFiltroUsuario] = useState("todos");
+  const [searchSaldos, setSearchSaldos] = useState("");
+  const [pageSaldos, setPageSaldos] = useState(1);
+  const [limitSaldos, setLimitSaldos] = useState(10);
 
   // Modales
   const [modalSaldo, setModalSaldo] = useState(false);
@@ -257,6 +260,25 @@ export default function GestionPermisos() {
     });
 
     if (!confirm.isConfirmed) return;
+
+    Swal.fire({
+      title: "Creando cuentas",
+      html: `
+        <div class="flex flex-col items-center gap-4 py-4">
+          <div class="relative">
+            <div class="w-16 h-16 border-4 border-blue-200 rounded-full"></div>
+            <div class="absolute top-0 left-0 w-16 h-16 border-4 border-blue-600 rounded-full animate-spin border-t-transparent"></div>
+          </div>
+          <div>
+            <p class="font-medium text-gray-800">Creando cuentas de acceso...</p>
+            <p class="text-sm text-gray-500 mt-1">Por favor espere, esto puede tomar unos segundos</p>
+          </div>
+        </div>
+      `,
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      background: "#ffffff",
+    });
 
     try {
       const { data } = await api.post("/auth/crear-cuentas-masivo");
@@ -594,6 +616,43 @@ export default function GestionPermisos() {
       }
     };
     input.click();
+  };
+
+  const saldosFiltrados = useMemo(() => {
+    if (!searchSaldos.trim()) return saldos;
+    const searchLower = searchSaldos.toLowerCase();
+    return saldos.filter(
+      (s) =>
+        s.nombres?.toLowerCase().includes(searchLower) ||
+        s.cedula?.toLowerCase().includes(searchLower),
+    );
+  }, [saldos, searchSaldos]);
+
+  // Saldos se carga completo de una vez (sin paginación server-side), así
+  // que la paginación es client-side sobre el array ya filtrado.
+  useEffect(() => {
+    setPageSaldos(1);
+  }, [searchSaldos]);
+
+  const totalPagesSaldos = Math.max(
+    1,
+    Math.ceil(saldosFiltrados.length / limitSaldos),
+  );
+
+  const saldosPaginados = useMemo(() => {
+    const inicio = (pageSaldos - 1) * limitSaldos;
+    return saldosFiltrados.slice(inicio, inicio + limitSaldos);
+  }, [saldosFiltrados, pageSaldos, limitSaldos]);
+
+  const handlePageChangeSaldos = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPagesSaldos) {
+      setPageSaldos(newPage);
+    }
+  };
+
+  const handleLimitChangeSaldos = (newLimit) => {
+    setLimitSaldos(newLimit);
+    setPageSaldos(1);
   };
 
   const opcionesServidores = useMemo(() => {
@@ -971,13 +1030,23 @@ export default function GestionPermisos() {
               {/* TAB: SALDOS */}
               {tab === "saldos" && (
                 <div>
-                  <div className="flex justify-end mb-6">
+                  <div className="flex flex-col md:flex-row gap-4 mb-6">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <input
+                        type="text"
+                        value={searchSaldos}
+                        onChange={(e) => setSearchSaldos(e.target.value)}
+                        placeholder="Buscar por nombre o cédula..."
+                        className="w-full border-2 border-gray-200 rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      />
+                    </div>
                     <button
                       onClick={() => {
                         setModalSaldo(true);
                         setFiltroSelectServidor("");
                       }}
-                      className="flex items-center gap-2 px-5 py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl"
+                      className="flex items-center justify-center gap-2 px-5 py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl"
                     >
                       <Plus size={16} /> Asignar saldo
                     </button>
@@ -1007,20 +1076,24 @@ export default function GestionPermisos() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {saldos.length === 0 ? (
+                        {saldosFiltrados.length === 0 ? (
                           <tr>
                             <td colSpan={8} className="px-6 py-20 text-center">
                               <Clock className="h-12 w-12 text-gray-300 mx-auto mb-3" />
                               <p className="text-gray-500 font-medium">
-                                No hay saldos asignados
+                                {searchSaldos.trim()
+                                  ? "No se encontraron saldos"
+                                  : "No hay saldos asignados"}
                               </p>
                               <p className="text-sm text-gray-400 mt-1">
-                                Asigna saldos usando el botón superior
+                                {searchSaldos.trim()
+                                  ? "Prueba con otro nombre o cédula"
+                                  : "Asigna saldos usando el botón superior"}
                               </p>
                             </td>
                           </tr>
                         ) : (
-                          saldos.map((s) => (
+                          saldosPaginados.map((s) => (
                             <tr
                               key={s.id}
                               className="hover:bg-gray-50 transition-colors"
@@ -1073,6 +1146,89 @@ export default function GestionPermisos() {
                       </tbody>
                     </table>
                   </div>
+
+                  {/* Paginación */}
+                  {totalPagesSaldos > 1 && (
+                    <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-gray-500">
+                          Mostrando{" "}
+                          <b className="text-gray-900">
+                            {saldosPaginados.length}
+                          </b>{" "}
+                          de{" "}
+                          <b className="text-gray-900">
+                            {saldosFiltrados.length}
+                          </b>{" "}
+                          saldos
+                        </span>
+                        <select
+                          value={limitSaldos}
+                          onChange={(e) =>
+                            handleLimitChangeSaldos(Number(e.target.value))
+                          }
+                          className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm bg-white"
+                        >
+                          <option value={10}>10 por página</option>
+                          <option value={25}>25 por página</option>
+                          <option value={50}>50 por página</option>
+                        </select>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() =>
+                            handlePageChangeSaldos(pageSaldos - 1)
+                          }
+                          disabled={pageSaldos === 1}
+                          className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          Anterior
+                        </button>
+                        <div className="flex items-center gap-1">
+                          {Array.from(
+                            { length: Math.min(5, totalPagesSaldos) },
+                            (_, i) => {
+                              let pageNum;
+                              if (totalPagesSaldos <= 5) {
+                                pageNum = i + 1;
+                              } else if (pageSaldos <= 3) {
+                                pageNum = i + 1;
+                              } else if (pageSaldos >= totalPagesSaldos - 2) {
+                                pageNum = totalPagesSaldos - 4 + i;
+                              } else {
+                                pageNum = pageSaldos - 2 + i;
+                              }
+                              return (
+                                <button
+                                  key={pageNum}
+                                  onClick={() =>
+                                    handlePageChangeSaldos(pageNum)
+                                  }
+                                  className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${
+                                    pageSaldos === pageNum
+                                      ? "bg-blue-600 text-white shadow-md"
+                                      : "text-gray-600 hover:bg-gray-100"
+                                  }`}
+                                >
+                                  {pageNum}
+                                </button>
+                              );
+                            },
+                          )}
+                        </div>
+                        <button
+                          onClick={() =>
+                            handlePageChangeSaldos(pageSaldos + 1)
+                          }
+                          disabled={pageSaldos === totalPagesSaldos}
+                          className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          Siguiente
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

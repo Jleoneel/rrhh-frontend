@@ -102,12 +102,14 @@ export default function PermisosFirmante() {
     cargarDatos();
   }, []);
 
+  // Devuelve el número crudo — el formato de presentación ("X horas",
+  // "X días y Y horas") lo da horasADias() en cada lugar donde se muestra.
   const horasCalculadas = () => {
     if (!form.hora_salida || !form.hora_regreso) return 0;
     const salida = new Date(`2000-01-01T${form.hora_salida}`);
     const regreso = new Date(`2000-01-01T${form.hora_regreso}`);
     const horas = (regreso - salida) / (1000 * 60 * 60);
-    return horas > 0 ? horas.toFixed(2) : 0;
+    return horas > 0 ? horas : 0;
   };
 
   const handleSubmit = async () => {
@@ -169,7 +171,7 @@ export default function PermisosFirmante() {
         Swal.fire({
           toast: true,
           icon: "warning",
-          text: `Saldo insuficiente. Disponible: ${horasDisponibles}h, Solicitado: ${horasCalculadas()}h`,
+          text: `Saldo insuficiente. Disponible: ${horasADias(horasDisponibles)}, Solicitado: ${horasADias(horasCalculadas())}`,
           timer: 2500,
           showConfirmButton: false,
           position: "top-end",
@@ -198,7 +200,7 @@ export default function PermisosFirmante() {
             </div>
             <div class="flex justify-between">
               <span class="text-gray-600">Duración:</span>
-              <span class="font-semibold text-blue-600">${horasCalculadas()} horas</span>
+              <span class="font-semibold text-blue-600">${horasADias(horasCalculadas())}</span>
             </div>
           </div>
         `,
@@ -504,7 +506,7 @@ export default function PermisosFirmante() {
                               </span>
                               {" · "}
                               <span className="font-semibold text-blue-600">
-                                {p.horas_solicitadas}h
+                                {horasADias(p.horas_solicitadas)}
                               </span>
                             </p>
                             {p.motivo && (
@@ -706,7 +708,7 @@ export default function PermisosFirmante() {
                             : "text-blue-600"
                         }`}
                       >
-                        {horasCalculadas()} horas
+                        {horasADias(horasCalculadas())}
                       </p>
                     </div>
                     {["Personal", "Calamidad Doméstica"].includes(
