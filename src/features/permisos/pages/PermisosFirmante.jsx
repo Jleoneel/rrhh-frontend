@@ -19,6 +19,7 @@ import {
 import Swal from "sweetalert2";
 import api from "../../../shared/api/axios";
 import { horasADias } from "../../../shared/utils/horasADias";
+import { calcularHorasPermiso } from "../../../shared/utils/calcularHorasPermiso";
 
 const estadoBadge = (estado) => {
   const map = {
@@ -102,14 +103,16 @@ export default function PermisosFirmante() {
     cargarDatos();
   }, []);
 
-  // Devuelve el número crudo — el formato de presentación ("X horas",
-  // "X días y Y horas") lo da horasADias() en cada lugar donde se muestra.
+  // Devuelve el número crudo, ya con el almuerzo descontado (igual que
+  // el backend) — el formato de presentación ("X horas", "X días y Y
+  // horas") lo da horasADias() en cada lugar donde se muestra.
   const horasCalculadas = () => {
     if (!form.hora_salida || !form.hora_regreso) return 0;
-    const salida = new Date(`2000-01-01T${form.hora_salida}`);
-    const regreso = new Date(`2000-01-01T${form.hora_regreso}`);
-    const horas = (regreso - salida) / (1000 * 60 * 60);
-    return horas > 0 ? horas : 0;
+    const { horasNetas } = calcularHorasPermiso(
+      form.hora_salida,
+      form.hora_regreso,
+    );
+    return horasNetas > 0 ? horasNetas : 0;
   };
 
   const handleSubmit = async () => {
@@ -514,11 +517,15 @@ export default function PermisosFirmante() {
                                 {p.motivo}
                               </p>
                             )}
-                            {p.observacion_jefe && p.estado !== "APROBADO" && (
-                              <p className="text-xs text-red-400 mt-1 flex items-center gap-1">
-                                <AlertCircle size={10} />
-                                {p.observacion_jefe}
-                              </p>
+                            {p.observacion_jefe && (
+                              <div className="mt-2 p-2 bg-amber-50 rounded-lg border border-amber-200">
+                                <p className="text-xs text-amber-600 mb-0.5 flex items-center gap-1">
+                                  <AlertCircle size={10} /> Observación del jefe:
+                                </p>
+                                <p className="text-xs text-amber-800">
+                                  {p.observacion_jefe}
+                                </p>
+                              </div>
                             )}
                           </div>
                         </div>

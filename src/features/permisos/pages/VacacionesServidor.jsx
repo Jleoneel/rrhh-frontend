@@ -502,11 +502,25 @@ export default function VacacionesServidor() {
                                 {v.dias_solicitados} días
                               </span>
                             </p>
-                            {v.observacion_jefe && v.estado === "NEGADO" && (
-                              <p className="text-xs text-red-400 mt-1 flex items-center gap-1">
-                                <AlertCircle size={10} /> {v.observacion_jefe}
-                              </p>
-                            )}
+                            {[
+                              { label: "Observación del jefe:", texto: v.observacion_jefe },
+                              { label: "Observación del gerente:", texto: v.observacion_gerente },
+                              { label: "Observación de la UATH:", texto: v.observacion_uath },
+                            ]
+                              .filter((o) => o.texto)
+                              .map((o) => (
+                                <div
+                                  key={o.label}
+                                  className="mt-2 p-2 bg-amber-50 rounded-lg border border-amber-200"
+                                >
+                                  <p className="text-xs text-amber-600 mb-0.5 flex items-center gap-1">
+                                    <AlertCircle size={10} /> {o.label}
+                                  </p>
+                                  <p className="text-xs text-amber-800">
+                                    {o.texto}
+                                  </p>
+                                </div>
+                              ))}
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">

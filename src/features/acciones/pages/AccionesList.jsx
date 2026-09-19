@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useOutletContext } from "react-router-dom";
 import { getAcciones } from "../hooks/acciones.service";
 import AccionesFilters from "../components/AccionesFilters";
@@ -76,6 +76,31 @@ export default function AccionesList() {
       setLoading(false);
     }
   }, [filters]);
+
+  // Ref con los filtros actuales para la auto-recarga: evita recrear el
+  // intervalo cada vez que el usuario cambia un filtro.
+  const filtersRef = useRef(filters);
+  useEffect(() => {
+    filtersRef.current = filters;
+  }, [filters]);
+
+  // Auto-recarga cada 2 minutos en segundo plano (sin spinner ni tocar
+  // errores) para que la lista muestre acciones nuevas o cambios de
+  // estado sin que el usuario tenga que refrescar manualmente.
+  useEffect(() => {
+    const REFRESH_MS = 2 * 60 * 1000;
+    const interval = setInterval(async () => {
+      try {
+        const data = await getAcciones(filtersRef.current);
+        setAcciones(data || []);
+      } catch (err) {
+        console.error("Error en auto-recarga de acciones:", err);
+      }
+    }, REFRESH_MS);
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Cargar datos iniciales
   useEffect(() => {
     // Obtener usuario del localStorage

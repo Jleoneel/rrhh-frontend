@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import {
   Calendar,
@@ -16,6 +16,8 @@ import {
   Building2,
   User,
   Download,
+  ListFilter,
+  CalendarDays,
 } from "lucide-react";
 import api from "../../../shared/api/axios";
 import * as XLSX from "xlsx";
@@ -87,17 +89,61 @@ export default function ReportePermisos() {
   const hoy = new Date().toISOString().split("T")[0];
   const [fecha, setFecha] = useState(hoy);
   const [estado, setEstado] = useState("TODOS");
+  const [verTodos, setVerTodos] = useState(false);
+  const [unidades, setUnidades] = useState([]);
+  const [unidadFiltro, setUnidadFiltro] = useState("");
+  const [search, setSearch] = useState("");
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [resumen, setResumen] = useState({
+    PENDIENTE: 0,
+    APROBADO: 0,
+    RECHAZADO: 0,
+    CANCELADO: 0,
+  });
 
-  const cargarReporte = async (f = fecha, e = estado) => {
+  const cargarReporte = async (overrides = {}) => {
+    const p = {
+      fecha,
+      estado,
+      verTodos,
+      unidadFiltro,
+      search,
+      page,
+      limit,
+      ...overrides,
+    };
     setLoading(true);
     try {
-      const params = new URLSearchParams({ fecha: f });
-      if (e !== "TODOS") params.append("estado", e);
+      const params = new URLSearchParams({
+        page: p.page,
+        limit: p.limit,
+      });
+      if (p.verTodos) {
+        params.append("todos", "true");
+      } else {
+        params.append("fecha", p.fecha);
+      }
+      if (p.estado !== "TODOS") params.append("estado", p.estado);
+      if (p.unidadFiltro) params.append("unidad_organica_id", p.unidadFiltro);
+      if (p.search) params.append("search", p.search);
+
       const res = await api.get(`/permisos/reporte?${params}`);
       setData(res.data.data);
+      setTotal(res.data.total);
+      setTotalPages(res.data.totalPages);
+      setResumen(
+        res.data.resumen || {
+          PENDIENTE: 0,
+          APROBADO: 0,
+          RECHAZADO: 0,
+          CANCELADO: 0,
+        },
+      );
     } catch (err) {
       console.error(err);
     } finally {
@@ -107,20 +153,75 @@ export default function ReportePermisos() {
 
   useEffect(() => {
     cargarReporte();
+    api
+      .get("/catalogos/unidades-organicas")
+      .then((r) => setUnidades(r.data))
+      .catch(() => setUnidades([]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleFecha = (e) => {
     setFecha(e.target.value);
-    cargarReporte(e.target.value, estado);
+    setPage(1);
+    cargarReporte({ fecha: e.target.value, page: 1 });
   };
 
   const handleEstado = (e) => {
     setEstado(e.target.value);
-    cargarReporte(fecha, e.target.value);
+    setPage(1);
+    cargarReporte({ estado: e.target.value, page: 1 });
   };
 
-  const handleExportarExcel = () => {
-    if (!data.length) {
+  const handleUnidad = (e) => {
+    setUnidadFiltro(e.target.value);
+    setPage(1);
+    cargarReporte({ unidadFiltro: e.target.value, page: 1 });
+  };
+
+  const handleSearch = (value) => {
+    setSearch(value);
+    setPage(1);
+    cargarReporte({ search: value, page: 1 });
+  };
+
+  const handleToggleVerTodos = () => {
+    const nuevo = !verTodos;
+    setVerTodos(nuevo);
+    setPage(1);
+    cargarReporte({ verTodos: nuevo, page: 1 });
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    setPage(newPage);
+    cargarReporte({ page: newPage });
+  };
+
+  const handleLimitChange = (newLimit) => {
+    setLimit(newLimit);
+    setPage(1);
+    cargarReporte({ limit: newLimit, page: 1 });
+  };
+
+  const handleExportarExcel = async () => {
+    let datosExportar = data;
+    try {
+      const params = new URLSearchParams({ page: 1, limit: 100000 });
+      if (verTodos) {
+        params.append("todos", "true");
+      } else {
+        params.append("fecha", fecha);
+      }
+      if (estado !== "TODOS") params.append("estado", estado);
+      if (unidadFiltro) params.append("unidad_organica_id", unidadFiltro);
+      if (search) params.append("search", search);
+      const res = await api.get(`/permisos/reporte?${params}`);
+      datosExportar = res.data.data;
+    } catch (err) {
+      console.error(err);
+    }
+
+    if (!datosExportar.length) {
       Swal.fire({
         toast: true,
         icon: "warning",
@@ -132,7 +233,7 @@ export default function ReportePermisos() {
       return;
     }
 
-    const datos = data.map((p) => ({
+    const datos = datosExportar.map((p) => ({
       Servidor: p.servidor_nombre,
       Cédula: p.cedula,
       Unidad: p.unidad_organica,
@@ -155,24 +256,14 @@ export default function ReportePermisos() {
     );
   };
 
-  const filtrados = useMemo(() => {
-    if (!search) return data;
-    return data.filter((p) =>
-      `${p.servidor_nombre} ${p.cedula} ${p.unidad_organica}`
-        .toLowerCase()
-        .includes(search.toLowerCase()),
-    );
-  }, [data, search]);
-
-  const stats = useMemo(
-    () => ({
-      total: data.length,
-      aprobados: data.filter((p) => p.estado === "APROBADO").length,
-      pendientes: data.filter((p) => p.estado === "PENDIENTE").length,
-      rechazados: data.filter((p) => p.estado === "RECHAZADO").length,
-    }),
-    [data],
-  );
+  // Los stats se calculan en el backend sobre TODOS los registros que
+  // coinciden con los filtros (no solo la página actual visible).
+  const stats = {
+    total,
+    aprobados: resumen.APROBADO,
+    pendientes: resumen.PENDIENTE,
+    rechazados: resumen.RECHAZADO,
+  };
 
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 p-8">
@@ -189,15 +280,24 @@ export default function ReportePermisos() {
                   Reporte de Permisos
                 </h1>
                 <p className="text-gray-500 mt-1">
-                  Consulta de permisos por día —{" "}
-                  <span className="font-medium text-blue-600">
-                    {new Date(fecha + "T12:00:00").toLocaleDateString("es-ES", {
-                      weekday: "long",
-                      day: "2-digit",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </span>
+                  {verTodos ? (
+                    "Consulta de todos los permisos registrados"
+                  ) : (
+                    <>
+                      Consulta de permisos por día —{" "}
+                      <span className="font-medium text-blue-600">
+                        {new Date(fecha + "T12:00:00").toLocaleDateString(
+                          "es-ES",
+                          {
+                            weekday: "long",
+                            day: "2-digit",
+                            month: "long",
+                            year: "numeric",
+                          },
+                        )}
+                      </span>
+                    </>
+                  )}
                 </p>
               </div>
             </div>
@@ -242,16 +342,40 @@ export default function ReportePermisos() {
         {/* Filtros */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-5 mb-8">
           <div className="flex flex-col md:flex-row gap-4">
-            {/* Fecha */}
-            <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-2 border border-gray-200">
-              <Calendar size={18} className="text-blue-500" />
-              <input
-                type="date"
-                value={fecha}
-                onChange={handleFecha}
-                className="bg-transparent border-none focus:outline-none focus:ring-0 text-gray-700 font-medium"
-              />
-            </div>
+            {/* Toggle día / todos */}
+            <button
+              onClick={handleToggleVerTodos}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 transition-all text-sm font-medium shrink-0 ${
+                verTodos
+                  ? "bg-blue-600 border-blue-600 text-white"
+                  : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              {verTodos ? (
+                <>
+                  <CalendarDays size={16} />
+                  Ver por día
+                </>
+              ) : (
+                <>
+                  <ListFilter size={16} />
+                  Ver todos los permisos
+                </>
+              )}
+            </button>
+
+            {/* Fecha (solo en modo "por día") */}
+            {!verTodos && (
+              <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-2 border border-gray-200">
+                <Calendar size={18} className="text-blue-500" />
+                <input
+                  type="date"
+                  value={fecha}
+                  onChange={handleFecha}
+                  className="bg-transparent border-none focus:outline-none focus:ring-0 text-gray-700 font-medium"
+                />
+              </div>
+            )}
 
             {/* Estado */}
             <div className="relative flex-1 md:flex-none">
@@ -259,11 +383,29 @@ export default function ReportePermisos() {
               <select
                 value={estado}
                 onChange={handleEstado}
-                className="w-full md:w-[180px] border-2 border-gray-200 rounded-xl pl-9 pr-8 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white cursor-pointer"
+                className="w-full md:w-[170px] border-2 border-gray-200 rounded-xl pl-9 pr-8 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white cursor-pointer"
               >
                 {ESTADOS.map((e) => (
                   <option key={e} value={e}>
                     {e === "TODOS" ? "Todos los estados" : e}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+            </div>
+
+            {/* Unidad */}
+            <div className="relative flex-1 md:flex-none">
+              <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <select
+                value={unidadFiltro}
+                onChange={handleUnidad}
+                className="w-full md:w-[200px] border-2 border-gray-200 rounded-xl pl-9 pr-8 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white cursor-pointer"
+              >
+                <option value="">Todas las unidades</option>
+                {unidades.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.nombre}
                   </option>
                 ))}
               </select>
@@ -276,8 +418,8 @@ export default function ReportePermisos() {
               <input
                 type="text"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar por nombre, cédula o unidad..."
+                onChange={(e) => handleSearch(e.target.value)}
+                placeholder="Buscar por nombre o cédula..."
                 className="w-full border-2 border-gray-200 rounded-xl pl-9 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               />
             </div>
@@ -300,7 +442,7 @@ export default function ReportePermisos() {
               </div>
               <div>
                 <span className="font-semibold text-gray-900">
-                  {filtrados.length} permiso{filtrados.length !== 1 ? "s" : ""}
+                  {total} permiso{total !== 1 ? "s" : ""}
                 </span>
                 <p className="text-xs text-gray-500 mt-0.5">
                   Registros encontrados
@@ -314,16 +456,18 @@ export default function ReportePermisos() {
               <Loader2 className="h-12 w-12 text-blue-600 animate-spin mb-4" />
               <p className="text-gray-500 font-medium">Cargando reporte...</p>
             </div>
-          ) : filtrados.length === 0 ? (
+          ) : data.length === 0 ? (
             <div className="p-20 text-center">
               <div className="inline-flex p-6 bg-gray-100 rounded-2xl mb-4">
                 <FileText className="h-12 w-12 text-gray-400" />
               </div>
               <p className="text-gray-500 font-medium text-lg">
-                No hay permisos para este día
+                {verTodos
+                  ? "No hay permisos registrados"
+                  : "No hay permisos para este día"}
               </p>
               <p className="text-sm text-gray-400 mt-1">
-                Prueba con otra fecha o filtro de búsqueda
+                Prueba con otro filtro o término de búsqueda
               </p>
             </div>
           ) : (
@@ -352,7 +496,7 @@ export default function ReportePermisos() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {filtrados.map((p) => (
+                  {data.map((p) => (
                     <tr
                       key={p.id}
                       className="hover:bg-linear-to-r hover:from-blue-50/50 hover:to-transparent transition-all duration-200 group"
@@ -423,6 +567,71 @@ export default function ReportePermisos() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* Paginación */}
+          {!loading && data.length > 0 && totalPages > 1 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-500">
+                  Mostrando <b className="text-gray-900">{data.length}</b> de{" "}
+                  <b className="text-gray-900">{total}</b> permisos
+                </span>
+                <select
+                  value={limit}
+                  onChange={(e) => handleLimitChange(Number(e.target.value))}
+                  className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm bg-white"
+                >
+                  <option value={10}>10 por página</option>
+                  <option value={25}>25 por página</option>
+                  <option value={50}>50 por página</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handlePageChange(page - 1)}
+                  disabled={page === 1}
+                  className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Anterior
+                </button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (page <= 3) {
+                      pageNum = i + 1;
+                    } else if (page >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = page - 2 + i;
+                    }
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => handlePageChange(pageNum)}
+                        className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${
+                          page === pageNum
+                            ? "bg-blue-600 text-white shadow-md"
+                            : "text-gray-600 hover:bg-gray-100"
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+                <button
+                  onClick={() => handlePageChange(page + 1)}
+                  disabled={page === totalPages}
+                  className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Siguiente
+                </button>
+              </div>
             </div>
           )}
         </div>

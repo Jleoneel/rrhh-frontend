@@ -3,8 +3,6 @@ import Modal from "../../../../shared/components/ui/Modal";
 import api from "../../../../shared/api/axios";
 import EstadoBadge from "../EstadoBadge";
 import useFirmasAccion from "../../hooks/useFirmas";
-import NotificacionModal from "./NotificacionModal";
-import { getNotificacionByAccion } from "../../../notificaciones/hooks/notificaciones.service";
 import Swal from "sweetalert2";
 import {
   X,
@@ -17,7 +15,6 @@ import {
   ShieldCheck,
   Paperclip,
   Calendar,
-  Bell,
   Loader2,
 } from "lucide-react";
 
@@ -54,10 +51,6 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
   const [loadingDetalle, setLoadingDetalle] = useState(false);
   const [archivosAccion, setArchivosAccion] = useState({});
 
-  // Estados para notificación
-  const [notificacion, setNotificacion] = useState(null);
-  const [openNotificacionModal, setOpenNotificacionModal] = useState(false);
-
   // Estados para firma
   const [modalFirma, setModalFirma] = useState(false);
   const [passwordToken, setPasswordToken] = useState("");
@@ -85,23 +78,6 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
     if (!pendiente || !user?.cargo_id) return false;
     return cargoPuedeActuarComo(user.cargo_id, pendiente.cargo_id);
   }, [pendiente, user]);
-
-  const puedeNotificar = useMemo(() => {
-    if (!user?.cargo_id) return false;
-
-    const estadoActual = (detalleAccion || accion)?.estado;
-
-    if (estadoActual !== "APROBADO") return false;
-
-    const cargosPermitidos = [
-      "ASISTENTE DE LA UATH",
-      "TRABAJADORA SOCIAL INSTITUCIONAL",
-      "ANALISTA DE TALENTO HUMANO",
-      "RESPONSABLE DE LA UATH",
-    ];
-
-    return cargosPermitidos.includes(user.cargo_nombre);
-  }, [user, detalleAccion, accion]);
 
   const progreso = useMemo(() => {
     const total = firmas.length || 0;
@@ -157,38 +133,6 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
 
     cargarAnexos();
   }, [open, accionId]);
-
-  // Cargar notificación — SOLO si está APROBADO
-  useEffect(() => {
-    if (!open || !accionId) return;
-
-    //no consultar si no está aprobado
-    const estadoActual = (detalleAccion || accion)?.estado;
-    if (estadoActual !== "APROBADO") return;
-
-    const cargarNotificacion = async () => {
-      try {
-        const data = await getNotificacionByAccion(accionId);
-        setNotificacion(data);
-      } catch {
-        setNotificacion(null);
-      }
-    };
-
-    cargarNotificacion();
-  }, [open, accionId, detalleAccion, accion]);
-
-  const handleNotificacionSuccess = async () => {
-    const estadoActual = (detalleAccion || accion)?.estado;
-    if (estadoActual !== "APROBADO") return;
-
-    try {
-      const data = await getNotificacionByAccion(accionId);
-      setNotificacion(data);
-    } catch {
-      setNotificacion(null);
-    }
-  };
 
   const handleDownloadFirmado = (archivo_path) => {
     if (!archivo_path) return;
@@ -647,15 +591,6 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
               <X size={18} />
               Cerrar
             </button>
-            {puedeNotificar && (
-              <button
-                onClick={() => setOpenNotificacionModal(true)}
-                className="px-5 py-2.5 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all flex items-center gap-2"
-              >
-                <Bell size={18} />
-                {notificacion ? "Ver Notificación" : "Registrar Notificación"}
-              </button>
-            )}
           </div>
 
           <div className="flex items-center gap-2 text-sm text-gray-600 bg-white/60 px-4 py-2 rounded-lg">
@@ -754,15 +689,6 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
           </div>
         </div>
       )}
-
-      {/* Modal de Notificación */}
-      <NotificacionModal
-        open={openNotificacionModal}
-        onClose={() => setOpenNotificacionModal(false)}
-        accionId={accionId}
-        notificacionExistente={notificacion}
-        onSuccess={handleNotificacionSuccess}
-      />
     </Modal>
   );
 }
