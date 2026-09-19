@@ -1173,14 +1173,51 @@ export default function NuevaAccionModal({
                         );
 
                         if (tipoCompleto) {
-                          setForm((p) => ({
-                            ...p,
-                            tipoAccion: tipoCompleto,
-                            detalleTipoAccion:
-                              tipoCompleto.nombre === "Otro"
-                                ? p.detalleTipoAccion
-                                : "",
-                          }));
+                          setForm((p) => {
+                            // Si el tipo nuevo requiere propuesta y la que
+                            // hay está vacía, se inicializa con los mismos
+                            // valores de la situación actual — igual que ya
+                            // se hace al buscar la cédula en modo creación.
+                            // OJO: toda acción (incluso las de un tipo que
+                            // NO requiere propuesta) ya tiene su fila en
+                            // accion_situacion_propuesta creada de fábrica,
+                            // solo que con todos los campos en null — por
+                            // eso no basta con revisar "!situacionPropuesta"
+                            // (nunca es null, siempre es un objeto), hay que
+                            // revisar si está vacía de verdad.
+                            const propuestaVacia =
+                              !p.situacionPropuesta?.unidad_organica_id &&
+                              !p.situacionPropuesta?.denominacion_puesto_id;
+                            const necesitaPropuestaInicial =
+                              tipoCompleto.requiere_propuesta &&
+                              propuestaVacia &&
+                              p.situacionActual;
+
+                            return {
+                              ...p,
+                              tipoAccion: tipoCompleto,
+                              detalleTipoAccion:
+                                tipoCompleto.nombre === "Otro"
+                                  ? p.detalleTipoAccion
+                                  : "",
+                              situacionPropuesta: necesitaPropuestaInicial
+                                ? {
+                                    unidad_organica_id:
+                                      p.situacionActual.unidad_organica_id,
+                                    denominacion_puesto_id:
+                                      p.situacionActual.denominacion_puesto_id,
+                                    escala_ocupacional_id:
+                                      p.situacionActual.escala_ocupacional_id,
+                                    lugar_trabajo:
+                                      p.situacionActual.lugar_trabajo,
+                                    grado: p.situacionActual.grado,
+                                    rmu_puesto: p.situacionActual.rmu_puesto,
+                                    partida_individual:
+                                      p.situacionActual.partida_individual,
+                                  }
+                                : p.situacionPropuesta,
+                            };
+                          });
                         }
                       }}
                       label="Tipo de acción"

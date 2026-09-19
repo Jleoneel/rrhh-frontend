@@ -21,9 +21,12 @@ import {
   X,
   Trash2,
   ChevronDown,
+  Download,
+  ShieldCheck,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import { horasADias } from "../../../shared/utils/horasADias";
+import api from "../../../shared/api/axios";
 
 const estadoBadge = (estado) => {
   const map = {
@@ -268,6 +271,50 @@ export default function VacacionesServidor() {
     }
   };
 
+  const descargarBlob = async (url, filename) => {
+    try {
+      const { data } = await api.get(url, { responseType: "blob" });
+      const link = document.createElement("a");
+      link.href = window.URL.createObjectURL(data);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text:
+          err.response?.data?.message || "No se pudo descargar el archivo",
+        confirmButtonColor: "#ef4444",
+      });
+    }
+  };
+
+  // PDF de la solicitud tal como se envió, sin firmas — siempre
+  // disponible, sin importar el estado.
+  const handleDescargarSolicitud = (v) => {
+    descargarBlob(
+      `/permisos/${v.id}/pdf-vacacion`,
+      `solicitud_vacacion_${v.id}.pdf`,
+    );
+  };
+
+  // PDF con las firmas electrónicas ya aplicadas — el más avanzado
+  // disponible (UATH > jefe superior > jefe inmediato). Solo aplica si
+  // al menos un firmante ya firmó.
+  const handleDescargarFirmado = (v) => {
+    const tipo = v.archivo_uath
+      ? "uath"
+      : v.archivo_superior
+        ? "superior"
+        : "jefe";
+    descargarBlob(
+      `/permisos/${v.id}/descargar-vacacion/${tipo}`,
+      `vacacion_firmada_${v.id}.pdf`,
+    );
+  };
+
   const porcentajeUsado = saldo
     ? Math.round((saldo.horas_usadas / saldo.horas_totales) * 100)
     : 0;
@@ -462,17 +509,43 @@ export default function VacacionesServidor() {
                             )}
                           </div>
                         </div>
-                        {v.estado === "PENDIENTE_JEFE" && (
+                        <div className="flex items-center gap-2 shrink-0">
                           <button
-                            onClick={() => handleCancelar(v)}
-                            className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl transition-all shrink-0"
+                            onClick={() => handleDescargarSolicitud(v)}
+                            title="Descargar solicitud (sin firmas)"
+                            className="flex items-center gap-2 px-3 py-2 bg-gray-50 text-gray-600 hover:bg-gray-100 rounded-xl transition-all"
                           >
-                            <Trash2 size={16} />
-                            <span className="text-sm font-medium hidden sm:inline">
-                              Cancelar
+                            <Download size={16} />
+                            <span className="text-sm font-medium hidden lg:inline">
+                              Solicitud
                             </span>
                           </button>
-                        )}
+                          {(v.archivo_jefe ||
+                            v.archivo_superior ||
+                            v.archivo_uath) && (
+                            <button
+                              onClick={() => handleDescargarFirmado(v)}
+                              title="Descargar PDF con firmas electrónicas"
+                              className="flex items-center gap-2 px-3 py-2 bg-green-50 text-green-600 hover:bg-green-100 rounded-xl transition-all"
+                            >
+                              <ShieldCheck size={16} />
+                              <span className="text-sm font-medium hidden lg:inline">
+                                Firmado
+                              </span>
+                            </button>
+                          )}
+                          {v.estado === "PENDIENTE_JEFE" && (
+                            <button
+                              onClick={() => handleCancelar(v)}
+                              className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl transition-all"
+                            >
+                              <Trash2 size={16} />
+                              <span className="text-sm font-medium hidden sm:inline">
+                                Cancelar
+                              </span>
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
