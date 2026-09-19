@@ -22,6 +22,7 @@ import {
 import Swal from "sweetalert2";
 import api from "../../../shared/api/axios";
 import { horasADias } from "../../../shared/utils/horasADias";
+import StatCard from "../../../shared/components/ui/StatCard";
 
 const estadoBadge = (estado) => {
   const map = {
@@ -40,35 +41,6 @@ const estadoBadge = (estado) => {
     >
       {icons[estado]} {estado}
     </span>
-  );
-};
-
-// eslint-disable-next-line no-unused-vars
-const StatCard = ({ label, value, icon: Icon, color = "blue", onClick }) => {
-  const colors = {
-    blue: "from-blue-500 to-blue-600",
-    green: "from-green-500 to-green-600",
-    red: "from-red-500 to-red-600",
-    yellow: "from-yellow-500 to-yellow-600",
-  };
-
-  return (
-    <div
-      onClick={onClick}
-      className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 group cursor-pointer"
-    >
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-gray-500 text-sm font-medium mb-1">{label}</p>
-          <p className="text-3xl font-bold text-gray-900">{value}</p>
-        </div>
-        <div
-          className={`p-3 bg-linear-to-br ${colors[color]} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}
-        >
-          <Icon className="h-5 w-5 text-white" />
-        </div>
-      </div>
-    </div>
   );
 };
 

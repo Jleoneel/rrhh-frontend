@@ -1,7 +1,8 @@
 import { useRef, useState, useEffect } from "react";
-import api from "../../../shared/api/axios"; 
+import api from "../../../shared/api/axios";
 import Swal from "sweetalert2";
 import { useOutletContext } from "react-router-dom";
+import StatCard from "../../../shared/components/ui/StatCard";
 import {
   Upload,
   FileSpreadsheet,
@@ -18,32 +19,6 @@ import {
   RefreshCw,
   HardDrive,
 } from "lucide-react";
-
-// eslint-disable-next-line no-unused-vars
-function StatCard({ title, value, icon: Icon, color = "blue" }) {
-  const colors = {
-    blue: "from-blue-500 to-blue-600",
-    green: "from-green-500 to-green-600",
-    purple: "from-purple-500 to-purple-600",
-    amber: "from-amber-500 to-amber-600",
-    indigo: "from-indigo-500 to-indigo-600",
-    teal: "from-teal-500 to-teal-600",
-  };
-
-  return (
-    <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-5 hover:shadow-xl transition-all duration-300 group">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
-        </div>
-        <div className={`p-3 bg-linear-to-br ${colors[color]} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-          <Icon className="h-5 w-5 text-white" />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // eslint-disable-next-line no-unused-vars
 function SectionCard({ title, description, icon: Icon, children }) {
@@ -173,6 +148,15 @@ export default function AdjuntarDistributivo() {
     if (inputRef.current) {
       inputRef.current.value = "";
     }
+  };
+
+  // Vuelve a la pantalla de importación sin recargar toda la página — el
+  // resultado de la última importación ya vive en el estado (sync,
+  // filasExcel), no hay nada que volver a pedir al servidor.
+  const handleNuevaImportacion = () => {
+    setSync(null);
+    setFilasExcel(null);
+    handleClearFile();
   };
 
   return (
@@ -309,70 +293,70 @@ export default function AdjuntarDistributivo() {
                 </div>
               </div>
               <button
-                onClick={() => window.location.reload()}
+                onClick={handleNuevaImportacion}
                 className="p-2.5 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl transition-all flex items-center gap-2"
-                title="Actualizar vista"
+                title="Nueva importación"
               >
                 <RefreshCw className="h-4 w-4" />
-                <span className="text-sm hidden md:inline">Actualizar</span>
+                <span className="text-sm hidden md:inline">Nueva importación</span>
               </button>
             </div>
 
             {/* Cards de estadísticas */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              <StatCard 
-                title="Filas en Excel" 
-                value={filasExcel ?? 0} 
+              <StatCard
+                label="Filas en Excel"
+                value={filasExcel ?? 0}
                 icon={FileSpreadsheet}
                 color="purple"
               />
-              <StatCard 
-                title="Servidores" 
-                value={sync.servidor_upsert ?? 0} 
+              <StatCard
+                label="Servidores"
+                value={sync.servidor_upsert ?? 0}
                 icon={Users}
                 color="blue"
               />
-              <StatCard 
-                title="Puestos" 
-                value={sync.puesto_upsert ?? 0} 
+              <StatCard
+                label="Puestos"
+                value={sync.puesto_upsert ?? 0}
                 icon={Briefcase}
                 color="green"
               />
-              <StatCard 
-                title="Asignaciones creadas" 
-                value={sync.asignaciones_creadas ?? 0} 
+              <StatCard
+                label="Asignaciones creadas"
+                value={sync.asignaciones_creadas ?? 0}
                 icon={ChevronRight}
                 color="teal"
               />
 
-              <StatCard 
-                title="Asignaciones cerradas" 
-                value={sync.asignaciones_cerradas ?? 0} 
+              <StatCard
+                label="Asignaciones cerradas"
+                value={sync.asignaciones_cerradas ?? 0}
                 icon={X}
                 color="amber"
               />
-              <StatCard 
-                title="Régimen laboral" 
-                value={sync.regimen_laboral_upsert ?? 0} 
+              <StatCard
+                label="Régimen laboral"
+                value={sync.regimen_laboral_upsert ?? 0}
                 icon={Layers}
                 color="indigo"
               />
-              <StatCard 
-                title="Unidades orgánicas" 
-                value={sync.unidad_organica_upsert ?? 0} 
+              <StatCard
+                label="Unidades orgánicas"
+                value={sync.unidad_organica_upsert ?? 0}
                 icon={Building2}
                 color="purple"
               />
-              <StatCard 
-                title="Denominaciones" 
-                value={sync.denominacion_puesto_upsert ?? 0} 
+              <StatCard
+                label="Denominaciones"
+                value={sync.denominacion_puesto_upsert ?? 0}
                 icon={FileSpreadsheet}
                 color="blue"
               />
 
-              <StatCard 
-                title="Escalas ocupacionales" 
-                value={sync.escala_ocupacional_upsert ?? 0} 
+              <StatCard
+                label="Escalas ocupacionales"
+                value={sync.escala_ocupacional_upsert ?? 0}
                 icon={Layers}
                 color="green"
               />

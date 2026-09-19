@@ -23,6 +23,8 @@ import api from "../../../shared/api/axios";
 import * as XLSX from "xlsx";
 import Swal from "sweetalert2";
 import { horasADias } from "../../../shared/utils/horasADias";
+import StatCard from "../../../shared/components/ui/StatCard";
+import PageNumbers from "../../../shared/components/ui/PageNumbers";
 
 const ESTADOS = ["TODOS", "PENDIENTE", "APROBADO", "RECHAZADO", "CANCELADO"];
 
@@ -48,32 +50,6 @@ const estadoBadge = (estado) => {
   );
 };
 
-// eslint-disable-next-line no-unused-vars
-const StatCard = ({ label, value, icon: Icon, color = "blue" }) => {
-  const colors = {
-    blue: "from-blue-500 to-blue-600",
-    green: "from-green-500 to-green-600",
-    yellow: "from-yellow-500 to-yellow-600",
-    red: "from-red-500 to-red-600",
-    purple: "from-purple-500 to-purple-600",
-  };
-
-  return (
-    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 group">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-gray-500 text-sm font-medium mb-1">{label}</p>
-          <p className="text-3xl font-bold text-gray-900">{value}</p>
-        </div>
-        <div
-          className={`p-3 bg-linear-to-br ${colors[color]} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}
-        >
-          <Icon className="h-5 w-5 text-white" />
-        </div>
-      </div>
-    </div>
-  );
-};
 
 export default function ReportePermisos() {
   const { setHeaderConfig } = useOutletContext();
@@ -589,49 +565,11 @@ export default function ReportePermisos() {
                 </select>
               </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handlePageChange(page - 1)}
-                  disabled={page === 1}
-                  className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Anterior
-                </button>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNum;
-                    if (totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (page <= 3) {
-                      pageNum = i + 1;
-                    } else if (page >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
-                    } else {
-                      pageNum = page - 2 + i;
-                    }
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => handlePageChange(pageNum)}
-                        className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${
-                          page === pageNum
-                            ? "bg-blue-600 text-white shadow-md"
-                            : "text-gray-600 hover:bg-gray-100"
-                        }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
-                </div>
-                <button
-                  onClick={() => handlePageChange(page + 1)}
-                  disabled={page === totalPages}
-                  className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Siguiente
-                </button>
-              </div>
+              <PageNumbers
+                page={page}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
             </div>
           )}
         </div>

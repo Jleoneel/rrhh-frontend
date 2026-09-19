@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import Swal from "sweetalert2";
 import api from "../../../shared/api/axios";
+import FirmaDigitalModal from "../../../shared/components/ui/FirmaDigitalModal";
+import StatCard from "../../../shared/components/ui/StatCard";
 
 const estadoBadge = (estado) => {
   const map = {
@@ -56,36 +58,6 @@ const estadoBadge = (estado) => {
   );
 };
 
-//eslint-disable-next-line
-const StatCard = ({ label, value, icon: Icon, color = "blue", onClick }) => {
-  const colors = {
-    blue: "from-blue-500 to-blue-600",
-    green: "from-green-500 to-green-600",
-    yellow: "from-yellow-500 to-yellow-600",
-    orange: "from-orange-500 to-orange-600",
-    red: "from-red-500 to-red-600",
-    purple: "from-purple-500 to-purple-600",
-  };
-
-  return (
-    <div
-      onClick={onClick}
-      className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 group cursor-pointer"
-    >
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-gray-500 text-sm font-medium mb-1">{label}</p>
-          <p className="text-3xl font-bold text-gray-900">{value}</p>
-        </div>
-        <div
-          className={`p-3 bg-linear-to-br ${colors[color]} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}
-        >
-          <Icon className="h-5 w-5 text-white" />
-        </div>
-      </div>
-    </div>
-  );
-};
 
 export default function BandejaVacaciones() {
   const { setHeaderConfig } = useOutletContext();
@@ -853,95 +825,26 @@ export default function BandejaVacaciones() {
         </div>
       )}
 
-      {modalPassword && vacacionFirmar && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setModalPassword(false)}
-          />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
-            <div className="bg-linear-to-r from-blue-900 to-blue-800 text-white px-6 py-5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white/10 rounded-lg">
-                    <ShieldCheck className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold">Firma Digital</h2>
-                    <p className="text-sm opacity-90">
-                      {vacacionFirmar.servidor_nombre}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setModalPassword(false)}
-                  className="p-2 hover:bg-white/10 rounded-lg"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6 space-y-4">
-              <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
-                <p className="text-sm text-blue-800 font-medium">
-                  Se firmará digitalmente la solicitud de{" "}
-                  <strong>{vacacionFirmar.servidor_nombre}</strong> usando tu
-                  certificado .p12 del BCE Ecuador.
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Contraseña del token <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="password"
-                  value={passwordToken}
-                  onChange={(e) => setPasswordToken(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleFirmar()}
-                  placeholder="Ingresa la contraseña de tu certificado"
-                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  autoFocus
-                />
-                <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
-                  <AlertCircle size={12} />
-                  Tu contraseña no se guarda — solo se usa para firmar este
-                  documento
-                </p>
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  onClick={() => setModalPassword(false)}
-                  className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleFirmar}
-                  disabled={!passwordToken.trim() || firmando}
-                  className="flex-1 px-4 py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
-                >
-                  {firmando ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin" />
-                      Firmando...
-                    </>
-                  ) : (
-                    <>
-                      <ShieldCheck size={16} />
-                      {vacacionFirmar.estado === "PENDIENTE_UATH"
-                        ? "Certificar"
-                        : "Firmar"}
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <FirmaDigitalModal
+        open={modalPassword && !!vacacionFirmar}
+        subtitle={vacacionFirmar?.servidor_nombre}
+        infoText={
+          <>
+            Se firmará digitalmente la solicitud de{" "}
+            <strong>{vacacionFirmar?.servidor_nombre}</strong> usando tu
+            certificado .p12 del BCE Ecuador.
+          </>
+        }
+        password={passwordToken}
+        onPasswordChange={setPasswordToken}
+        onClose={() => setModalPassword(false)}
+        onSubmit={handleFirmar}
+        submitting={firmando}
+        submitLabel={
+          vacacionFirmar?.estado === "PENDIENTE_UATH" ? "Certificar" : "Firmar"
+        }
+        color="blue"
+      />
     </div>
   );
 }

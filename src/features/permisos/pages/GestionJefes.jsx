@@ -17,30 +17,7 @@ import {
 } from "lucide-react";
 import Swal from "sweetalert2";
 import api from "../../../shared/api/axios";
-
-// eslint-disable-next-line no-unused-vars
-const StatCard = ({ label, value, icon: Icon, color = "blue" }) => {
-  const colors = {
-    blue: "from-blue-500 to-blue-600",
-    green: "from-green-500 to-green-600",
-    purple: "from-purple-500 to-purple-600",
-    orange: "from-orange-500 to-orange-600",
-  };
-
-  return (
-    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 group">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-gray-500 text-sm font-medium mb-1">{label}</p>
-          <p className="text-3xl font-bold text-gray-900">{value}</p>
-        </div>
-        <div className={`p-3 bg-linear-to-br ${colors[color]} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-          <Icon className="h-5 w-5 text-white" />
-        </div>
-      </div>
-    </div>
-  );
-};
+import StatCard from "../../../shared/components/ui/StatCard";
 
 const Badge = ({ children, variant = "default" }) => {
   const variants = {

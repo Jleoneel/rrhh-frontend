@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Modal from "../../../../shared/components/ui/Modal";
+import FirmaDigitalModal from "../../../../shared/components/ui/FirmaDigitalModal";
 import api from "../../../../shared/api/axios";
 import EstadoBadge from "../EstadoBadge";
 import useFirmasAccion from "../../hooks/useFirmas";
@@ -15,7 +16,6 @@ import {
   ShieldCheck,
   Paperclip,
   Calendar,
-  Loader2,
 } from "lucide-react";
 
 const CARGO_IDS_EQUIVALENTES = {
@@ -600,95 +600,25 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
         </div>
       </div>
 
-      {modalFirma && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setModalFirma(false)}
-          />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
-            <div className="bg-linear-to-r from-blue-900 to-blue-800 text-white px-6 py-5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white/10 rounded-lg">
-                    <ShieldCheck className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold">Firma Digital</h2>
-                    <p className="text-sm opacity-90">Acción de Personal</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setModalFirma(false)}
-                  className="p-2 hover:bg-white/10 rounded-lg"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6 space-y-4">
-              <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
-                <p className="text-sm text-blue-800">
-                  Se firmará digitalmente este documento usando tu certificado
-                  .p12 del BCE Ecuador.
-                </p>
-                {pendiente && (
-                  <p className="text-xs text-blue-600 mt-2 font-medium">
-                    Rol: {pendiente.rol_firma} — Orden #{pendiente.orden}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Contraseña del token <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="password"
-                  value={passwordToken}
-                  onChange={(e) => setPasswordToken(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleFirmarDigital()}
-                  placeholder="Ingresa la contraseña de tu certificado"
-                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  autoFocus
-                />
-                <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
-                  <AlertCircle size={12} />
-                  Tu contraseña no se guarda — solo se usa para firmar este
-                  documento
-                </p>
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  onClick={() => setModalFirma(false)}
-                  className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleFirmarDigital}
-                  disabled={!passwordToken.trim() || firmando}
-                  className="flex-1 px-4 py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
-                >
-                  {firmando ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin" />
-                      Firmando...
-                    </>
-                  ) : (
-                    <>
-                      <ShieldCheck size={16} />
-                      Firmar
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <FirmaDigitalModal
+        open={modalFirma}
+        subtitle="Acción de Personal"
+        infoText="Se firmará digitalmente este documento usando tu certificado .p12 del BCE Ecuador."
+        extra={
+          pendiente && (
+            <p className="text-xs text-blue-600 mt-2 font-medium">
+              Rol: {pendiente.rol_firma} — Orden #{pendiente.orden}
+            </p>
+          )
+        }
+        password={passwordToken}
+        onPasswordChange={setPasswordToken}
+        onClose={() => setModalFirma(false)}
+        onSubmit={handleFirmarDigital}
+        submitting={firmando}
+        submitLabel="Firmar"
+        color="blue"
+      />
     </Modal>
   );
 }
