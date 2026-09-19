@@ -9,18 +9,18 @@ import {
   Loader2,
   User,
   Calendar,
-  FileText,
   AlertCircle,
   Download,
   Upload,
-  Users,
   TrendingUp,
-  Building2,
   Umbrella,
   Eye,
   X,
   Send,
   ShieldCheck,
+  Filter,
+  ChevronDown,
+  CheckSquare,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import api from "../../../shared/api/axios";
@@ -57,17 +57,21 @@ const estadoBadge = (estado) => {
 };
 
 //eslint-disable-next-line
-const StatCard = ({ label, value, icon: Icon, color = "blue" }) => {
+const StatCard = ({ label, value, icon: Icon, color = "blue", onClick }) => {
   const colors = {
     blue: "from-blue-500 to-blue-600",
     green: "from-green-500 to-green-600",
     yellow: "from-yellow-500 to-yellow-600",
     orange: "from-orange-500 to-orange-600",
+    red: "from-red-500 to-red-600",
     purple: "from-purple-500 to-purple-600",
   };
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 group">
+    <div
+      onClick={onClick}
+      className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 group cursor-pointer"
+    >
       <div className="flex items-start justify-between">
         <div>
           <p className="text-gray-500 text-sm font-medium mb-1">{label}</p>
@@ -97,6 +101,7 @@ export default function BandejaVacaciones() {
   const { user } = useAuth();
   const [vacaciones, setVacaciones] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filtroEstado, setFiltroEstado] = useState("PENDIENTE");
   const [modalOpen, setModalOpen] = useState(false);
   const [selected, setSelected] = useState(null);
   const [observacion, setObservacion] = useState("");
@@ -125,16 +130,20 @@ export default function BandejaVacaciones() {
   const stats = useMemo(
     () => ({
       total: vacaciones.length,
-      pendienteJefe: vacaciones.filter((v) => v.estado === "PENDIENTE_JEFE")
+      pendientes: vacaciones.filter((v) => v.estado.startsWith("PENDIENTE"))
         .length,
-      pendienteGerente: vacaciones.filter(
-        (v) => v.estado === "PENDIENTE_GERENTE",
-      ).length,
-      pendienteUath: vacaciones.filter((v) => v.estado === "PENDIENTE_UATH")
-        .length,
+      aprobados: vacaciones.filter((v) => v.estado === "APROBADO").length,
+      negados: vacaciones.filter((v) => v.estado === "NEGADO").length,
     }),
     [vacaciones],
   );
+
+  const vacacionesFiltradas = useMemo(() => {
+    if (filtroEstado === "TODOS") return vacaciones;
+    if (filtroEstado === "PENDIENTE")
+      return vacaciones.filter((v) => v.estado.startsWith("PENDIENTE"));
+    return vacaciones.filter((v) => v.estado === filtroEstado);
+  }, [vacaciones, filtroEstado]);
 
   const abrirModal = (vacacion, aprobado) => {
     setSelected({ ...vacacion, accion: aprobado });
@@ -206,15 +215,20 @@ export default function BandejaVacaciones() {
     let tipo;
 
     if (v.estado === "PENDIENTE_JEFE") {
-      tipo = "base";
+      tipo = v.archivo_solicitante ? "solicitante" : "base";
     } else if (v.estado === "PENDIENTE_GERENTE") {
       tipo = "jefe";
-    } else if (v.estado === "PENDIENTE_UATH") {
-      // Descargar el último archivo disponible
-      if (v.archivo_superior) {
+    } else {
+      // PENDIENTE_UATH, APROBADO o NEGADO (historial): descargar el
+      // archivo más avanzado disponible.
+      if (v.archivo_uath) {
+        tipo = "uath";
+      } else if (v.archivo_superior) {
         tipo = "superior";
       } else if (v.archivo_jefe) {
         tipo = "jefe";
+      } else if (v.archivo_solicitante) {
+        tipo = "solicitante";
       } else {
         tipo = "base";
       }
@@ -406,55 +420,63 @@ export default function BandejaVacaciones() {
           {/* Stats Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <StatCard
-              label="Total Solicitudes"
-              value={stats.total}
-              icon={Users}
-              color="blue"
-            />
-            <StatCard
-              label="Pend. Jefe Inmediato"
-              value={stats.pendienteJefe}
-              icon={User}
+              label="Pendientes"
+              value={stats.pendientes}
+              icon={Clock}
               color="yellow"
+              onClick={() => setFiltroEstado("PENDIENTE")}
             />
             <StatCard
-              label="Pend. Jefe Superior"
-              value={stats.pendienteGerente}
-              icon={Building2}
-              color="orange"
+              label="Aprobados"
+              value={stats.aprobados}
+              icon={CheckCircle}
+              color="green"
+              onClick={() => setFiltroEstado("APROBADO")}
             />
             <StatCard
-              label="Pend. UATH"
-              value={stats.pendienteUath}
+              label="Negados"
+              value={stats.negados}
+              icon={XCircle}
+              color="red"
+              onClick={() => setFiltroEstado("NEGADO")}
+            />
+            <StatCard
+              label="Total"
+              value={stats.total}
               icon={TrendingUp}
-              color="purple"
+              color="blue"
+              onClick={() => setFiltroEstado("TODOS")}
             />
+          </div>
+        </div>
+
+        {/* Filtros */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="relative">
+            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <select
+              value={filtroEstado}
+              onChange={(e) => setFiltroEstado(e.target.value)}
+              className="border-2 border-gray-200 rounded-xl pl-10 pr-10 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent appearance-none bg-white cursor-pointer min-w-45"
+            >
+              <option value="TODOS">Todos los estados</option>
+              <option value="PENDIENTE">Pendientes</option>
+              <option value="APROBADO">Aprobados</option>
+              <option value="NEGADO">Negados</option>
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-sm text-gray-500">
+              {vacacionesFiltradas.length} solicitud
+              {vacacionesFiltradas.length !== 1 ? "es" : ""}
+            </span>
           </div>
         </div>
 
         {/* Lista de solicitudes */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 bg-linear-to-r from-gray-50 to-white">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <FileText size={18} className="text-green-600" />
-              </div>
-              <div>
-                <span className="font-semibold text-gray-900">
-                  {vacaciones.length} solicitud
-                  {vacaciones.length !== 1 ? "es" : ""}
-                </span>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  {
-                    vacaciones.filter((v) => v.estado.startsWith("PENDIENTE"))
-                      .length
-                  }{" "}
-                  pendientes de revisión
-                </p>
-              </div>
-            </div>
-          </div>
-
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <Loader2 className="h-12 w-12 text-green-600 animate-spin mb-4" />
@@ -462,21 +484,31 @@ export default function BandejaVacaciones() {
                 Cargando solicitudes...
               </p>
             </div>
-          ) : vacaciones.length === 0 ? (
+          ) : vacacionesFiltradas.length === 0 ? (
             <div className="p-20 text-center">
               <div className="inline-flex p-6 bg-gray-100 rounded-2xl mb-4">
-                <Umbrella className="h-12 w-12 text-gray-400" />
+                <CheckSquare className="h-12 w-12 text-gray-400" />
               </div>
               <p className="text-gray-500 font-medium text-lg">
-                No hay solicitudes pendientes
+                No hay solicitudes{" "}
+                {
+                  {
+                    TODOS: "",
+                    PENDIENTE: "pendientes",
+                    APROBADO: "aprobadas",
+                    NEGADO: "negadas",
+                  }[filtroEstado]
+                }
               </p>
               <p className="text-sm text-gray-400 mt-1">
-                Las solicitudes de vacaciones aparecerán aquí
+                {filtroEstado === "PENDIENTE"
+                  ? "No hay solicitudes pendientes de revisión"
+                  : "Las solicitudes de vacaciones que te corresponda revisar aparecerán aquí"}
               </p>
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
-              {vacaciones.map((v) => (
+              {vacacionesFiltradas.map((v) => (
                 <div
                   key={v.id}
                   className="p-6 hover:bg-linear-to-r hover:from-green-50/50 hover:to-transparent transition-all duration-300 group"
@@ -550,11 +582,33 @@ export default function BandejaVacaciones() {
                               year: "numeric",
                             })}
                           </span>
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-xs font-medium">
-                            <Eye size={10} />
-                            Pendiente de: {labelAccion(v.estado)}
-                          </span>
+                          {v.estado.startsWith("PENDIENTE") && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-xs font-medium">
+                              <Eye size={10} />
+                              Pendiente de: {labelAccion(v.estado)}
+                            </span>
+                          )}
                         </div>
+
+                        {[
+                          { label: "Observación del jefe:", texto: v.observacion_jefe },
+                          { label: "Observación del gerente:", texto: v.observacion_gerente },
+                          { label: "Observación de la UATH:", texto: v.observacion_uath },
+                        ]
+                          .filter((o) => o.texto)
+                          .map((o) => (
+                            <div
+                              key={o.label}
+                              className="mt-3 p-3 bg-amber-50 rounded-xl border border-amber-200 max-w-lg"
+                            >
+                              <p className="text-xs text-amber-600 mb-1 flex items-center gap-1">
+                                <AlertCircle size={10} /> {o.label}
+                              </p>
+                              <p className="text-sm text-amber-800">
+                                {o.texto}
+                              </p>
+                            </div>
+                          ))}
                       </div>
                     </div>
 
@@ -569,10 +623,11 @@ export default function BandejaVacaciones() {
                         <span className="hidden sm:inline">Descargar</span>
                       </button>
 
-                      {/* Subir/Resubir PDF firmado */}
-                      {(v.estado === "PENDIENTE_JEFE" ||
-                        v.estado === "PENDIENTE_GERENTE" ||
-                        v.estado === "PENDIENTE_UATH") && (
+                      {/* Subir/Resubir PDF firmado — solo si es tu turno
+                          ahora mismo (no basta con que el estado general
+                          sea "pendiente"; puede estar pendiente de otro
+                          paso en el que tú ya participaste antes). */}
+                      {v.es_mi_turno && (
                         <button
                           onClick={() => {
                             setVacacionFirmar(v);
