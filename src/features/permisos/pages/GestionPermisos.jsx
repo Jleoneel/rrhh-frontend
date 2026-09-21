@@ -19,6 +19,7 @@ import {
   FileSpreadsheet,
   Mail,
   Pencil,
+  History,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import api from "../../../shared/api/axios";
@@ -40,6 +41,18 @@ const TABS = [
   { id: "usuarios", label: "Usuarios Servidor", icon: Users },
   { id: "saldos", label: "Saldos", icon: Clock },
 ];
+
+const TIPO_MOVIMIENTO_LABEL = {
+  INICIALIZACION: "Asignación",
+  AJUSTE: "Corrección manual",
+  DESCUENTO: "Descuento",
+};
+
+const TIPO_MOVIMIENTO_COLOR = {
+  INICIALIZACION: "text-green-400",
+  AJUSTE: "text-amber-400",
+  DESCUENTO: "text-red-400",
+};
 
 export default function GestionPermisos() {
   const { setHeaderConfig } = useOutletContext();
@@ -999,6 +1012,7 @@ export default function GestionPermisos() {
                             "Usadas",
                             "Disponibles",
                             "Año",
+                            "Historial",
                             "Acciones",
                           ].map((h) => (
                             <th
@@ -1013,7 +1027,7 @@ export default function GestionPermisos() {
                       <tbody className="divide-y divide-gray-100">
                         {saldosFiltrados.length === 0 ? (
                           <tr>
-                            <td colSpan={8} className="px-6 py-20 text-center">
+                            <td colSpan={9} className="px-6 py-20 text-center">
                               <Clock className="h-12 w-12 text-gray-300 mx-auto mb-3" />
                               <p className="text-gray-500 font-medium">
                                 {searchSaldos.trim()
@@ -1065,6 +1079,60 @@ export default function GestionPermisos() {
                                 <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 rounded-lg text-xs font-mono">
                                   <Calendar size={12} /> {s.anio}
                                 </span>
+                              </td>
+                              <td className="px-6 py-4">
+                                {s.movimientos?.length > 0 ? (
+                                  <div className="relative group inline-flex">
+                                    <History
+                                      size={16}
+                                      className="text-gray-400 hover:text-blue-600 cursor-help"
+                                    />
+                                    <div className="absolute right-0 bottom-full mb-2 w-80 max-h-72 overflow-y-auto p-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20 shadow-xl">
+                                      <p className="font-semibold text-gray-300 mb-2">
+                                        Historial de movimientos
+                                      </p>
+                                      <div className="space-y-2">
+                                        {s.movimientos.map((m, i) => (
+                                          <div
+                                            key={i}
+                                            className="border-b border-gray-700 pb-2 last:border-0 last:pb-0"
+                                          >
+                                            <div className="flex items-center justify-between gap-2">
+                                              <span
+                                                className={
+                                                  TIPO_MOVIMIENTO_COLOR[
+                                                    m.tipo
+                                                  ] || "text-gray-300"
+                                                }
+                                              >
+                                                {TIPO_MOVIMIENTO_LABEL[
+                                                  m.tipo
+                                                ] || m.tipo}
+                                              </span>
+                                              <span className="text-gray-400 whitespace-nowrap">
+                                                {horasADias(m.horas)}
+                                              </span>
+                                            </div>
+                                            <p className="text-gray-200 mt-0.5">
+                                              {m.descripcion || "—"}
+                                            </p>
+                                            <p className="text-gray-500 mt-0.5">
+                                              {new Date(
+                                                m.created_at,
+                                              ).toLocaleDateString("es-EC", {
+                                                day: "2-digit",
+                                                month: "short",
+                                                year: "numeric",
+                                              })}
+                                            </p>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <span className="text-gray-300">—</span>
+                                )}
                               </td>
                               <td className="px-6 py-4">
                                 <button
