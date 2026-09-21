@@ -12,10 +12,10 @@ import PermisosFirmante from "./features/permisos/pages/PermisosFirmante";
 import BandejaJefe from "./features/permisos/pages/BandejaJefe";
 import GestionJefes from "./features/permisos/pages/GestionJefes";
 import ReportePermisos from "./features/permisos/pages/ReportePermisos";
-import VacacionesServidor from "./features/permisos/pages/VacacionesServidor";
-import BandejaVacaciones from "./features/permisos/pages/BandejaVacaciones";
-import ReporteVacaciones from "./features/permisos/pages/ReporteVacaciones";
-import VacacionesFirmante from "./features/permisos/pages/VacacionesFirmante";
+import VacacionesServidor from "./features/permisos/pages/vacaciones/VacacionesServidor";
+import BandejaVacaciones from "./features/permisos/pages/vacaciones/BandejaVacaciones";
+import ReporteVacaciones from "./features/permisos/pages/vacaciones/ReporteVacaciones";
+import VacacionesFirmante from "./features/permisos/pages/vacaciones/VacacionesFirmante";
 import MiCertificado from "./features/permisos/pages/MiCertificado";
 import AccionesRecepcionServidor from "./features/acciones/pages/AccionesRecepcionServidor";
 

@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import { useAuth } from "../../auth/AuthContext";
-import api from "../../../shared/api/axios";
-import FirmaDigitalModal from "../../../shared/components/ui/FirmaDigitalModal";
+import { useAuth } from "../../../auth/AuthContext";
+import {
+  getMiSaldo,
+  getMisVacaciones,
+  solicitarVacacion,
+  cancelarVacacion,
+} from "../../hooks/permisos.service";
 import {
   Clock,
   Calendar,
@@ -21,7 +25,9 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import Swal from "sweetalert2";
-import { horasADias } from "../../../shared/utils/horasADias";
+import { horasADias } from "../../../../shared/utils/horasADias";
+import api from "../../../../shared/api/axios";
+import FirmaDigitalModal from "../../../../shared/components/ui/FirmaDigitalModal";
 
 const estadoBadge = (estado) => {
   const map = {
@@ -33,7 +39,7 @@ const estadoBadge = (estado) => {
   };
   const labels = {
     PENDIENTE_JEFE: "Pendiente Jefe",
-    PENDIENTE_GERENTE: "Pendiente Jefe Superior",
+    PENDIENTE_GERENTE: "Pendiente Jefe superior",
     PENDIENTE_UATH: "Pendiente UATH",
     APROBADO: "Aprobado",
     NEGADO: "Negado",
@@ -63,12 +69,12 @@ const initialForm = {
   telefono_movil: "",
 };
 
-export default function VacacionesFirmante() {
+export default function VacacionesServidor() {
   const { setHeaderConfig } = useOutletContext();
 
   useEffect(() => {
     setHeaderConfig({
-      title: "Vacaciones Firmante",
+      title: "Vacaciones Servidor",
       showNewAction: false,
       onNewAction: null,
     });
@@ -90,8 +96,8 @@ export default function VacacionesFirmante() {
     setLoading(true);
     try {
       const [saldoData, vacacionesData] = await Promise.all([
-        api.get("/permisos/mi-saldo-firmante").then((r) => r.data),
-        api.get("/permisos/mis-vacaciones-firmante").then((r) => r.data),
+        getMiSaldo(),
+        getMisVacaciones(),
       ]);
       setSaldo(saldoData);
       setVacaciones(vacacionesData);
@@ -110,6 +116,7 @@ export default function VacacionesFirmante() {
       .catch(() => setTieneCertificado(false));
   }, []);
 
+  // Calcular días automáticamente al cambiar fechas
   useEffect(() => {
     if (form.fecha_inicio && form.fecha_fin) {
       const inicio = new Date(form.fecha_inicio);
@@ -120,10 +127,6 @@ export default function VacacionesFirmante() {
       }
     }
   }, [form.fecha_inicio, form.fecha_fin]);
-
-  const porcentajeUsado = saldo
-    ? Math.round((saldo.horas_usadas / saldo.horas_totales) * 100)
-    : 0;
 
   const tienePendiente = vacaciones.some(
     (v) => !["APROBADO", "NEGADO"].includes(v.estado),
@@ -153,6 +156,18 @@ export default function VacacionesFirmante() {
         icon: "warning",
         text: "El teléfono móvil es obligatorio (mínimo 10 dígitos)",
         timer: 2500,
+        showConfirmButton: false,
+        position: "top-end",
+      });
+      return;
+    }
+
+    if (new Date(form.fecha_fin) < new Date(form.fecha_inicio)) {
+      Swal.fire({
+        toast: true,
+        icon: "error",
+        text: "La fecha fin debe ser posterior a la fecha inicio",
+        timer: 2000,
         showConfirmButton: false,
         position: "top-end",
       });
@@ -217,10 +232,7 @@ export default function VacacionesFirmante() {
   const enviarSolicitud = async (password) => {
     setSubmitting(true);
     try {
-      await api.post(
-        "/permisos/solicitar-vacacion-firmante",
-        password ? { ...form, password } : form,
-      );
+      await solicitarVacacion(password ? { ...form, password } : form);
       Swal.fire({
         toast: true,
         icon: "success",
@@ -268,7 +280,7 @@ export default function VacacionesFirmante() {
     if (!confirm.isConfirmed) return;
 
     try {
-      await api.put(`/permisos/${vacacion.id}/cancelar-vacacion-firmante`);
+      await cancelarVacacion(vacacion.id);
       Swal.fire({
         toast: true,
         icon: "success",
@@ -318,7 +330,8 @@ export default function VacacionesFirmante() {
   };
 
   // PDF con las firmas electrónicas ya aplicadas — el más avanzado
-  // disponible (UATH > jefe superior > jefe inmediato).
+  // disponible (UATH > jefe superior > jefe inmediato). Solo aplica si
+  // al menos un firmante ya firmó.
   const handleDescargarFirmado = (v) => {
     const tipo = v.archivo_uath
       ? "uath"
@@ -332,6 +345,10 @@ export default function VacacionesFirmante() {
       `vacacion_firmada_${v.id}.pdf`,
     );
   };
+
+  const porcentajeUsado = saldo
+    ? Math.round((saldo.horas_usadas / saldo.horas_totales) * 100)
+    : 0;
 
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 p-8">
@@ -537,7 +554,7 @@ export default function VacacionesFirmante() {
                               ))}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="flex items-center gap-2 shrink-0">
                           <button
                             onClick={() => handleDescargarSolicitud(v)}
                             title="Descargar solicitud (sin firmas)"
@@ -717,6 +734,7 @@ export default function VacacionesFirmante() {
                       }
                       placeholder="09XXXXXXXX"
                       maxLength={10}
+                      required
                       className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                   </div>
@@ -829,7 +847,7 @@ export default function VacacionesFirmante() {
 
       {/* Modal de firma digital — se pide justo antes de enviar la
           solicitud, ya que se envía firmada con el certificado del
-          propio firmante. */}
+          propio servidor. */}
       <FirmaDigitalModal
         open={modalPassword}
         subtitle="Firma tu solicitud de vacaciones"
@@ -840,7 +858,7 @@ export default function VacacionesFirmante() {
         onSubmit={handleFirmarSolicitud}
         submitting={submitting}
         submitLabel="Firmar y enviar"
-        color="blue"
+        color="green"
       />
     </div>
   );

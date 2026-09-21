@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
-import { useAuth } from "../../auth/AuthContext";
+import { useAuth } from "../../../auth/AuthContext";
 import {
   CheckCircle,
   XCircle,
@@ -23,9 +23,9 @@ import {
   CheckSquare,
 } from "lucide-react";
 import Swal from "sweetalert2";
-import api from "../../../shared/api/axios";
-import FirmaDigitalModal from "../../../shared/components/ui/FirmaDigitalModal";
-import StatCard from "../../../shared/components/ui/StatCard";
+import api from "../../../../shared/api/axios";
+import FirmaDigitalModal from "../../../../shared/components/ui/FirmaDigitalModal";
+import StatCard from "../../../../shared/components/ui/StatCard";
 
 const estadoBadge = (estado) => {
   const map = {

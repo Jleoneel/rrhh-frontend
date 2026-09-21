@@ -20,11 +20,11 @@ import {
   ListFilter,
   CalendarDays,
 } from "lucide-react";
-import api from "../../../shared/api/axios";
+import api from "../../../../shared/api/axios";
 import Swal from "sweetalert2";
 import * as XLSX from "xlsx";
-import StatCard from "../../../shared/components/ui/StatCard";
-import PageNumbers from "../../../shared/components/ui/PageNumbers";
+import StatCard from "../../../../shared/components/ui/StatCard";
+import PageNumbers from "../../../../shared/components/ui/PageNumbers";
 
 const ESTADOS = [
   "TODOS",
