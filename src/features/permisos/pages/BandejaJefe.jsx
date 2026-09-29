@@ -143,7 +143,7 @@ export default function BandejaJefe() {
           </div>
           <div class="flex justify-between border-b pb-2">
             <span class="text-gray-600">Fecha:</span>
-            <span class="font-semibold text-gray-900">${new Date(selected.fecha).toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" })}</span>
+            <span class="font-semibold text-gray-900">${new Date(selected.fecha.slice(0, 10) + "T12:00:00").toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" })}</span>
           </div>
           <div class="flex justify-between border-b pb-2">
             <span class="text-gray-600">Horario:</span>
@@ -362,7 +362,9 @@ export default function BandejaJefe() {
                           <div className="flex items-center gap-2 text-sm text-gray-600">
                             <Calendar size={14} className="text-gray-400" />
                             <span>
-                              {new Date(p.fecha).toLocaleDateString("es-ES", {
+                              {new Date(
+                                p.fecha.slice(0, 10) + "T12:00:00",
+                              ).toLocaleDateString("es-ES", {
                                 day: "2-digit",
                                 month: "long",
                                 year: "numeric",
@@ -505,7 +507,9 @@ export default function BandejaJefe() {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Fecha:</span>
                   <span className="font-semibold text-gray-900">
-                    {new Date(selected.fecha).toLocaleDateString("es-ES", {
+                    {new Date(
+                      selected.fecha.slice(0, 10) + "T12:00:00",
+                    ).toLocaleDateString("es-ES", {
                       day: "2-digit",
                       month: "long",
                       year: "numeric",

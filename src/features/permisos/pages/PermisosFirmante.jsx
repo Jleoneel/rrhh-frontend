@@ -195,7 +195,7 @@ export default function PermisosFirmante() {
             </div>
             <div class="flex justify-between border-b pb-2">
               <span class="text-gray-600">Fecha:</span>
-              <span class="font-semibold text-gray-900">${new Date(form.fecha).toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" })}</span>
+              <span class="font-semibold text-gray-900">${new Date(form.fecha + "T12:00:00").toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" })}</span>
             </div>
             <div class="flex justify-between border-b pb-2">
               <span class="text-gray-600">Horario:</span>
@@ -498,7 +498,9 @@ export default function PermisosFirmante() {
                               {estadoBadge(p.estado)}
                             </div>
                             <p className="text-sm text-gray-500">
-                              {new Date(p.fecha).toLocaleDateString("es-ES", {
+                              {new Date(
+                                p.fecha.slice(0, 10) + "T12:00:00",
+                              ).toLocaleDateString("es-ES", {
                                 day: "2-digit",
                                 month: "long",
                                 year: "numeric",
