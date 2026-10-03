@@ -30,6 +30,10 @@ import Swal from "sweetalert2";
 import { horasADias } from "../../../shared/utils/horasADias";
 import { calcularHorasPermiso } from "../../../shared/utils/calcularHorasPermiso";
 
+// Debe coincidir con TAMANO_MAXIMO_EVIDENCIA en
+// rrhh-backend/src/shared/utils/evidenciaUpload.js
+const TAMANO_MAXIMO_EVIDENCIA = 8 * 1024 * 1024; // 8 MB
+
 const estadoBadge = (estado) => {
   const map = {
     PENDIENTE: "bg-yellow-100 text-yellow-800 border border-yellow-200",
@@ -767,13 +771,23 @@ export default function PermisosServidor() {
                     <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-blue-400 hover:bg-blue-50/30 transition-all duration-200 cursor-pointer group">
                       <input
                         type="file"
-                        accept="application/pdf"
-                        onChange={(e) =>
-                          setForm((p) => ({
-                            ...p,
-                            archivo_evidencia: e.target.files[0] || null,
-                          }))
-                        }
+                        accept="application/pdf,image/jpeg,image/png"
+                        onChange={(e) => {
+                          const archivo = e.target.files[0] || null;
+                          if (archivo && archivo.size > TAMANO_MAXIMO_EVIDENCIA) {
+                            Swal.fire({
+                              toast: true,
+                              icon: "warning",
+                              text: "El archivo supera el tamaño máximo permitido (8 MB)",
+                              timer: 2500,
+                              showConfirmButton: false,
+                              position: "top-end",
+                            });
+                            e.target.value = "";
+                            return;
+                          }
+                          setForm((p) => ({ ...p, archivo_evidencia: archivo }));
+                        }}
                         className="hidden"
                         id="archivo_evidencia"
                       />
@@ -791,10 +805,11 @@ export default function PermisosServidor() {
                           <span className="text-sm font-medium text-gray-700">
                             {form.archivo_evidencia
                               ? form.archivo_evidencia.name
-                              : "Haz clic para subir PDF"}
+                              : "Haz clic para subir PDF o imagen"}
                           </span>
                           <p className="text-xs text-gray-400 mt-1">
                             Certificado médico, receta médica, constancia, etc.
+                            (PDF, JPG o PNG, máx. 8 MB)
                           </p>
                         </div>
                       </label>
