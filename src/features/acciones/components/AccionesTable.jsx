@@ -280,7 +280,7 @@ export default function AccionesTable({
                               className="group-hover:rotate-12 transition-transform"
                             />
                           </button>
-                          {esAsistenteUATH && (
+                          {(esAsistenteUATH || esAdmin) && (
                             <button
                               onClick={() => onDownload?.(accion)}
                               className="p-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-lg transition-colors"

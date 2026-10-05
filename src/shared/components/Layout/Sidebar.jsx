@@ -19,7 +19,38 @@ import {
 } from "lucide-react";
 import LogoutButton from "./logoutButton";
 import { useAuth } from "../../../features/auth/AuthContext";
-import { useState } from "react";
+import { useNotificacionesCtx } from "../../../features/notificaciones/context/NotificacionesContext";
+import { useState, useEffect } from "react";
+
+// Qué categoría de notificación corresponde a cada ruta del menú — mismas
+// categorías que ya usa useNotificaciones() (FIRMA, RECEPCION, PERMISO,
+// VACACION). Un solo mapa sirve para todas las variantes del menú (jefe,
+// gerente, UATH, servidor) porque las rutas no se repiten entre ramas.
+const RUTA_CATEGORIA_NOTIFICACION = {
+  "/permisos/bandeja": "PERMISO",
+  "/permisos/mis-permisos-jefe": "PERMISO",
+  "/servidor/permisos": "PERMISO",
+  "/permisos/bandeja-vacaciones": "VACACION",
+  "/permisos/mis-vacaciones": "VACACION",
+  "/servidor/vacaciones": "VACACION",
+  "/acciones": "FIRMA",
+  "/servidor/acciones": "RECEPCION",
+};
+
+// Burbuja con el conteo de notificaciones sin leer, para un ítem del menú.
+// className por defecto la empuja al extremo derecho (ml-auto); se puede
+// pisar cuando el badge va junto a otro elemento (ej. el chevron) en vez
+// de solo.
+function BadgeNotificaciones({ count, className = "ml-auto" }) {
+  if (!count) return null;
+  return (
+    <span
+      className={`${className} flex-shrink-0 min-w-[1.25rem] h-5 px-1.5 flex items-center justify-center rounded-full bg-red-500 text-white text-[11px] font-bold`}
+    >
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
 
 export default function Sidebar() {
   const { user: Firmante } = useAuth();
@@ -30,12 +61,35 @@ export default function Sidebar() {
     setOpenMenus((prev) => ({ ...prev, [title]: !prev[title] }));
   };
 
+  const { notificaciones, marcarLeida } = useNotificacionesCtx();
+
+  const contarPorRuta = (path) => {
+    const categoria = RUTA_CATEGORIA_NOTIFICACION[path];
+    if (!categoria) return 0;
+    return notificaciones.filter((n) => n.categoria === categoria).length;
+  };
+
+  // Al entrar a una ruta que tiene notificaciones pendientes de su
+  // categoría, se marcan como leídas automáticamente — así el badge
+  // desaparece solo al abrir ese módulo, sin un botón aparte. No se
+  // incluye marcarLeida en las dependencias a propósito: se redefine en
+  // cada render del hook y no hace falta reaccionar a eso, solo a que
+  // cambie la ruta o la lista de notificaciones.
+  useEffect(() => {
+    const categoria = RUTA_CATEGORIA_NOTIFICACION[location.pathname];
+    if (!categoria) return;
+    const pendientes = notificaciones.filter((n) => n.categoria === categoria);
+    pendientes.forEach((n) => marcarLeida(n));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, notificaciones]);
+
   const isSubmenuActive = (submenu) =>
     submenu?.some((sub) => location.pathname === sub.path);
 
   const tipoUsuario = Firmante?.tipo_usuario || "FIRMANTE";
   const cargoNombre = Firmante?.cargo_nombre || "";
-  const puedeVerUsuarios = cargoNombre === "ADMINISTRADOR DEL SISTEMA";
+  const esAdmin = Firmante?.es_admin === true;
+  const puedeVerUsuarios = esAdmin;
   const es_jefe = Firmante?.es_jefe || false;
   const esJefeArea = cargoNombre === "JEFE DE AREA";
   const esGerente = cargoNombre === "GERENTE HOSPITALARIO ENCARGADO";
@@ -45,7 +99,6 @@ export default function Sidebar() {
     "TRABAJADORA SOCIAL INSTITUCIONAL",
     "ANALISTA DE TALENTO HUMANO",
   ].includes(cargoNombre);
-  const esAdmin = cargoNombre === "ADMINISTRADOR DEL SISTEMA";
 
   const menuItems =
     tipoUsuario === "SERVIDOR"
@@ -249,8 +302,8 @@ export default function Sidebar() {
                         },
                       ]
                     : []),
-                  // Bandeja permisos solo para jefes
-                  ...(es_jefe
+                  // Bandeja permisos para jefes y para el admin
+                  ...(es_jefe || esAdmin
                     ? [
                         {
                           title: "Bandeja de Aprobación",
@@ -336,6 +389,7 @@ export default function Sidebar() {
           // Item sin submenu
           if (!item.submenu) {
             const isActive = location.pathname === item.path;
+            const count = contarPorRuta(item.path);
             return (
               <NavLink
                 key={index}
@@ -349,14 +403,18 @@ export default function Sidebar() {
                   ${!expanded && "justify-center"}`}
               >
                 <span
-                  className={`${isActive ? "text-white" : "text-gray-400"} transition-colors`}
+                  className={`relative ${isActive ? "text-white" : "text-gray-400"} transition-colors`}
                 >
                   {item.icon}
+                  {!expanded && count > 0 && (
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-gray-900" />
+                  )}
                 </span>
                 {expanded && (
                   <span className="text-sm font-medium">{item.title}</span>
                 )}
-                {expanded && isActive && (
+                {expanded && <BadgeNotificaciones count={count} />}
+                {expanded && isActive && count === 0 && (
                   <div className="ml-auto w-1.5 h-8 rounded-full bg-white/50" />
                 )}
               </NavLink>
@@ -366,6 +424,10 @@ export default function Sidebar() {
           // Item con submenu
           const isOpen = openMenus[item.title] ?? isSubmenuActive(item.submenu);
           const isGroupActive = isSubmenuActive(item.submenu);
+          const countGrupo = item.submenu.reduce(
+            (acc, sub) => acc + contarPorRuta(sub.path),
+            0,
+          );
 
           return (
             <div key={index} className="space-y-1">
@@ -381,21 +443,25 @@ export default function Sidebar() {
               >
                 <div className="flex items-center gap-3">
                   <span
-                    className={
-                      isGroupActive ? "text-blue-400" : "text-gray-400"
-                    }
+                    className={`relative ${isGroupActive ? "text-blue-400" : "text-gray-400"}`}
                   >
                     {item.icon}
+                    {!expanded && countGrupo > 0 && (
+                      <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-gray-900" />
+                    )}
                   </span>
                   {expanded && (
                     <span className="text-sm font-medium">{item.title}</span>
                   )}
                 </div>
                 {expanded && (
-                  <ChevronDown
-                    size={16}
-                    className={`text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-                  />
+                  <div className="flex items-center gap-2">
+                    <BadgeNotificaciones count={countGrupo} className="" />
+                    <ChevronDown
+                      size={16}
+                      className={`text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                    />
+                  </div>
                 )}
               </button>
 
@@ -403,6 +469,7 @@ export default function Sidebar() {
                 <div className="ml-6 space-y-1 border-l-2 border-gray-700/50 pl-3">
                   {item.submenu.map((sub, subIndex) => {
                     const isSubActive = location.pathname === sub.path;
+                    const countSub = contarPorRuta(sub.path);
                     return (
                       <NavLink
                         key={subIndex}
@@ -423,7 +490,8 @@ export default function Sidebar() {
                             <div className="w-1.5 h-1.5 rounded-full bg-gray-500" />
                           )}
                         </span>
-                        {sub.title}
+                        <span className="flex-1">{sub.title}</span>
+                        <BadgeNotificaciones count={countSub} />
                       </NavLink>
                     );
                   })}

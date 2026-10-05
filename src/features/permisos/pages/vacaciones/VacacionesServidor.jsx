@@ -351,8 +351,8 @@ export default function VacacionesServidor() {
     : 0;
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 p-8">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 p-4 sm:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-10 flex items-center gap-4">
           <div className="p-4 bg-linear-to-br from-green-600 to-green-700 rounded-2xl shadow-xl">

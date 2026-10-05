@@ -18,6 +18,7 @@ import {
   X,
   RefreshCw,
   HardDrive,
+  ArrowRightLeft,
 } from "lucide-react";
 
 // eslint-disable-next-line no-unused-vars
@@ -334,6 +335,12 @@ export default function AdjuntarDistributivo() {
                 value={sync.asignaciones_cerradas ?? 0}
                 icon={X}
                 color="amber"
+              />
+              <StatCard
+                label="Reemplazaron unidad manual"
+                value={sync.asignaciones_cerradas_manual ?? 0}
+                icon={ArrowRightLeft}
+                color="purple"
               />
               <StatCard
                 label="Régimen laboral"

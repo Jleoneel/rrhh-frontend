@@ -35,3 +35,24 @@ export const asignarJefe = (data) =>
 
 export const crearJefeFirmante = (data) =>
   api.post("/permisos/jefes-firmante", data).then((r) => r.data);
+
+// Unidades orgánicas manuales (no provienen del distributivo)
+export const crearUnidadOrganica = (data) =>
+  api.post("/permisos/unidades-organicas", data).then((r) => r.data);
+export const asignarServidorAUnidad = (unidadId, servidorId) =>
+  api
+    .post(`/permisos/unidades-organicas/${unidadId}/asignar-servidor`, {
+      servidor_id: servidorId,
+    })
+    .then((r) => r.data);
+
+// Posibles duplicados entre unidades manuales y el distributivo oficial
+export const getPosiblesDuplicados = () =>
+  api.get("/permisos/unidades-posibles-duplicados").then((r) => r.data);
+export const descartarDuplicado = (unidadManualId, unidadExcelId) =>
+  api
+    .post("/permisos/unidades-posibles-duplicados/descartar", {
+      unidad_manual_id: unidadManualId,
+      unidad_excel_id: unidadExcelId,
+    })
+    .then((r) => r.data);

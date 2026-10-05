@@ -15,15 +15,16 @@ import Swal from "sweetalert2";
 import LogoutButton from "../Layout/logoutButton";
 import { NotificacionesBell } from "../../../features/notificaciones/components/FirmaNotificacionesBell";
 import TipoServidorModal from "../../../features/acciones/components/Modales/TipoServidorModal";
-import RegistrarServidorManualModal from "../../../features/acciones/components/Modales/RegistrarServidorManualModal";
+import ServidorManualModal from "../servidores/ServidorManualModal";
 
 export default function Header({ title, showNewAction = true, onNuevaAccion }) {
   const { user } = useAuth();
-  const isUATH = [
-    "ASISTENTE DE LA UATH",
-    "TRABAJADORA SOCIAL INSTITUCIONAL",
-    "ANALISTA DE TALENTO HUMANO",
-  ].includes(user?.cargo_nombre);
+  const isUATH =
+    [
+      "ASISTENTE DE LA UATH",
+      "TRABAJADORA SOCIAL INSTITUCIONAL",
+      "ANALISTA DE TALENTO HUMANO",
+    ].includes(user?.cargo_nombre) || user?.es_admin === true;
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -403,10 +404,11 @@ export default function Header({ title, showNewAction = true, onNuevaAccion }) {
       />
 
       {/* Registro de servidor no distributivo */}
-      <RegistrarServidorManualModal
+      <ServidorManualModal
+        mode="crear"
         open={registrarManualOpen}
         onClose={() => setRegistrarManualOpen(false)}
-        onCreated={handleServidorManualCreado}
+        onSuccess={handleServidorManualCreado}
       />
     </>
   );

@@ -421,7 +421,7 @@ const handleEliminarAccion = async (accion) => {
   // Se mantiene separado de esAsistenteUATH porque ese booleano también
   // controla el botón de Descargar PDF, que no debe verse afectado.
   const puedeEditarAccion =
-    esAsistenteUATH || user?.cargo_id === ROLES.RESPONSABLE_UATH;
+    esAsistenteUATH || user?.cargo_id === ROLES.RESPONSABLE_UATH || esAdmin;
   // Mismo conjunto de cargos autorizados que puedeEliminarAccion
   // (RESPONSABLE DE LA UATH y ADMINISTRADOR DEL SISTEMA); se mantiene
   // como constante aparte por claridad semántica, no porque la regla de
@@ -472,16 +472,18 @@ const handleEliminarAccion = async (accion) => {
 
   return (
     <>
-      <div className="space-y-4">
-        <AccionesFilters
-          filters={filters}
-          onChange={handleChange}
-          onBuscar={handleBuscar}
-          onLimpiar={handleLimpiar}
-          puedeConfigurarNumeracion={puedeConfigurarNumeracion}
-        />
+      <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 p-4 sm:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto space-y-4">
+          <AccionesFilters
+            filters={filters}
+            onChange={handleChange}
+            onBuscar={handleBuscar}
+            onLimpiar={handleLimpiar}
+            puedeConfigurarNumeracion={puedeConfigurarNumeracion}
+          />
 
-        {renderContent()}
+          {renderContent()}
+        </div>
       </div>
 
       {/* Modales */}

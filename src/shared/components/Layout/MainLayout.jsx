@@ -2,6 +2,8 @@ import { Outlet } from "react-router-dom";
 import { useState } from "react";
 import Sidebar from "../Layout/Sidebar";
 import Header from "../Layout/Header";
+import NotificacionesToaster from "../../../features/notificaciones/components/NotificacionesToaster";
+import { NotificacionesProvider } from "../../../features/notificaciones/context/NotificacionesProvider";
 
 export default function MainLayout() {
   const [headerConfig, setHeaderConfig] = useState({
@@ -11,21 +13,25 @@ export default function MainLayout() {
   });
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <Sidebar />
+    <NotificacionesProvider>
+      <div className="flex h-screen bg-gray-100">
+        <Sidebar />
 
-      <div className="flex flex-col flex-1">
-        <Header
-          title={headerConfig.title}
-          showNewAction={headerConfig.showNewAction}
-          onNuevaAccion={headerConfig.onNewAction}
-        />
+        <div className="flex flex-col flex-1">
+          <Header
+            title={headerConfig.title}
+            showNewAction={headerConfig.showNewAction}
+            onNuevaAccion={headerConfig.onNewAction}
+          />
 
-        <main className="flex-1 p-6 overflow-y-auto">
-          {/* pasamos setter a las páginas */}
-          <Outlet context={{ setHeaderConfig }} />
-        </main>
+          <main className="flex-1 p-6 overflow-y-auto">
+            {/* pasamos setter a las páginas */}
+            <Outlet context={{ setHeaderConfig }} />
+          </main>
+        </div>
+
+        <NotificacionesToaster />
       </div>
-    </div>
+    </NotificacionesProvider>
   );
 }

@@ -32,7 +32,7 @@ import {
   resetPasswordServidor,
 } from "../hooks/permisos.uath.service";
 import SelectPremium from "../../../shared/components/Layout/SelectPremiun";
-import EditarServidorManualModal from "../components/EditarServidorManualModal";
+import ServidorManualModal from "../../../shared/components/servidores/ServidorManualModal";
 import { horasADias } from "../../../shared/utils/horasADias";
 import StatCard from "../../../shared/components/ui/StatCard";
 import PageNumbers from "../../../shared/components/ui/PageNumbers";
@@ -664,7 +664,7 @@ export default function GestionPermisos() {
   }, [filtroSelectServidor, todosServidores]);
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 p-8">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-10">
@@ -1529,14 +1529,15 @@ export default function GestionPermisos() {
         </div>
       )}
 
-      <EditarServidorManualModal
+      <ServidorManualModal
+        mode="editar"
         open={modalEditarServidor}
         servidorId={servidorIdEditar}
         onClose={() => {
           setModalEditarServidor(false);
           setServidorIdEditar(null);
         }}
-        onUpdated={() => {
+        onSuccess={() => {
           setModalEditarServidor(false);
           setServidorIdEditar(null);
           cargarServidores({ page, limit, search, filtro: filtroUsuario });
