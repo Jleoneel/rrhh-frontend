@@ -20,6 +20,7 @@ import {
   Mail,
   Pencil,
   History,
+  UserPlus,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import api from "../../../shared/api/axios";
@@ -92,6 +93,7 @@ export default function GestionPermisos() {
   const [submittingReset, setSubmittingReset] = useState(false);
   const [modalEditarServidor, setModalEditarServidor] = useState(false);
   const [servidorIdEditar, setServidorIdEditar] = useState(null);
+  const [modalCrearServidor, setModalCrearServidor] = useState(false);
 
   // Filtro de búsqueda para select de servidores
   const [filtroSelectServidor, setFiltroSelectServidor] = useState("");
@@ -683,6 +685,14 @@ export default function GestionPermisos() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <button
+                onClick={() => setModalCrearServidor(true)}
+                className="flex items-center gap-2 px-4 py-3 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-all shadow-md text-sm font-medium"
+                title="Registrar un servidor que no consta en el distributivo"
+              >
+                <UserPlus size={16} />
+                <span className="hidden sm:inline">Crear servidor</span>
+              </button>
               <button
                 onClick={handleCrearCuentasMasivo}
                 className="flex items-center gap-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all shadow-md text-sm font-medium"
@@ -1541,6 +1551,17 @@ export default function GestionPermisos() {
           setModalEditarServidor(false);
           setServidorIdEditar(null);
           cargarServidores({ page, limit, search, filtro: filtroUsuario });
+        }}
+      />
+
+      <ServidorManualModal
+        mode="crear"
+        open={modalCrearServidor}
+        continuarAccion={false}
+        onClose={() => setModalCrearServidor(false)}
+        onSuccess={() => {
+          setModalCrearServidor(false);
+          cargarDatos();
         }}
       />
     </div>

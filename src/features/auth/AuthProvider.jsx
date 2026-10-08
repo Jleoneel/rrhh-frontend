@@ -17,6 +17,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    sessionStorage.removeItem("p12_warning_shown");
     setToken(null);
     setUser(null);
   };

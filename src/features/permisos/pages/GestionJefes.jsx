@@ -17,6 +17,9 @@ import {
   Plus,
   UserPlus,
   AlertTriangle,
+  Power,
+  Settings,
+  Calendar,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import api from "../../../shared/api/axios";
@@ -25,6 +28,9 @@ import SelectPremium from "../../../shared/components/Layout/SelectPremiun";
 import {
   crearUnidadOrganica,
   asignarServidorAUnidad,
+  getServidoresDeUnidad,
+  toggleActivoUnidad,
+  actualizarDiasVacacionUnidad,
   getPosiblesDuplicados,
   descartarDuplicado,
 } from "../hooks/permisos.uath.service";
@@ -35,6 +41,7 @@ const Badge = ({ children, variant = "default" }) => {
     success: "bg-green-100 text-green-800 border border-green-200",
     warning: "bg-yellow-100 text-yellow-800 border border-yellow-200",
     info: "bg-blue-100 text-blue-800 border border-blue-200",
+    danger: "bg-red-100 text-red-800 border border-red-200",
   };
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${variants[variant]}`}>
@@ -59,6 +66,14 @@ export default function GestionJefes() {
   const [todosServidores, setTodosServidores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [mostrarTodas, setMostrarTodas] = useState(false);
+  const [togglingActivoId, setTogglingActivoId] = useState(null);
+
+  // Configurar días de vacación anuales por unidad
+  const [modalDiasVacacion, setModalDiasVacacion] = useState(false);
+  const [unidadParaDias, setUnidadParaDias] = useState(null);
+  const [diasVacacionForm, setDiasVacacionForm] = useState("30");
+  const [submittingDiasVacacion, setSubmittingDiasVacacion] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [selected, setSelected] = useState(null);
   const [form, setForm] = useState({ jefe_id: "", jefe_superior_id: "" });
@@ -80,6 +95,10 @@ export default function GestionJefes() {
   const [servidorSeleccionado, setServidorSeleccionado] = useState(null);
   const [filtroSelectServidor, setFiltroSelectServidor] = useState("");
   const [submittingAsignar, setSubmittingAsignar] = useState(false);
+  const [tabModalAsignar, setTabModalAsignar] = useState("asignar");
+  const [servidoresUnidad, setServidoresUnidad] = useState([]);
+  const [loadingServidoresUnidad, setLoadingServidoresUnidad] =
+    useState(false);
 
   // Posibles duplicados entre unidades manuales y el distributivo oficial
   const [posiblesDuplicados, setPosiblesDuplicados] = useState([]);
@@ -90,7 +109,9 @@ export default function GestionJefes() {
     try {
       const [unidadesData, firmantesData, servidoresData, duplicadosData] =
         await Promise.all([
-          api.get("/permisos/jefes").then((r) => r.data),
+          api
+            .get(`/permisos/jefes${mostrarTodas ? "?todas=true" : ""}`)
+            .then((r) => r.data),
           api.get("/permisos/firmantes-disponibles").then((r) => r.data),
           api
             .get("/permisos/usuarios-servidor?limit=1000")
@@ -121,7 +142,8 @@ export default function GestionJefes() {
 
   useEffect(() => {
     cargarDatos();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mostrarTodas]);
 
   const unidadesFiltradas = useMemo(() => {
     return unidades.filter((u) =>
@@ -144,6 +166,87 @@ export default function GestionJefes() {
       jefe_superior_id: unidad.jefe_superior_id || "",
     });
     setModalOpen(true);
+  };
+
+  const handleToggleActivo = async (unidad) => {
+    setTogglingActivoId(unidad.id);
+    try {
+      await toggleActivoUnidad(unidad.id, !unidad.activo);
+      Swal.fire({
+        toast: true,
+        icon: "success",
+        text: unidad.activo ? "Unidad desactivada" : "Unidad activada",
+        timer: 2000,
+        showConfirmButton: false,
+        position: "top-end",
+        background: "#ffffff",
+        color: "#1f2937",
+      });
+      // Si la estábamos desactivando y la vista actual es "solo activas",
+      // ya no debería listarse más — recargar en vez de solo mutar local.
+      cargarDatos();
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: err.response?.data?.message || "Error actualizando la unidad",
+        confirmButtonColor: "#ef4444",
+        background: "#ffffff",
+        color: "#1f2937",
+      });
+    } finally {
+      setTogglingActivoId(null);
+    }
+  };
+
+  const abrirModalDiasVacacion = (unidad) => {
+    setUnidadParaDias(unidad);
+    setDiasVacacionForm(String(unidad.dias_vacacion_anual ?? 30));
+    setModalDiasVacacion(true);
+  };
+
+  const handleGuardarDiasVacacion = async () => {
+    const dias = parseInt(diasVacacionForm, 10);
+    if (!Number.isInteger(dias) || dias <= 0 || dias > 365) {
+      Swal.fire({
+        toast: true,
+        icon: "warning",
+        text: "Ingresa un número de días válido (1-365)",
+        timer: 2200,
+        showConfirmButton: false,
+        position: "top-end",
+      });
+      return;
+    }
+    setSubmittingDiasVacacion(true);
+    try {
+      await actualizarDiasVacacionUnidad(unidadParaDias.id, dias);
+      Swal.fire({
+        toast: true,
+        icon: "success",
+        text: "Días de vacación actualizados",
+        timer: 2000,
+        showConfirmButton: false,
+        position: "top-end",
+        background: "#ffffff",
+        color: "#1f2937",
+      });
+      setModalDiasVacacion(false);
+      cargarDatos();
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text:
+          err.response?.data?.message ||
+          "Error actualizando los días de vacación",
+        confirmButtonColor: "#ef4444",
+        background: "#ffffff",
+        color: "#1f2937",
+      });
+    } finally {
+      setSubmittingDiasVacacion(false);
+    }
   };
 
   const handleGuardar = async () => {
@@ -241,7 +344,29 @@ export default function GestionJefes() {
     setUnidadParaAsignar(unidad);
     setServidorSeleccionado(null);
     setFiltroSelectServidor("");
+    setTabModalAsignar("asignar");
+    setServidoresUnidad([]);
     setModalAsignarServidor(true);
+  };
+
+  const abrirTabServidoresActuales = async (unidad) => {
+    setTabModalAsignar("actuales");
+    setLoadingServidoresUnidad(true);
+    try {
+      const data = await getServidoresDeUnidad(unidad.id);
+      setServidoresUnidad(data);
+    } catch {
+      Swal.fire({
+        toast: true,
+        icon: "error",
+        text: "No se pudo cargar la lista de servidores",
+        timer: 2200,
+        showConfirmButton: false,
+        position: "top-end",
+      });
+    } finally {
+      setLoadingServidoresUnidad(false);
+    }
   };
 
   const opcionesServidores = useMemo(() => {
@@ -436,16 +561,41 @@ export default function GestionJefes() {
           </div>
         )}
 
-        {/* Buscador */}
-        <div className="relative mb-6">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar unidad orgánica..."
-            className="w-full border-2 border-gray-200 rounded-xl pl-12 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all"
-          />
+        {/* Buscador + toggle Activas/Todas */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar unidad orgánica..."
+              className="w-full border-2 border-gray-200 rounded-xl pl-12 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all"
+            />
+          </div>
+
+          <div className="flex items-center bg-white border-2 border-gray-200 rounded-xl p-1 shadow-sm flex-shrink-0">
+            <button
+              onClick={() => setMostrarTodas(false)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                !mostrarTodas
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Activas
+            </button>
+            <button
+              onClick={() => setMostrarTodas(true)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                mostrarTodas
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Todas
+            </button>
+          </div>
         </div>
 
         {/* Lista de unidades */}
@@ -467,7 +617,11 @@ export default function GestionJefes() {
             {unidadesFiltradas.map((u) => (
               <div
                 key={u.id}
-                className="bg-white rounded-2xl border border-gray-200 shadow-md hover:shadow-xl transition-all duration-300 group overflow-hidden"
+                className={`bg-white rounded-2xl border shadow-md hover:shadow-xl transition-all duration-300 group overflow-hidden ${
+                  u.activo === false
+                    ? "border-red-200 opacity-70"
+                    : "border-gray-200"
+                }`}
               >
                 <div className="p-6">
                   <div className="flex items-start justify-between gap-4">
@@ -482,12 +636,19 @@ export default function GestionJefes() {
                         {u.origen === "MANUAL" && (
                           <Badge variant="warning">Manual</Badge>
                         )}
+                        {u.activo === false && (
+                          <Badge variant="danger">Inactiva</Badge>
+                        )}
                       </div>
                       {u.unidad_padre_nombre && (
                         <p className="text-xs text-gray-400 ml-11 mb-2">
                           Dentro de {u.unidad_padre_nombre}
                         </p>
                       )}
+                      <p className="text-xs text-gray-400 ml-11 flex items-center gap-1">
+                        <Calendar size={11} />
+                        {u.dias_vacacion_anual ?? 30} días de vacación/año
+                      </p>
 
                       <div className="space-y-4 mt-4">
                         {/* Jefe inmediato */}
@@ -546,6 +707,33 @@ export default function GestionJefes() {
                         title="Asignar servidor a esta unidad"
                       >
                         <UserPlus size={16} />
+                      </button>
+                      <button
+                        onClick={() => abrirModalDiasVacacion(u)}
+                        className="p-3 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-xl transition-all hover:scale-110 group-hover:shadow-md"
+                        title="Configurar días de vacación anuales"
+                      >
+                        <Settings size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleToggleActivo(u)}
+                        disabled={togglingActivoId === u.id}
+                        className={`p-3 rounded-xl transition-all hover:scale-110 group-hover:shadow-md disabled:opacity-50 disabled:hover:scale-100 ${
+                          u.activo === false
+                            ? "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                            : "bg-red-50 text-red-600 hover:bg-red-100"
+                        }`}
+                        title={
+                          u.activo === false
+                            ? "Activar unidad"
+                            : "Desactivar unidad"
+                        }
+                      >
+                        {togglingActivoId === u.id ? (
+                          <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                          <Power size={16} />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -881,7 +1069,7 @@ export default function GestionJefes() {
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setModalAsignarServidor(false)}
           />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in fade-in zoom-in duration-200">
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="bg-linear-to-r from-gray-900 to-gray-800 text-white px-6 py-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -890,7 +1078,7 @@ export default function GestionJefes() {
                   </div>
                   <div>
                     <h2 className="text-xl font-bold">Asignar Servidor</h2>
-                    <p className="text-sm text-gray-300 truncate max-w-[250px]">
+                    <p className="text-sm text-gray-300 truncate max-w-[300px]">
                       {unidadParaAsignar.unidad_organica}
                     </p>
                   </div>
@@ -902,40 +1090,229 @@ export default function GestionJefes() {
                   <X className="h-5 w-5" />
                 </button>
               </div>
+
+              {/* Pestañas */}
+              <div className="flex gap-1 mt-4 -mb-5">
+                <button
+                  onClick={() => setTabModalAsignar("asignar")}
+                  className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-t-lg transition-all ${
+                    tabModalAsignar === "asignar"
+                      ? "bg-white text-gray-900"
+                      : "text-gray-300 hover:text-white"
+                  }`}
+                >
+                  <UserPlus size={14} />
+                  Asignar
+                </button>
+                <button
+                  onClick={() => abrirTabServidoresActuales(unidadParaAsignar)}
+                  className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-t-lg transition-all ${
+                    tabModalAsignar === "actuales"
+                      ? "bg-white text-gray-900"
+                      : "text-gray-300 hover:text-white"
+                  }`}
+                >
+                  <Users size={14} />
+                  Servidores actuales
+                  {tabModalAsignar === "actuales" &&
+                    !loadingServidoresUnidad && (
+                      <span className="text-xs text-gray-500">
+                        ({servidoresUnidad.length})
+                      </span>
+                    )}
+                </button>
+              </div>
+            </div>
+
+            {tabModalAsignar === "asignar" ? (
+              <div className="p-6">
+                <SelectPremium
+                  label="Servidor"
+                  required
+                  placeholder="Escribe cédula o nombres (5+ caracteres)..."
+                  options={opcionesServidores}
+                  value={
+                    todosServidores
+                      .map((s) => ({
+                        value: s.servidor_id,
+                        label: `${s.nombres} — ${s.cedula}`,
+                      }))
+                      .find((o) => o.value === servidorSeleccionado) || null
+                  }
+                  onChange={(opt) => setServidorSeleccionado(opt?.value || null)}
+                  onInputChange={(val) => setFiltroSelectServidor(val || "")}
+                />
+                {filtroSelectServidor.length > 0 &&
+                  filtroSelectServidor.length < 5 && (
+                    <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
+                      <AlertCircle size={12} /> Escribe al menos 5 caracteres de
+                      cédula o nombres para ver resultados
+                    </p>
+                  )}
+
+                <div className="mt-5 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-700">
+                      Si el servidor ya tiene una asignación activa, se cerrará
+                      y quedará trasladado a esta unidad — no queda con dos
+                      asignaciones a la vez.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="p-6 max-h-96 overflow-y-auto">
+                {loadingServidoresUnidad ? (
+                  <div className="py-10 text-center">
+                    <Loader2 className="h-6 w-6 text-gray-400 animate-spin mx-auto" />
+                    <p className="text-sm text-gray-400 mt-2">Cargando...</p>
+                  </div>
+                ) : servidoresUnidad.length === 0 ? (
+                  <div className="py-10 text-center">
+                    <Users className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                    <p className="text-sm text-gray-400">
+                      Esta unidad todavía no tiene servidores asignados
+                    </p>
+                  </div>
+                ) : (
+                  <ul className="divide-y divide-gray-100">
+                    {servidoresUnidad.map((s) => (
+                      <li
+                        key={s.servidor_id}
+                        className="py-3 flex items-center justify-between gap-3"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-800 truncate">
+                            {s.nombres}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {s.cedula}
+                            {s.denominacion_puesto
+                              ? ` · ${s.denominacion_puesto}`
+                              : ""}
+                          </p>
+                        </div>
+                        {s.puesto_origen === "MANUAL" && (
+                          <Badge variant="warning">Manual</Badge>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+
+            <div className="bg-linear-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-6 py-5">
+              {tabModalAsignar === "asignar" ? (
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setModalAsignarServidor(false)}
+                    className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-100 transition-all"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleAsignarServidor}
+                    disabled={submittingAsignar}
+                    className="flex-1 px-4 py-3 bg-linear-to-r from-green-600 to-green-700 text-white rounded-xl font-medium hover:from-green-700 hover:to-green-800 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {submittingAsignar ? (
+                      <>
+                        <Loader2 size={16} className="animate-spin" />
+                        Trasladando...
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus size={16} />
+                        Trasladar Servidor
+                      </>
+                    )}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setModalAsignarServidor(false)}
+                  className="w-full px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-100 transition-all"
+                >
+                  Cerrar
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal - Configurar días de vacación anuales de la unidad */}
+      {modalDiasVacacion && unidadParaDias && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setModalDiasVacacion(false)}
+          />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="bg-linear-to-r from-gray-900 to-gray-800 text-white px-6 py-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/10 rounded-lg">
+                    <Settings className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold">Días de Vacación</h2>
+                    <p className="text-sm text-gray-300 truncate max-w-[250px]">
+                      {unidadParaDias.unidad_organica}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setModalDiasVacacion(false)}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-all hover:rotate-90"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
             </div>
 
             <div className="p-6">
-              <SelectPremium
-                label="Servidor"
-                required
-                placeholder="Escribe cédula o nombres (5+ caracteres)..."
-                options={opcionesServidores}
-                value={
-                  todosServidores
-                    .map((s) => ({
-                      value: s.servidor_id,
-                      label: `${s.nombres} — ${s.cedula}`,
-                    }))
-                    .find((o) => o.value === servidorSeleccionado) || null
-                }
-                onChange={(opt) => setServidorSeleccionado(opt?.value || null)}
-                onInputChange={(val) => setFiltroSelectServidor(val || "")}
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Días de vacación que acumula al año
+              </label>
+              <input
+                type="number"
+                min={1}
+                max={365}
+                value={diasVacacionForm}
+                onChange={(e) => setDiasVacacionForm(e.target.value)}
+                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Ej: 30"
               />
-              {filtroSelectServidor.length > 0 &&
-                filtroSelectServidor.length < 5 && (
-                  <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
-                    <AlertCircle size={12} /> Escribe al menos 5 caracteres de
-                    cédula o nombres para ver resultados
-                  </p>
-                )}
+              <p className="text-xs text-gray-400 mt-2">
+                {(() => {
+                  const dias = parseInt(diasVacacionForm, 10);
+                  if (!Number.isInteger(dias) || dias <= 0) {
+                    return "Ingresa un número de días para ver el equivalente mensual.";
+                  }
+                  const diasPorMes = dias / 12;
+                  const horasPorMes = (dias * 8) / 12;
+                  return (
+                    <>
+                      {dias} días/año ÷ 12 meses ={" "}
+                      <strong>{diasPorMes.toFixed(2)} días/mes</strong> ×
+                      8 horas (jornada) ={" "}
+                      <strong>{horasPorMes.toFixed(2)} horas/mes</strong>{" "}
+                      — eso es lo que acumularán los servidores de esta
+                      unidad cada mes, en vez del valor por defecto.
+                    </>
+                  );
+                })()}
+              </p>
 
               <div className="mt-5 p-3 bg-amber-50 border border-amber-200 rounded-xl">
                 <div className="flex items-start gap-2">
                   <AlertCircle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
                   <p className="text-xs text-amber-700">
-                    Si el servidor ya tiene una asignación activa, se cerrará
-                    y quedará trasladado a esta unidad — no queda con dos
-                    asignaciones a la vez.
+                    El cambio solo aplica hacia adelante — no recalcula lo
+                    que ya se acumuló este año.
                   </p>
                 </div>
               </div>
@@ -944,25 +1321,25 @@ export default function GestionJefes() {
             <div className="bg-linear-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-6 py-5">
               <div className="flex gap-3">
                 <button
-                  onClick={() => setModalAsignarServidor(false)}
+                  onClick={() => setModalDiasVacacion(false)}
                   className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-100 transition-all"
                 >
                   Cancelar
                 </button>
                 <button
-                  onClick={handleAsignarServidor}
-                  disabled={submittingAsignar}
-                  className="flex-1 px-4 py-3 bg-linear-to-r from-green-600 to-green-700 text-white rounded-xl font-medium hover:from-green-700 hover:to-green-800 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  onClick={handleGuardarDiasVacacion}
+                  disabled={submittingDiasVacacion}
+                  className="flex-1 px-4 py-3 bg-linear-to-r from-purple-600 to-purple-700 text-white rounded-xl font-medium hover:from-purple-700 hover:to-purple-800 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  {submittingAsignar ? (
+                  {submittingDiasVacacion ? (
                     <>
                       <Loader2 size={16} className="animate-spin" />
-                      Trasladando...
+                      Guardando...
                     </>
                   ) : (
                     <>
-                      <UserPlus size={16} />
-                      Trasladar Servidor
+                      <Settings size={16} />
+                      Guardar
                     </>
                   )}
                 </button>

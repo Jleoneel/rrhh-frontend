@@ -4,6 +4,7 @@ import Sidebar from "../Layout/Sidebar";
 import Header from "../Layout/Header";
 import NotificacionesToaster from "../../../features/notificaciones/components/NotificacionesToaster";
 import { NotificacionesProvider } from "../../../features/notificaciones/context/NotificacionesProvider";
+import AvisoCertificadoP12 from "./AvisoCertificadoP12";
 
 export default function MainLayout() {
   const [headerConfig, setHeaderConfig] = useState({
@@ -31,6 +32,7 @@ export default function MainLayout() {
         </div>
 
         <NotificacionesToaster />
+        <AvisoCertificadoP12 />
       </div>
     </NotificacionesProvider>
   );

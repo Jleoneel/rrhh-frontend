@@ -39,11 +39,25 @@ export const crearJefeFirmante = (data) =>
 // Unidades orgánicas manuales (no provienen del distributivo)
 export const crearUnidadOrganica = (data) =>
   api.post("/permisos/unidades-organicas", data).then((r) => r.data);
+export const toggleActivoUnidad = (unidadId, activo) =>
+  api
+    .patch(`/permisos/unidades-organicas/${unidadId}/activo`, { activo })
+    .then((r) => r.data);
+export const actualizarDiasVacacionUnidad = (unidadId, diasVacacionAnual) =>
+  api
+    .patch(`/permisos/unidades-organicas/${unidadId}/dias-vacacion`, {
+      dias_vacacion_anual: diasVacacionAnual,
+    })
+    .then((r) => r.data);
 export const asignarServidorAUnidad = (unidadId, servidorId) =>
   api
     .post(`/permisos/unidades-organicas/${unidadId}/asignar-servidor`, {
       servidor_id: servidorId,
     })
+    .then((r) => r.data);
+export const getServidoresDeUnidad = (unidadId) =>
+  api
+    .get(`/permisos/unidades-organicas/${unidadId}/servidores`)
     .then((r) => r.data);
 
 // Posibles duplicados entre unidades manuales y el distributivo oficial

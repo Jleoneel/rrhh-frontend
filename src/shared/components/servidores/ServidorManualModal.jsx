@@ -60,11 +60,13 @@ export default function ServidorManualModal({
   open,
   mode = "crear",
   servidorId = null,
+  continuarAccion = true,
   onClose,
   onSuccess,
 }) {
   const esEdicion = mode === "editar";
 
+  const [tab, setTab] = useState("personales");
   const [form, setForm] = useState(initialForm);
   const [cedulaError, setCedulaError] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -83,6 +85,7 @@ export default function ServidorManualModal({
     if (!open) return;
     if (esEdicion && !servidorId) return;
     setForm(initialForm);
+    setTab("personales");
     setCedulaError("");
     setEmailError("");
     setCatGrados([]);
@@ -230,7 +233,9 @@ export default function ServidorManualModal({
         toast: true,
         text: esEdicion
           ? "✓ Servidor actualizado correctamente"
-          : "✓ Servidor registrado. Continuando con la Acción de Personal...",
+          : continuarAccion
+            ? "✓ Servidor registrado. Continuando con la Acción de Personal..."
+            : "✓ Servidor registrado correctamente",
         icon: "success",
         showConfirmButton: false,
         timer: 2200,
@@ -263,10 +268,13 @@ export default function ServidorManualModal({
   const colorBoton = esEdicion
     ? "from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:hover:from-blue-500 disabled:hover:to-blue-600"
     : "from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:hover:from-amber-500 disabled:hover:to-amber-600";
+  const colorTabActivo = esEdicion
+    ? "border-blue-600 text-blue-600"
+    : "border-amber-600 text-amber-600";
 
   return (
-    <Modal open={open} onClose={handleClose} size="2xl">
-      <div className="p-8">
+    <Modal open={open} onClose={handleClose} size="2xl" className="max-h-[90vh]">
+      <div className="sticky top-0 bg-white z-10 px-8 pt-8 rounded-t-md">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className={`p-2.5 rounded-xl ${colorIcono}`}>
@@ -281,7 +289,9 @@ export default function ServidorManualModal({
               <p className="text-sm text-gray-500 mt-0.5">
                 {esEdicion
                   ? "Estos datos son los que se usan al crear una Acción de Personal para este servidor"
-                  : "Ingrese manualmente los datos necesarios para crear la Acción de Personal"}
+                  : continuarAccion
+                    ? "Ingrese manualmente los datos necesarios para crear la Acción de Personal"
+                    : "Ingrese manualmente los datos del servidor para registrarlo en el sistema"}
               </p>
             </div>
           </div>
@@ -295,15 +305,45 @@ export default function ServidorManualModal({
           </button>
         </div>
 
-        {loadingDatos ? (
-          <div className="py-20 text-center">
-            <Loader2 className="h-8 w-8 text-blue-600 animate-spin mx-auto" />
-            <p className="text-gray-500 text-sm mt-2">Cargando datos...</p>
+        {!loadingDatos && (
+          <div className="flex gap-1 border-b border-gray-200">
+            <button
+              type="button"
+              onClick={() => setTab("personales")}
+              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all ${
+                tab === "personales"
+                  ? colorTabActivo
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <User size={14} />
+              Datos personales
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab("laboral")}
+              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all ${
+                tab === "laboral"
+                  ? colorTabActivo
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <Building2 size={14} />
+              Situación laboral
+            </button>
           </div>
-        ) : (
-          <>
-            <div className="space-y-6">
-              {/* Identidad */}
+        )}
+      </div>
+
+      {loadingDatos ? (
+        <div className="py-20 text-center">
+          <Loader2 className="h-8 w-8 text-blue-600 animate-spin mx-auto" />
+          <p className="text-gray-500 text-sm mt-2">Cargando datos...</p>
+        </div>
+      ) : (
+        <>
+          <div className="p-8 max-h-[calc(90vh-220px)] overflow-y-auto">
+            {tab === "personales" && (
               <div className="bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -417,12 +457,10 @@ export default function ServidorManualModal({
                   </div>
                 </div>
               </div>
+            )}
 
-              {/* Situación laboral */}
+            {tab === "laboral" && (
               <div className="bg-linear-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-2xl p-6">
-                <h3 className="text-sm font-bold text-gray-700 mb-4">
-                  Situación laboral
-                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <SelectPremium
                     label="Régimen laboral"
@@ -643,40 +681,46 @@ export default function ServidorManualModal({
                   </div>
                 </div>
               </div>
-            </div>
+            )}
+          </div>
 
-            <div className="flex items-center justify-between pt-6 mt-6 border-t border-gray-200">
-              <button
-                type="button"
-                onClick={handleClose}
-                disabled={saving}
-                className="px-5 py-2.5 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all disabled:opacity-50"
-              >
-                Cancelar
-              </button>
+          <div className="sticky bottom-0 bg-linear-to-r from-gray-50 to-gray-100 border-t border-gray-200 flex items-center justify-between px-8 py-5">
+            <button
+              type="button"
+              onClick={handleClose}
+              disabled={saving}
+              className="px-5 py-2.5 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all disabled:opacity-50"
+            >
+              Cancelar
+            </button>
 
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={saving || !canSubmit}
-                className={`flex items-center gap-2 px-5 py-2.5 bg-linear-to-r text-white rounded-xl transition-all shadow-lg hover:shadow-xl font-medium disabled:opacity-60 disabled:cursor-not-allowed ${colorBoton}`}
-              >
-                {saving ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    <span>{esEdicion ? "Guardando..." : "Registrando..."}</span>
-                  </>
-                ) : (
-                  <>
-                    <Icono size={18} />
-                    <span>{esEdicion ? "Guardar cambios" : "Registrar y continuar"}</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </>
-        )}
-      </div>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={saving || !canSubmit}
+              className={`flex items-center gap-2 px-5 py-2.5 bg-linear-to-r text-white rounded-xl transition-all shadow-lg hover:shadow-xl font-medium disabled:opacity-60 disabled:cursor-not-allowed ${colorBoton}`}
+            >
+              {saving ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" />
+                  <span>{esEdicion ? "Guardando..." : "Registrando..."}</span>
+                </>
+              ) : (
+                <>
+                  <Icono size={18} />
+                  <span>
+                    {esEdicion
+                      ? "Guardar cambios"
+                      : continuarAccion
+                        ? "Registrar y continuar"
+                        : "Registrar servidor"}
+                  </span>
+                </>
+              )}
+            </button>
+          </div>
+        </>
+      )}
     </Modal>
   );
 }
