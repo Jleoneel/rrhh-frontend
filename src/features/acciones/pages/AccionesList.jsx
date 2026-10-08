@@ -20,9 +20,7 @@ const ROLES = {
 const initialFilters = {
   estado: "",
   tipo_accion: "",
-  cedula: "",
-  desde: "",
-  hasta: "",
+  busqueda: "",
 };
 
 // Componente de loading reutilizable
@@ -162,20 +160,6 @@ export default function AccionesList() {
 
   const handleBuscar = (e) => {
     e.preventDefault();
-    
-    // Validar fechas si ambas están presentes
-    if (filters.desde && filters.hasta) {
-      if (new Date(filters.desde) > new Date(filters.hasta)) {
-        Swal.fire({
-          icon: "warning",
-          title: "Fechas inválidas",
-          text: "La fecha 'desde' no puede ser mayor que la fecha 'hasta'",
-          confirmButtonColor: "#3085d6",
-        });
-        return;
-      }
-    }
-    
     fetchAcciones(filters);
   };
 

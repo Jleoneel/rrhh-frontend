@@ -21,6 +21,7 @@ import {
   Pencil,
   History,
   UserPlus,
+  Power,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import api from "../../../shared/api/axios";
@@ -31,6 +32,7 @@ import {
   crearSaldo,
   actualizarSaldo,
   resetPasswordServidor,
+  toggleActivoServidor,
 } from "../hooks/permisos.uath.service";
 import SelectPremium from "../../../shared/components/Layout/SelectPremiun";
 import ServidorManualModal from "../../../shared/components/servidores/ServidorManualModal";
@@ -82,6 +84,9 @@ export default function GestionPermisos() {
   // Filtros
   const [search, setSearch] = useState("");
   const [filtroUsuario, setFiltroUsuario] = useState("todos");
+  const [mostrarTodosServidores, setMostrarTodosServidores] = useState(false);
+  const [togglingActivoServidorId, setTogglingActivoServidorId] =
+    useState(null);
   const [searchSaldos, setSearchSaldos] = useState("");
   const [pageSaldos, setPageSaldos] = useState(1);
   const [limitSaldos, setLimitSaldos] = useState(10);
@@ -147,6 +152,12 @@ export default function GestionPermisos() {
     cargarServidores({ page: 1, limit, search, filtro: value });
   };
 
+  const handleToggleMostrarTodosServidores = (todas) => {
+    setMostrarTodosServidores(todas);
+    setPage(1);
+    cargarServidores({ page: 1, limit, search, filtro: filtroUsuario, todas });
+  };
+
   const cargarServidores = async (params = {}) => {
     setLoadingTabla(true);
     try {
@@ -155,6 +166,8 @@ export default function GestionPermisos() {
         limit: params.limit || limit,
         search: params.search !== undefined ? params.search : search,
         filtro: params.filtro !== undefined ? params.filtro : filtroUsuario,
+        todas:
+          params.todas !== undefined ? params.todas : mostrarTodosServidores,
       });
       setServidores(result.data);
       setTotalPages(result.totalPages);
@@ -336,6 +349,63 @@ export default function GestionPermisos() {
       });
     } finally {
       setSubmittingReset(false);
+    }
+  };
+
+  const handleToggleActivoServidor = async (servidor) => {
+    const estaActivo = servidor.activo !== false;
+
+    if (estaActivo) {
+      const confirm = await Swal.fire({
+        title: "¿Dar de baja a este servidor?",
+        html: `
+          <div class="text-left">
+            <p class="text-gray-600 mb-2">Servidor:</p>
+            <p class="font-semibold text-gray-900">${servidor.nombres}</p>
+            <p class="text-sm text-gray-500 mt-2">${servidor.cedula}</p>
+            <div class="mt-4 p-3 bg-red-50 rounded-lg border border-red-200">
+              <p class="text-xs text-red-700">
+                Úsalo cuando la persona fue despedida o se retiró del
+                hospital. No podrá iniciar sesión en el sistema ni se le
+                podrán crear nuevas Acciones de Personal. Puedes reactivarlo
+                después si fue un error.
+              </p>
+            </div>
+          </div>
+        `,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí, dar de baja",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#ef4444",
+        cancelButtonColor: "#6b7280",
+      });
+      if (!confirm.isConfirmed) return;
+    }
+
+    setTogglingActivoServidorId(servidor.servidor_id);
+    try {
+      await toggleActivoServidor(servidor.servidor_id, !estaActivo);
+      Swal.fire({
+        toast: true,
+        icon: "success",
+        text: estaActivo ? "Servidor dado de baja" : "Servidor reactivado",
+        timer: 2200,
+        showConfirmButton: false,
+        position: "top-end",
+      });
+      cargarServidores({ page, limit, search, filtro: filtroUsuario });
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text:
+          err.response?.data?.message ||
+          "No se pudo actualizar el estado del servidor",
+        confirmButtonColor: "#ef4444",
+      });
+    } finally {
+      setTogglingActivoServidorId(null);
     }
   };
 
@@ -804,6 +874,28 @@ export default function GestionPermisos() {
                       </select>
                       <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
                     </div>
+                    <div className="flex items-center bg-white border-2 border-gray-200 rounded-xl p-1 shadow-sm flex-shrink-0">
+                      <button
+                        onClick={() => handleToggleMostrarTodosServidores(false)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                          !mostrarTodosServidores
+                            ? "bg-blue-600 text-white shadow-sm"
+                            : "text-gray-500 hover:text-gray-700"
+                        }`}
+                      >
+                        Activos
+                      </button>
+                      <button
+                        onClick={() => handleToggleMostrarTodosServidores(true)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                          mostrarTodosServidores
+                            ? "bg-blue-600 text-white shadow-sm"
+                            : "text-gray-500 hover:text-gray-700"
+                        }`}
+                      >
+                        Todos
+                      </button>
+                    </div>
                   </div>
 
                   {/* Tabla */}
@@ -866,6 +958,11 @@ export default function GestionPermisos() {
                                   <span className="font-semibold text-gray-900">
                                     {s.nombres}
                                   </span>
+                                  {s.activo === false && (
+                                    <span className="bg-red-100 text-red-700 border border-red-200 px-2 py-0.5 rounded-lg text-xs font-medium">
+                                      Inactivo
+                                    </span>
+                                  )}
                                 </div>
                               </td>
                               <td className="px-6 py-4 font-mono text-sm text-gray-600">
@@ -943,6 +1040,24 @@ export default function GestionPermisos() {
                                       <Pencil size={16} />
                                     </button>
                                   )}
+                                  <button
+                                    onClick={() => handleToggleActivoServidor(s)}
+                                    disabled={
+                                      togglingActivoServidorId === s.servidor_id
+                                    }
+                                    className={`p-2 rounded-lg transition-all hover:scale-110 disabled:opacity-50 disabled:hover:scale-100 ${
+                                      s.activo === false
+                                        ? "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                                        : "bg-red-50 text-red-600 hover:bg-red-100"
+                                    }`}
+                                    title={
+                                      s.activo === false
+                                        ? "Reactivar servidor"
+                                        : "Dar de baja (despedido/retirado)"
+                                    }
+                                  >
+                                    <Power size={16} />
+                                  </button>
                                 </div>
                               </td>
                             </tr>

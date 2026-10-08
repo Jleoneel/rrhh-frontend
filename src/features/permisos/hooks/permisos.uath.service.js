@@ -14,6 +14,13 @@ export const toggleUsuarioServidor = (id, activo) =>
 export const resetPasswordServidor = (servidorId, password) =>
   api.patch(`/servidores/${servidorId}/reset-password`, { password }).then((r) => r.data);
 
+// Dar de baja / reactivar un servidor (despedido o se retiró del hospital).
+// No puede iniciar sesión ni se le pueden crear nuevas Acciones de Personal.
+export const toggleActivoServidor = (servidorId, activo) =>
+  api
+    .patch(`/servidores/${servidorId}/activo`, { activo })
+    .then((r) => r.data);
+
 // Servidor manual (origen='MANUAL'): edición de los datos con los que
 // se creó, usados luego al generar una Acción de Personal.
 export const getServidorManual = (servidorId) =>
@@ -43,12 +50,6 @@ export const toggleActivoUnidad = (unidadId, activo) =>
   api
     .patch(`/permisos/unidades-organicas/${unidadId}/activo`, { activo })
     .then((r) => r.data);
-export const actualizarDiasVacacionUnidad = (unidadId, diasVacacionAnual) =>
-  api
-    .patch(`/permisos/unidades-organicas/${unidadId}/dias-vacacion`, {
-      dias_vacacion_anual: diasVacacionAnual,
-    })
-    .then((r) => r.data);
 export const asignarServidorAUnidad = (unidadId, servidorId) =>
   api
     .post(`/permisos/unidades-organicas/${unidadId}/asignar-servidor`, {
@@ -58,6 +59,15 @@ export const asignarServidorAUnidad = (unidadId, servidorId) =>
 export const getServidoresDeUnidad = (unidadId) =>
   api
     .get(`/permisos/unidades-organicas/${unidadId}/servidores`)
+    .then((r) => r.data);
+
+// Días de vacación anuales que acumula este servidor. diasVacacionAnual=null
+// revierte al default del sistema (30).
+export const actualizarDiasVacacionServidor = (servidorId, diasVacacionAnual) =>
+  api
+    .patch(`/permisos/servidores/${servidorId}/dias-vacacion`, {
+      dias_vacacion_anual: diasVacacionAnual,
+    })
     .then((r) => r.data);
 
 // Posibles duplicados entre unidades manuales y el distributivo oficial

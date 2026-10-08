@@ -19,7 +19,6 @@ import {
   AlertTriangle,
   Power,
   Settings,
-  Calendar,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import api from "../../../shared/api/axios";
@@ -30,7 +29,7 @@ import {
   asignarServidorAUnidad,
   getServidoresDeUnidad,
   toggleActivoUnidad,
-  actualizarDiasVacacionUnidad,
+  actualizarDiasVacacionServidor,
   getPosiblesDuplicados,
   descartarDuplicado,
 } from "../hooks/permisos.uath.service";
@@ -69,11 +68,14 @@ export default function GestionJefes() {
   const [mostrarTodas, setMostrarTodas] = useState(false);
   const [togglingActivoId, setTogglingActivoId] = useState(null);
 
-  // Configurar días de vacación anuales por unidad
-  const [modalDiasVacacion, setModalDiasVacacion] = useState(false);
-  const [unidadParaDias, setUnidadParaDias] = useState(null);
-  const [diasVacacionForm, setDiasVacacionForm] = useState("30");
-  const [submittingDiasVacacion, setSubmittingDiasVacacion] = useState(false);
+  // Configurar días de vacación anuales por servidor (override individual)
+  const [modalDiasVacacionServidor, setModalDiasVacacionServidor] =
+    useState(false);
+  const [servidorParaDias, setServidorParaDias] = useState(null);
+  const [diasVacacionServidorForm, setDiasVacacionServidorForm] =
+    useState("30");
+  const [submittingDiasVacacionServidor, setSubmittingDiasVacacionServidor] =
+    useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [selected, setSelected] = useState(null);
   const [form, setForm] = useState({ jefe_id: "", jefe_superior_id: "" });
@@ -199,53 +201,54 @@ export default function GestionJefes() {
     }
   };
 
-  const abrirModalDiasVacacion = (unidad) => {
-    setUnidadParaDias(unidad);
-    setDiasVacacionForm(String(unidad.dias_vacacion_anual ?? 30));
-    setModalDiasVacacion(true);
+  const abrirModalDiasVacacionServidor = (servidor) => {
+    setServidorParaDias(servidor);
+    setDiasVacacionServidorForm(String(servidor.dias_vacacion_anual ?? 30));
+    setModalDiasVacacionServidor(true);
   };
 
-  const handleGuardarDiasVacacion = async () => {
-    const dias = parseInt(diasVacacionForm, 10);
-    if (!Number.isInteger(dias) || dias <= 0 || dias > 365) {
-      Swal.fire({
-        toast: true,
-        icon: "warning",
-        text: "Ingresa un número de días válido (1-365)",
-        timer: 2200,
-        showConfirmButton: false,
-        position: "top-end",
-      });
-      return;
-    }
-    setSubmittingDiasVacacion(true);
+  const refrescarServidoresUnidad = async () => {
+    if (!unidadParaAsignar) return;
     try {
-      await actualizarDiasVacacionUnidad(unidadParaDias.id, dias);
+      const data = await getServidoresDeUnidad(unidadParaAsignar.id);
+      setServidoresUnidad(data);
+    } catch {
+      // la lista ya cargada se queda visible; el próximo refresh la corrige
+    }
+  };
+
+  const handleGuardarDiasVacacionServidor = async (dias) => {
+    setSubmittingDiasVacacionServidor(true);
+    try {
+      await actualizarDiasVacacionServidor(servidorParaDias.servidor_id, dias);
       Swal.fire({
         toast: true,
         icon: "success",
-        text: "Días de vacación actualizados",
-        timer: 2000,
+        text:
+          dias === null
+            ? "Se quitó la personalización — ahora usa el valor por defecto (30)"
+            : "Días de vacación actualizados",
+        timer: 2200,
         showConfirmButton: false,
         position: "top-end",
         background: "#ffffff",
         color: "#1f2937",
       });
-      setModalDiasVacacion(false);
-      cargarDatos();
+      setModalDiasVacacionServidor(false);
+      await refrescarServidoresUnidad();
     } catch (err) {
       Swal.fire({
         icon: "error",
         title: "Error",
         text:
           err.response?.data?.message ||
-          "Error actualizando los días de vacación",
+          "Error actualizando los días de vacación del servidor",
         confirmButtonColor: "#ef4444",
         background: "#ffffff",
         color: "#1f2937",
       });
     } finally {
-      setSubmittingDiasVacacion(false);
+      setSubmittingDiasVacacionServidor(false);
     }
   };
 
@@ -645,10 +648,6 @@ export default function GestionJefes() {
                           Dentro de {u.unidad_padre_nombre}
                         </p>
                       )}
-                      <p className="text-xs text-gray-400 ml-11 flex items-center gap-1">
-                        <Calendar size={11} />
-                        {u.dias_vacacion_anual ?? 30} días de vacación/año
-                      </p>
 
                       <div className="space-y-4 mt-4">
                         {/* Jefe inmediato */}
@@ -707,13 +706,6 @@ export default function GestionJefes() {
                         title="Asignar servidor a esta unidad"
                       >
                         <UserPlus size={16} />
-                      </button>
-                      <button
-                        onClick={() => abrirModalDiasVacacion(u)}
-                        className="p-3 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-xl transition-all hover:scale-110 group-hover:shadow-md"
-                        title="Configurar días de vacación anuales"
-                      >
-                        <Settings size={16} />
                       </button>
                       <button
                         onClick={() => handleToggleActivo(u)}
@@ -1193,9 +1185,23 @@ export default function GestionJefes() {
                               : ""}
                           </p>
                         </div>
-                        {s.puesto_origen === "MANUAL" && (
-                          <Badge variant="warning">Manual</Badge>
-                        )}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {s.dias_vacacion_anual != null && (
+                            <Badge variant="info">
+                              {s.dias_vacacion_anual}d/año
+                            </Badge>
+                          )}
+                          {s.puesto_origen === "MANUAL" && (
+                            <Badge variant="warning">Manual</Badge>
+                          )}
+                          <button
+                            onClick={() => abrirModalDiasVacacionServidor(s)}
+                            className="p-2 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-lg transition-all hover:scale-110"
+                            title="Configurar días de vacación de este servidor"
+                          >
+                            <Settings size={14} />
+                          </button>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -1243,12 +1249,12 @@ export default function GestionJefes() {
         </div>
       )}
 
-      {/* Modal - Configurar días de vacación anuales de la unidad */}
-      {modalDiasVacacion && unidadParaDias && (
+      {/* Modal - Configurar días de vacación anuales de un servidor */}
+      {modalDiasVacacionServidor && servidorParaDias && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setModalDiasVacacion(false)}
+            onClick={() => setModalDiasVacacionServidor(false)}
           />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="bg-linear-to-r from-gray-900 to-gray-800 text-white px-6 py-5">
@@ -1260,12 +1266,12 @@ export default function GestionJefes() {
                   <div>
                     <h2 className="text-xl font-bold">Días de Vacación</h2>
                     <p className="text-sm text-gray-300 truncate max-w-[250px]">
-                      {unidadParaDias.unidad_organica}
+                      {servidorParaDias.nombres}
                     </p>
                   </div>
                 </div>
                 <button
-                  onClick={() => setModalDiasVacacion(false)}
+                  onClick={() => setModalDiasVacacionServidor(false)}
                   className="p-2 hover:bg-white/10 rounded-lg transition-all hover:rotate-90"
                 >
                   <X className="h-5 w-5" />
@@ -1274,6 +1280,18 @@ export default function GestionJefes() {
             </div>
 
             <div className="p-6">
+              {servidorParaDias.dias_vacacion_anual != null ? (
+                <p className="text-xs text-purple-600 bg-purple-50 border border-purple-200 rounded-lg px-3 py-2 mb-4">
+                  Este servidor tiene una tasa personalizada. Sin
+                  personalizar, usaría el valor por defecto (30).
+                </p>
+              ) : (
+                <p className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 mb-4">
+                  Este servidor todavía no tiene una tasa personalizada —
+                  usa el valor por defecto del sistema (30 días/año).
+                </p>
+              )}
+
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Días de vacación que acumula al año
               </label>
@@ -1281,14 +1299,14 @@ export default function GestionJefes() {
                 type="number"
                 min={1}
                 max={365}
-                value={diasVacacionForm}
-                onChange={(e) => setDiasVacacionForm(e.target.value)}
+                value={diasVacacionServidorForm}
+                onChange={(e) => setDiasVacacionServidorForm(e.target.value)}
                 className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Ej: 30"
               />
               <p className="text-xs text-gray-400 mt-2">
                 {(() => {
-                  const dias = parseInt(diasVacacionForm, 10);
+                  const dias = parseInt(diasVacacionServidorForm, 10);
                   if (!Number.isInteger(dias) || dias <= 0) {
                     return "Ingresa un número de días para ver el equivalente mensual.";
                   }
@@ -1300,8 +1318,7 @@ export default function GestionJefes() {
                       <strong>{diasPorMes.toFixed(2)} días/mes</strong> ×
                       8 horas (jornada) ={" "}
                       <strong>{horasPorMes.toFixed(2)} horas/mes</strong>{" "}
-                      — eso es lo que acumularán los servidores de esta
-                      unidad cada mes, en vez del valor por defecto.
+                      — eso es lo que acumulará este servidor cada mes.
                     </>
                   );
                 })()}
@@ -1318,20 +1335,34 @@ export default function GestionJefes() {
               </div>
             </div>
 
-            <div className="bg-linear-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-6 py-5">
+            <div className="bg-linear-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-6 py-5 space-y-3">
               <div className="flex gap-3">
                 <button
-                  onClick={() => setModalDiasVacacion(false)}
+                  onClick={() => setModalDiasVacacionServidor(false)}
                   className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-100 transition-all"
                 >
                   Cancelar
                 </button>
                 <button
-                  onClick={handleGuardarDiasVacacion}
-                  disabled={submittingDiasVacacion}
+                  onClick={() => {
+                    const dias = parseInt(diasVacacionServidorForm, 10);
+                    if (!Number.isInteger(dias) || dias <= 0 || dias > 365) {
+                      Swal.fire({
+                        toast: true,
+                        icon: "warning",
+                        text: "Ingresa un número de días válido (1-365)",
+                        timer: 2200,
+                        showConfirmButton: false,
+                        position: "top-end",
+                      });
+                      return;
+                    }
+                    handleGuardarDiasVacacionServidor(dias);
+                  }}
+                  disabled={submittingDiasVacacionServidor}
                   className="flex-1 px-4 py-3 bg-linear-to-r from-purple-600 to-purple-700 text-white rounded-xl font-medium hover:from-purple-700 hover:to-purple-800 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  {submittingDiasVacacion ? (
+                  {submittingDiasVacacionServidor ? (
                     <>
                       <Loader2 size={16} className="animate-spin" />
                       Guardando...
@@ -1344,6 +1375,15 @@ export default function GestionJefes() {
                   )}
                 </button>
               </div>
+              {servidorParaDias.dias_vacacion_anual != null && (
+                <button
+                  onClick={() => handleGuardarDiasVacacionServidor(null)}
+                  disabled={submittingDiasVacacionServidor}
+                  className="w-full px-4 py-2.5 text-sm text-gray-500 hover:text-gray-700 font-medium transition-all disabled:opacity-50"
+                >
+                  Quitar personalización (volver al valor por defecto)
+                </button>
+              )}
             </div>
           </div>
         </div>

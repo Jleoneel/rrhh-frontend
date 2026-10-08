@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   Search,
   X,
-  Calendar,
   User,
   FileText,
   Tag,
@@ -183,18 +182,18 @@ export default function AccionesFilters({
       {/* Formulario de filtros */}
       <form onSubmit={onBuscar} className="space-y-6">
         {/* Filtros principales */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
               <User size={16} />
-              <span>Cédula / Identificación</span>
+              <span>Buscar por cédula o apellidos</span>
             </label>
             <div className="relative">
               <input
-                value={filters.cedula}
-                onChange={(e) => onChange("cedula", e.target.value)}
+                value={filters.busqueda}
+                onChange={(e) => onChange("busqueda", e.target.value)}
                 className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-all"
-                placeholder="Ej: 1700000000"
+                placeholder="Ej: 1700000000 o Pérez"
               />
               <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             </div>
@@ -218,40 +217,6 @@ export default function AccionesFilters({
               <option value="INSUBSISTENTE" className="text-red-600">🔴 Insubsistente</option>
             </select>
           </div>
-
-          {/* Fecha desde */}
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <Calendar size={16} />
-              <span>Fecha desde</span>
-            </label>
-            <div className="relative">
-              <input
-                type="date"
-                value={filters.desde}
-                onChange={(e) => onChange("desde", e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-all"
-              />
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            </div>
-          </div>
-
-          {/* Fecha hasta */}
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <Calendar size={16} />
-              <span>Fecha hasta</span>
-            </label>
-            <div className="relative">
-              <input
-                type="date"
-                value={filters.hasta}
-                onChange={(e) => onChange("hasta", e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-all"
-              />
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            </div>
-          </div>
         </div>
 
         {/* Contadores y acciones */}
@@ -263,9 +228,8 @@ export default function AccionesFilters({
             </div>
             <div className="hidden md:block">
               <span className="font-medium">Filtros activos: </span>
-              {filters.cedula && <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">Cédula</span>}
+              {filters.busqueda && <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">Búsqueda</span>}
               {filters.estado && <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs ml-2">Estado</span>}
-              {filters.desde && <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs ml-2">Fecha</span>}
             </div>
           </div>
 
