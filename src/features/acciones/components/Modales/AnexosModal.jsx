@@ -282,8 +282,12 @@ export default function AnexosModal({ open, onClose, accion, maxFiles = 5 }) {
   };
 
   const onDownload = (anexoId) => {
+    // window.open es una navegación simple — no envía el header
+    // Authorization, así que el token va por query string (mismo
+    // respaldo que ya usa requireAuth para los streams SSE).
+    const token = localStorage.getItem("token");
     window.open(
-      `${import.meta.env.VITE_API_URL || ""}/api/acciones/${accionId}/anexos/${anexoId}/descargar`,
+      `${import.meta.env.VITE_API_URL || ""}/api/acciones/${accionId}/anexos/${anexoId}/descargar?token=${token}`,
       "_blank",
     );
   };

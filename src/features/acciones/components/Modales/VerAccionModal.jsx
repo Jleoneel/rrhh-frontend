@@ -137,7 +137,10 @@ export default function VerAccionModal({ open, accion, onClose, onChanged }) {
   const handleDownloadFirmado = (archivo_path) => {
     if (!archivo_path) return;
     const apiBase = api.defaults.baseURL?.replace(/\/api\/?$/, "") || "";
-    window.open(`${apiBase}${archivo_path}`, "_blank");
+    // window.open no manda el header Authorization — /uploads exige
+    // auth, así que el token va por query string.
+    const token = localStorage.getItem("token");
+    window.open(`${apiBase}${archivo_path}?token=${token}`, "_blank");
   };
 
   const handleFirmarDigital = async () => {

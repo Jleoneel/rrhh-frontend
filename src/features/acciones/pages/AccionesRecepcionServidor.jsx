@@ -65,7 +65,10 @@ export default function AccionesRecepcionServidor() {
   const handleDownload = (archivoPath) => {
     if (!archivoPath) return;
     const apiBase = api.defaults.baseURL?.replace(/\/api\/?$/, "") || "";
-    window.open(`${apiBase}${archivoPath}`, "_blank");
+    // window.open no manda el header Authorization — /uploads exige
+    // auth, así que el token va por query string.
+    const token = localStorage.getItem("token");
+    window.open(`${apiBase}${archivoPath}?token=${token}`, "_blank");
   };
 
   const abrirModalFirma = (item) => {
