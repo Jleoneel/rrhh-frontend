@@ -21,6 +21,7 @@ export default function AvisoCertificadoP12() {
 
   useEffect(() => {
     if (!user) return;
+    if (user.debe_cambiar_password) return; // primero el cambio de contraseña obligatorio
     if (sessionStorage.getItem(FLAG_KEY)) return;
     sessionStorage.setItem(FLAG_KEY, "1");
 
