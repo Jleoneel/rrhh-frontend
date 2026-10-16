@@ -70,6 +70,14 @@ export const actualizarDiasVacacionServidor = (servidorId, diasVacacionAnual) =>
     })
     .then((r) => r.data);
 
+// Correos fijos a los que se notifica (además del servidor) cuando se
+// aprueba un permiso por horas o una vacación — configuración global,
+// no depende de la unidad orgánica.
+export const getConfiguracionNotificaciones = () =>
+  api.get("/permisos/configuracion-notificaciones").then((r) => r.data);
+export const actualizarConfiguracionNotificaciones = (data) =>
+  api.put("/permisos/configuracion-notificaciones", data).then((r) => r.data);
+
 // Posibles duplicados entre unidades manuales y el distributivo oficial
 export const getPosiblesDuplicados = () =>
   api.get("/permisos/unidades-posibles-duplicados").then((r) => r.data);

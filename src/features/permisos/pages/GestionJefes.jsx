@@ -19,6 +19,7 @@ import {
   AlertTriangle,
   Power,
   Settings,
+  Mail,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import api from "../../../shared/api/axios";
@@ -32,6 +33,8 @@ import {
   actualizarDiasVacacionServidor,
   getPosiblesDuplicados,
   descartarDuplicado,
+  getConfiguracionNotificaciones,
+  actualizarConfiguracionNotificaciones,
 } from "../hooks/permisos.uath.service";
 
 const Badge = ({ children, variant = "default" }) => {
@@ -105,6 +108,15 @@ export default function GestionJefes() {
   // Posibles duplicados entre unidades manuales y el distributivo oficial
   const [posiblesDuplicados, setPosiblesDuplicados] = useState([]);
   const [descartandoId, setDescartandoId] = useState(null);
+
+  // Configuración de notificaciones (correos fijos, no por unidad)
+  const [modalNotificaciones, setModalNotificaciones] = useState(false);
+  const [formNotificaciones, setFormNotificaciones] = useState({
+    email_notificacion_permisos: "",
+    email_notificacion_vacaciones: "",
+  });
+  const [cargandoNotificaciones, setCargandoNotificaciones] = useState(false);
+  const [guardandoNotificaciones, setGuardandoNotificaciones] = useState(false);
 
   const cargarDatos = async () => {
     setLoading(true);
@@ -283,6 +295,50 @@ export default function GestionJefes() {
       });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const abrirModalNotificaciones = async () => {
+    setModalNotificaciones(true);
+    setCargandoNotificaciones(true);
+    try {
+      const data = await getConfiguracionNotificaciones();
+      setFormNotificaciones({
+        email_notificacion_permisos: data.email_notificacion_permisos || "",
+        email_notificacion_vacaciones: data.email_notificacion_vacaciones || "",
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "No se pudo cargar",
+        text: err.response?.data?.message || "Error obteniendo la configuración",
+      });
+      setModalNotificaciones(false);
+    } finally {
+      setCargandoNotificaciones(false);
+    }
+  };
+
+  const handleGuardarNotificaciones = async () => {
+    setGuardandoNotificaciones(true);
+    try {
+      await actualizarConfiguracionNotificaciones(formNotificaciones);
+      await Swal.fire({
+        icon: "success",
+        title: "Configuración guardada",
+        timer: 1800,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+      setModalNotificaciones(false);
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "No se pudo guardar",
+        text: err.response?.data?.message || "Error actualizando la configuración",
+      });
+    } finally {
+      setGuardandoNotificaciones(false);
     }
   };
 
@@ -478,6 +534,14 @@ export default function GestionJefes() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <button
+                onClick={abrirModalNotificaciones}
+                className="px-5 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                title="Correos a los que se notifica al aprobar permisos por horas y vacaciones"
+              >
+                <Mail size={18} />
+                Notificaciones
+              </button>
               <button
                 onClick={abrirModalCrearUnidad}
                 className="px-5 py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
@@ -879,6 +943,111 @@ export default function GestionJefes() {
                       Guardar Cambios
                     </>
                   )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal - Configuración de notificaciones (correos fijos, globales) */}
+      {modalNotificaciones && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setModalNotificaciones(false)}
+          />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="bg-linear-to-r from-gray-900 to-gray-800 text-white px-6 py-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/10 rounded-lg">
+                    <Mail className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold">Correos de notificación</h2>
+                    <p className="text-sm text-gray-300">
+                      Destinatarios fijos al aprobar, aplica a todo el sistema
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setModalNotificaciones(false)}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-all hover:rotate-90"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              {cargandoNotificaciones ? (
+                <div className="flex items-center justify-center py-10">
+                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Correo para permisos por horas aprobados
+                    </label>
+                    <input
+                      type="email"
+                      value={formNotificaciones.email_notificacion_permisos}
+                      onChange={(e) =>
+                        setFormNotificaciones((p) => ({
+                          ...p,
+                          email_notificacion_permisos: e.target.value,
+                        }))
+                      }
+                      placeholder="persona@hpvc.gob.ec"
+                      className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Se notifica a este correo (además del servidor) cada vez que se aprueba un permiso por horas.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Correo para vacaciones aprobadas
+                    </label>
+                    <input
+                      type="email"
+                      value={formNotificaciones.email_notificacion_vacaciones}
+                      onChange={(e) =>
+                        setFormNotificaciones((p) => ({
+                          ...p,
+                          email_notificacion_vacaciones: e.target.value,
+                        }))
+                      }
+                      placeholder="departamento@hpvc.gob.ec"
+                      className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Se notifica a este correo (además del servidor) cada vez que se aprueba una vacación.
+                    </p>
+                  </div>
+
+                  <p className="text-xs text-gray-400">
+                    Deja un campo vacío para no enviar esa notificación adicional.
+                  </p>
+                </div>
+              )}
+
+              <div className="flex gap-3 mt-8">
+                <button
+                  onClick={() => setModalNotificaciones(false)}
+                  className="flex-1 px-4 py-3 border-2 border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleGuardarNotificaciones}
+                  disabled={cargandoNotificaciones || guardandoNotificaciones}
+                  className="flex-1 px-4 py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 font-medium transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {guardandoNotificaciones ? "Guardando..." : "Guardar"}
                 </button>
               </div>
             </div>
