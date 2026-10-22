@@ -328,13 +328,15 @@ export default function GestionPermisos() {
 
     setSubmittingReset(true);
     try {
-      await resetPasswordServidor(servidor.servidor_id, servidor.cedula);
+      const data = await resetPasswordServidor(servidor.servidor_id, servidor.cedula);
       Swal.fire({
         toast: true,
         icon: "success",
         title: "¡Contraseña reseteada!",
-        text: `Contraseña reseteada a ${servidor.cedula}`,
-        timer: 2000,
+        text: data?.tambien_firmante
+          ? `Contraseña reseteada a ${servidor.cedula} (también se reseteó su cuenta de firmante)`
+          : `Contraseña reseteada a ${servidor.cedula}`,
+        timer: data?.tambien_firmante ? 3500 : 2000,
         showConfirmButton: false,
         position: "top-end",
       });
