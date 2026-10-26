@@ -409,6 +409,30 @@ export default function ReportePermisos() {
           </div>
         </div>
 
+        {/* Aviso explícito de qué se está mostrando/exportando — el filtro de
+            fecha de arriba pasa desapercibido, esto lo deja claro antes de
+            la tabla y del botón Exportar Excel. */}
+        <div className="mb-4 flex items-center gap-2 text-sm text-gray-600">
+          <Calendar size={15} className="text-blue-500" />
+          {verTodos ? (
+            <span>
+              Mostrando <strong className="text-gray-900">todos</strong> los permisos registrados (sin filtro de fecha)
+            </span>
+          ) : (
+            <span>
+              Mostrando permisos del{" "}
+              <strong className="text-blue-600">
+                {new Date(fecha + "T12:00:00").toLocaleDateString("es-ES", {
+                  weekday: "long",
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </strong>
+            </span>
+          )}
+        </div>
+
         {/* Tabla de permisos */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 bg-linear-to-r from-gray-50 to-white">
