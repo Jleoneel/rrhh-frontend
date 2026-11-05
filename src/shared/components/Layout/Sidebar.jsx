@@ -310,6 +310,11 @@ export default function Sidebar() {
                           path: "/permisos/bandeja",
                           icon: <Bell size={16} />,
                         },
+                        {
+                          title: "Cronograma de Vacaciones",
+                          path: "/permisos/cronograma-vacaciones",
+                          icon: <Umbrella size={16} />,
+                        },
                       ]
                     : []),
                 ],
