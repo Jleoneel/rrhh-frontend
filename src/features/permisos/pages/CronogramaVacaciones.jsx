@@ -733,6 +733,12 @@ export default function CronogramaVacaciones() {
                           openToDate={new Date(anio, 0, 1)}
                           minDate={new Date(anio, 0, 1)}
                           maxDate={new Date(anio, 11, 31)}
+                          // Sin esto, un mes que cae en 4 semanas visibles
+                          // (ej. abril) hace que el calendario se vea más
+                          // bajo que uno de 6 semanas (ej. octubre) — con
+                          // fixedHeight siempre rellena hasta 6 filas,
+                          // mismo alto en cualquier mes.
+                          fixedHeight
                           dateFormat="dd/MM/yyyy"
                           placeholderText="Selecciona desde — hasta"
                           isClearable
