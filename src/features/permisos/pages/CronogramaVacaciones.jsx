@@ -19,6 +19,7 @@ import Swal from "sweetalert2";
 import * as XLSX from "xlsx";
 import api from "../../../shared/api/axios";
 import StatCard from "../../../shared/components/ui/StatCard";
+import PageNumbers from "../../../shared/components/ui/PageNumbers";
 import {
   getCronograma,
   getBloquesServidor,
@@ -55,6 +56,11 @@ export default function CronogramaVacaciones() {
   const [data, setData] = useState([]);
   const [topeDiasAnual, setTopeDiasAnual] = useState(30);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [resumen, setResumen] = useState({ con_vacaciones: 0, en_tope: 0 });
 
   // Modal de bloques de un servidor
   const [modalServidor, setModalServidor] = useState(null); // { servidor_id, nombres, cedula }
@@ -66,15 +72,18 @@ export default function CronogramaVacaciones() {
   const [guardandoBloque, setGuardandoBloque] = useState(false);
 
   const cargar = async (overrides = {}) => {
-    const p = { anio, unidadFiltro, search, ...overrides };
+    const p = { anio, unidadFiltro, search, page, limit, ...overrides };
     setLoading(true);
     try {
-      const params = { anio: p.anio };
+      const params = { anio: p.anio, page: p.page, limit: p.limit };
       if (p.unidadFiltro) params.unidad_organica_id = p.unidadFiltro;
       if (p.search) params.search = p.search;
       const res = await getCronograma(params);
       setData(res.data);
       setTopeDiasAnual(res.tope_dias_anual);
+      setTotal(res.total);
+      setTotalPages(res.totalPages);
+      setResumen(res.resumen);
     } catch (err) {
       console.error(err);
       Swal.fire({
@@ -91,22 +100,40 @@ export default function CronogramaVacaciones() {
   };
 
   useEffect(() => {
-    cargar({ anio });
+    setPage(1);
+    cargar({ anio, page: 1 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [anio]);
+
+  useEffect(() => {
     api
       .get("/catalogos/unidades-organicas")
       .then((r) => setUnidades(r.data))
       .catch(() => setUnidades([]));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [anio]);
+  }, []);
 
   const handleUnidad = (e) => {
     setUnidadFiltro(e.target.value);
-    cargar({ unidadFiltro: e.target.value });
+    setPage(1);
+    cargar({ unidadFiltro: e.target.value, page: 1 });
   };
 
   const handleSearch = (value) => {
     setSearch(value);
-    cargar({ search: value });
+    setPage(1);
+    cargar({ search: value, page: 1 });
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    setPage(newPage);
+    cargar({ page: newPage });
+  };
+
+  const handleLimitChange = (newLimit) => {
+    setLimit(newLimit);
+    setPage(1);
+    cargar({ limit: newLimit, page: 1 });
   };
 
   // Reconstruye el formato de 12 meses del Excel original
@@ -349,10 +376,12 @@ export default function CronogramaVacaciones() {
     }
   };
 
+  // total/resumen vienen calculados por el backend sobre TODO lo que
+  // coincide con los filtros, no solo la página actual visible.
   const stats = {
-    totalPersonas: data.length,
-    conVacacionesPlanificadas: data.filter((d) => d.dias_planificados > 0).length,
-    enTope: data.filter((d) => d.dias_planificados >= topeDiasAnual).length,
+    totalPersonas: total,
+    conVacacionesPlanificadas: resumen.con_vacaciones,
+    enTope: resumen.en_tope,
   };
 
   const proyectado = totalProyectado();
@@ -532,6 +561,29 @@ export default function CronogramaVacaciones() {
                   })}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* Paginación */}
+          {!loading && data.length > 0 && totalPages > 1 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-500">
+                  Mostrando <b className="text-gray-900">{data.length}</b> de{" "}
+                  <b className="text-gray-900">{total}</b> personas
+                </span>
+                <select
+                  value={limit}
+                  onChange={(e) => handleLimitChange(Number(e.target.value))}
+                  className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm bg-white"
+                >
+                  <option value={10}>10 por página</option>
+                  <option value={25}>25 por página</option>
+                  <option value={50}>50 por página</option>
+                </select>
+              </div>
+
+              <PageNumbers page={page} totalPages={totalPages} onPageChange={handlePageChange} />
             </div>
           )}
         </div>
