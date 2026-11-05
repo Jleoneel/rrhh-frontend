@@ -17,6 +17,9 @@ import {
 } from "lucide-react";
 import Swal from "sweetalert2";
 import * as XLSX from "xlsx";
+import DatePicker, { registerLocale } from "react-datepicker";
+import { es } from "date-fns/locale";
+import "react-datepicker/dist/react-datepicker.css";
 import api from "../../../shared/api/axios";
 import StatCard from "../../../shared/components/ui/StatCard";
 import PageNumbers from "../../../shared/components/ui/PageNumbers";
@@ -29,10 +32,28 @@ import {
   getCronogramaParaExportar,
 } from "../hooks/cronogramaVacaciones.service";
 
+registerLocale("es", es);
+
 const MESES = [
   "ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO",
   "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE",
 ];
+
+// XLSX / Postgres hablan en "YYYY-MM-DD"; new Date("YYYY-MM-DD") lo parsea
+// como UTC medianoche, que en zonas UTC-negativas (Ecuador) muestra el día
+// anterior — estos helpers arman/leen la fecha en LOCAL, sin ese corrimiento.
+function parseLocalDate(str) {
+  if (!str) return null;
+  const [y, m, d] = str.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+function formatLocalDate(date) {
+  if (!date) return "";
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
 
 export default function CronogramaVacaciones() {
   const { setHeaderConfig } = useOutletContext();
@@ -696,28 +717,27 @@ export default function CronogramaVacaciones() {
                     <div className="flex flex-col sm:flex-row gap-3 items-end">
                       <div className="flex-1 w-full">
                         <label className="block text-xs font-medium text-gray-500 mb-1">
-                          Desde
+                          Periodo de vacaciones
                         </label>
-                        <input
-                          type="date"
-                          value={formBloque.fecha_desde}
-                          onChange={(e) =>
-                            setFormBloque((p) => ({ ...p, fecha_desde: e.target.value }))
+                        <DatePicker
+                          locale="es"
+                          selectsRange
+                          startDate={parseLocalDate(formBloque.fecha_desde)}
+                          endDate={parseLocalDate(formBloque.fecha_hasta)}
+                          onChange={([inicio, fin]) =>
+                            setFormBloque({
+                              fecha_desde: formatLocalDate(inicio),
+                              fecha_hasta: formatLocalDate(fin),
+                            })
                           }
+                          openToDate={new Date(anio, 0, 1)}
+                          minDate={new Date(anio, 0, 1)}
+                          maxDate={new Date(anio, 11, 31)}
+                          dateFormat="dd/MM/yyyy"
+                          placeholderText="Selecciona desde — hasta"
+                          isClearable
                           className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-                      <div className="flex-1 w-full">
-                        <label className="block text-xs font-medium text-gray-500 mb-1">
-                          Hasta
-                        </label>
-                        <input
-                          type="date"
-                          value={formBloque.fecha_hasta}
-                          onChange={(e) =>
-                            setFormBloque((p) => ({ ...p, fecha_hasta: e.target.value }))
-                          }
-                          className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          wrapperClassName="w-full"
                         />
                       </div>
                       {editandoId && (
