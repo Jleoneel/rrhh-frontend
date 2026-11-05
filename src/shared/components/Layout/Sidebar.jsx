@@ -152,6 +152,17 @@ export default function Sidebar() {
               path: "/permisos/mis-vacaciones",
               icon: <Calendar size={20} />,
             },
+            // No todo "JEFE DE AREA" está asignado como jefe_id/jefe_superior_id
+            // de una unidad todavía — es_jefe lo confirma caso por caso.
+            ...(es_jefe || esAdmin
+              ? [
+                  {
+                    title: "Cronograma de Vacaciones",
+                    path: "/permisos/cronograma-vacaciones",
+                    icon: <Umbrella size={20} />,
+                  },
+                ]
+              : []),
             {
               title: "Mis Acciones de Personal",
               path: "/servidor/acciones",
@@ -216,6 +227,15 @@ export default function Sidebar() {
                     path: "/permisos/mis-vacaciones",
                     icon: <Calendar size={16} />,
                   },
+                  ...(es_jefe || esAdmin
+                    ? [
+                        {
+                          title: "Cronograma de Vacaciones",
+                          path: "/permisos/cronograma-vacaciones",
+                          icon: <Umbrella size={16} />,
+                        },
+                      ]
+                    : []),
                 ],
               },
               {
