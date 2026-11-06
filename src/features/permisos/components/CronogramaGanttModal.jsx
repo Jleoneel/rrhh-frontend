@@ -1,12 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { X, Loader2, CalendarDays } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion"; // eslint-disable-line no-unused-vars
+import { AnimatePresence, LayoutGroup, motion } from "framer-motion"; // eslint-disable-line no-unused-vars
 import { getCronogramaParaExportar } from "../hooks/cronogramaVacaciones.service";
 
 const MESES_CORTOS = [
   "Ene", "Feb", "Mar", "Abr", "May", "Jun",
   "Jul", "Ago", "Sep", "Oct", "Nov", "Dic",
 ];
+
+const MESES_LARGOS = [
+  "enero", "febrero", "marzo", "abril", "mayo", "junio",
+  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+];
+
+const DIAS_SEMANA = ["Lu", "Ma", "Mi", "Ju", "Vi", "Sá", "Do"];
 
 function parseLocalDate(str) {
   if (!str) return null;
@@ -48,6 +55,21 @@ function formatearRango(fechaDesde, fechaHasta) {
   return `${desde} – ${hasta}`;
 }
 
+// Celdas del mes de `fecha` (día 1 del bloque) para dibujar el minicalendario
+// de "entrada al mes": null para el relleno antes del día 1 (semana
+// empezando en lunes), y la fecha real para cada día del mes.
+function celdasDelMes(fecha) {
+  const anio = fecha.getFullYear();
+  const mes = fecha.getMonth();
+  const primerDia = new Date(anio, mes, 1);
+  const diasEnMes = new Date(anio, mes + 1, 0).getDate();
+  let relleno = primerDia.getDay(); // 0=domingo
+  relleno = relleno === 0 ? 6 : relleno - 1; // 0=lunes
+  const celdas = Array.from({ length: relleno }, () => null);
+  for (let d = 1; d <= diasEnMes; d++) celdas.push(new Date(anio, mes, d));
+  return celdas;
+}
+
 // Vista "línea de tiempo" (Gantt) de todo el personal visible para quien
 // consulta (mismo scoping que la tabla/export: unidad propia para jefe de
 // área, todo el hospital para UATH/admin) — una fila por servidor con sus
@@ -59,14 +81,16 @@ export default function CronogramaGanttModal({
   const [cargando, setCargando] = useState(false);
   const [filas, setFilas] = useState([]);
   const [soloConVacaciones, setSoloConVacaciones] = useState(true);
-  // Clave `${servidor_id}-${indice del bloque}` de la barra con el popover
-  // abierto, o null si ninguna. Solo una a la vez.
-  const [popoverActivo, setPopoverActivo] = useState(null);
+  // Bloque cuya barra fue clickeada: { clave, nombre, fecha_desde,
+  // fecha_hasta, dias } o null si ninguna. Al tener la misma `layoutId`
+  // que su barra compacta, framer-motion anima la transición entre
+  // ambas automáticamente (la barra "entra" al mes).
+  const [bloqueActivo, setBloqueActivo] = useState(null);
 
   useEffect(() => {
     if (!open) return;
     setCargando(true);
-    setPopoverActivo(null);
+    setBloqueActivo(null);
     const params = { anio };
     if (unidadFiltro) params.unidad_organica_id = unidadFiltro;
     if (search) params.search = search;
@@ -88,6 +112,7 @@ export default function CronogramaGanttModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <LayoutGroup>
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl mx-4 overflow-hidden max-h-[90vh] flex flex-col">
         <div className="bg-linear-to-r from-blue-600 to-blue-700 text-white px-6 py-5 shrink-0">
           <div className="flex items-center justify-between">
@@ -122,14 +147,11 @@ export default function CronogramaGanttModal({
             Mostrar solo quienes tienen vacaciones planificadas
           </label>
           <span className="text-xs text-gray-400">
-            Haz clic en una barra para ver las fechas exactas
+            Haz clic en una barra para entrar al mes
           </span>
         </div>
 
-        <div
-          className="overflow-auto flex-1"
-          onClick={() => setPopoverActivo(null)}
-        >
+        <div className="relative overflow-auto flex-1">
           {cargando ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
@@ -191,53 +213,33 @@ export default function CronogramaGanttModal({
                             0.8,
                           );
                           const clave = `${f.servidor_id}-${i}`;
-                          const abierto = popoverActivo === clave;
+                          const activo = bloqueActivo?.clave === clave;
+                          // La barra compacta se deja de renderizar justo
+                          // cuando se abre su mes (misma layoutId que la
+                          // tarjeta grande) — ese intercambio es lo que
+                          // framer-motion anima como una sola transición
+                          // continua, la barra "entrando" al calendario.
+                          if (activo) return null;
                           return (
-                            <div
+                            <motion.div
                               key={i}
-                              className="absolute top-0"
+                              layoutId={clave}
+                              layout
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setBloqueActivo({
+                                  clave,
+                                  nombre: f.nombres,
+                                  fecha_desde: b.fecha_desde,
+                                  fecha_hasta: b.fecha_hasta,
+                                  dias: b.dias,
+                                });
+                              }}
+                              whileHover={{ scale: 1.08 }}
+                              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                              className="absolute top-0 h-6 bg-blue-500 rounded-md shadow-sm cursor-pointer"
                               style={{ left: `${left}%`, width: `${width}%` }}
-                            >
-                              <motion.div
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setPopoverActivo(abierto ? null : clave);
-                                }}
-                                whileHover={{ scale: 1.08 }}
-                                whileTap={{ scale: 0.95 }}
-                                animate={abierto ? { scale: 1.08 } : { scale: 1 }}
-                                transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                                className={`h-6 rounded-md shadow-sm cursor-pointer ${
-                                  abierto ? "bg-blue-700 ring-2 ring-blue-300" : "bg-blue-500"
-                                }`}
-                              />
-                              <AnimatePresence>
-                                {abierto && (
-                                  <motion.div
-                                    initial={{ opacity: 0, y: -6, scale: 0.9 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, y: -6, scale: 0.9 }}
-                                    transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-                                    onClick={(e) => e.stopPropagation()}
-                                    className={`absolute top-full mt-2 z-20 w-56 bg-gray-900 text-white rounded-xl shadow-xl px-4 py-3 ${
-                                      left > 60 ? "right-0" : "left-0"
-                                    }`}
-                                  >
-                                    <div
-                                      className={`absolute -top-1.5 w-3 h-3 bg-gray-900 rotate-45 ${
-                                        left > 60 ? "right-3" : "left-3"
-                                      }`}
-                                    />
-                                    <p className="text-sm font-semibold leading-snug">
-                                      {formatearRango(b.fecha_desde, b.fecha_hasta)}
-                                    </p>
-                                    <p className="text-xs text-blue-300 font-medium mt-1">
-                                      {b.dias} días de vacación
-                                    </p>
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
-                            </div>
+                            />
                           );
                         })}
                       </div>
@@ -247,6 +249,104 @@ export default function CronogramaGanttModal({
               </div>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* "Entrada al mes" — la barra clickeada se convierte en este
+          minicalendario (misma layoutId), con sus días resaltados y
+          subrayados dentro del mes completo. Vive fuera de la tarjeta del
+          modal (no dentro de su overflow-hidden) para quedar centrada en
+          toda la ventana y no recortarse si el modal es más bajo que ella. */}
+      <AnimatePresence>
+        {bloqueActivo && (
+          <motion.div
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setBloqueActivo(null)}
+          >
+            <motion.div
+              layoutId={bloqueActivo.clave}
+              layout
+              transition={{ type: "spring", stiffness: 260, damping: 28 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl shadow-2xl w-80 overflow-hidden"
+            >
+              <MesEntrada bloque={bloqueActivo} onClose={() => setBloqueActivo(null)} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      </LayoutGroup>
+    </div>
+  );
+}
+
+// Minicalendario del mes donde empieza el bloque, con los días del rango
+// resaltados y subrayados — la "entrada al mes" que pidió el usuario en vez
+// de solo un texto con las fechas.
+function MesEntrada({ bloque, onClose }) {
+  const inicio = parseLocalDate(bloque.fecha_desde);
+  const fin = parseLocalDate(bloque.fecha_hasta);
+  const celdas = celdasDelMes(inicio);
+
+  return (
+    <div>
+      <div className="bg-linear-to-r from-blue-600 to-blue-700 text-white px-5 py-4 flex items-center justify-between">
+        <div>
+          <p className="font-bold capitalize">
+            {MESES_LARGOS[inicio.getMonth()]} {inicio.getFullYear()}
+          </p>
+          <p className="text-xs text-blue-100 truncate max-w-[200px]">
+            {bloque.nombre}
+          </p>
+        </div>
+        <button
+          onClick={onClose}
+          className="p-1.5 hover:bg-white/10 rounded-lg transition-all shrink-0"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+
+      <div className="p-5">
+        <div className="grid grid-cols-7 gap-1 mb-2">
+          {DIAS_SEMANA.map((d) => (
+            <div
+              key={d}
+              className="text-center text-[11px] font-semibold text-gray-400"
+            >
+              {d}
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-1">
+          {celdas.map((fecha, i) => {
+            if (!fecha) return <div key={i} />;
+            const enRango = fecha >= inicio && fecha <= fin;
+            return (
+              <div
+                key={i}
+                className={`aspect-square flex items-center justify-center rounded-lg text-sm ${
+                  enRango
+                    ? "bg-blue-600 text-white font-bold underline decoration-2 underline-offset-2"
+                    : "text-gray-600"
+                }`}
+              >
+                {fecha.getDate()}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-gray-100 text-center">
+          <p className="text-sm text-gray-700 font-medium">
+            {formatearRango(bloque.fecha_desde, bloque.fecha_hasta)}
+          </p>
+          <p className="text-xs text-blue-600 font-semibold mt-0.5">
+            {bloque.dias} días de vacación
+          </p>
         </div>
       </div>
     </div>
