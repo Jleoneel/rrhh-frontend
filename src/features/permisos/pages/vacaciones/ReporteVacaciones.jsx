@@ -80,7 +80,8 @@ export default function ReporteVacaciones() {
   }, [setHeaderConfig]);
 
   const hoy = new Date().toISOString().split("T")[0];
-  const [fecha, setFecha] = useState(hoy);
+  const [fechaDesde, setFechaDesde] = useState(hoy);
+  const [fechaHasta, setFechaHasta] = useState(hoy);
   const [estado, setEstado] = useState("TODOS");
   const [verTodos, setVerTodos] = useState(true);
   const [unidades, setUnidades] = useState([]);
@@ -100,7 +101,8 @@ export default function ReporteVacaciones() {
 
   const cargarReporte = async (overrides = {}) => {
     const p = {
-      fecha,
+      fechaDesde,
+      fechaHasta,
       estado,
       verTodos,
       unidadFiltro,
@@ -115,7 +117,8 @@ export default function ReporteVacaciones() {
       if (p.verTodos) {
         params.append("todos", "true");
       } else {
-        params.append("fecha", p.fecha);
+        params.append("fecha_desde", p.fechaDesde);
+        params.append("fecha_hasta", p.fechaHasta);
       }
       if (p.estado !== "TODOS") params.append("estado", p.estado);
       if (p.unidadFiltro) params.append("unidad_organica_id", p.unidadFiltro);
@@ -142,10 +145,21 @@ export default function ReporteVacaciones() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleFecha = (e) => {
-    setFecha(e.target.value);
+  const handleFechaDesde = (e) => {
+    const nuevaDesde = e.target.value;
+    setFechaDesde(nuevaDesde);
     setPage(1);
-    cargarReporte({ fecha: e.target.value, page: 1 });
+    // Si "hasta" queda antes que "desde", lo empujamos para que el rango
+    // siga siendo válido.
+    const nuevaHasta = fechaHasta < nuevaDesde ? nuevaDesde : fechaHasta;
+    if (nuevaHasta !== fechaHasta) setFechaHasta(nuevaHasta);
+    cargarReporte({ fechaDesde: nuevaDesde, fechaHasta: nuevaHasta, page: 1 });
+  };
+
+  const handleFechaHasta = (e) => {
+    setFechaHasta(e.target.value);
+    setPage(1);
+    cargarReporte({ fechaHasta: e.target.value, page: 1 });
   };
 
   const handleEstado = (e) => {
@@ -245,7 +259,8 @@ export default function ReporteVacaciones() {
       if (verTodos) {
         params.append("todos", "true");
       } else {
-        params.append("fecha", fecha);
+        params.append("fecha_desde", fechaDesde);
+        params.append("fecha_hasta", fechaHasta);
       }
       if (estado !== "TODOS") params.append("estado", estado);
       if (unidadFiltro) params.append("unidad_organica_id", unidadFiltro);
@@ -365,7 +380,7 @@ export default function ReporteVacaciones() {
               {verTodos ? (
                 <>
                   <CalendarDays size={16} />
-                  Ver por día
+                  Filtrar por fecha de solicitud
                 </>
               ) : (
                 <>
@@ -375,19 +390,36 @@ export default function ReporteVacaciones() {
               )}
             </button>
 
-            {/* Fecha (solo en modo "por día") */}
+            {/* Rango de fecha de solicitud (solo si el filtro está activo) */}
             {!verTodos && (
               <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-2 border border-gray-200">
                 <Calendar size={18} className="text-green-500" />
                 <input
                   type="date"
-                  value={fecha}
-                  onChange={handleFecha}
+                  value={fechaDesde}
+                  onChange={handleFechaDesde}
+                  className="bg-transparent border-none focus:outline-none focus:ring-0 text-gray-700 font-medium"
+                />
+                <span className="text-gray-400 text-sm">→</span>
+                <input
+                  type="date"
+                  value={fechaHasta}
+                  min={fechaDesde}
+                  onChange={handleFechaHasta}
                   className="bg-transparent border-none focus:outline-none focus:ring-0 text-gray-700 font-medium"
                 />
               </div>
             )}
+          </div>
 
+          {!verTodos && (
+            <p className="text-xs text-gray-400 mt-2 ml-1">
+              Filtra por la fecha en que se hizo la solicitud, no por el
+              período de vacación.
+            </p>
+          )}
+
+          <div className="flex flex-col md:flex-row gap-4 mt-4">
             {/* Estado */}
             <div className="relative flex-1 md:flex-none">
               <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
