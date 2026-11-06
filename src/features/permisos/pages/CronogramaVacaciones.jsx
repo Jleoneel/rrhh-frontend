@@ -147,11 +147,12 @@ export default function CronogramaVacaciones() {
   }, [anio]);
 
   useEffect(() => {
+    if (esJefeArea && !esAdmin) return; // no hay filtro de unidad que llenar
     api
       .get("/catalogos/unidades-organicas")
       .then((r) => setUnidades(r.data))
       .catch(() => setUnidades([]));
-  }, []);
+  }, [esJefeArea, esAdmin]);
 
   const handleUnidad = (e) => {
     setUnidadFiltro(e.target.value);
@@ -492,21 +493,32 @@ export default function CronogramaVacaciones() {
         {/* Filtros */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-5 mb-8">
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1 md:flex-none">
-              <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <select
-                value={unidadFiltro}
-                onChange={handleUnidad}
-                className="w-full md:w-[240px] border-2 border-gray-200 rounded-xl pl-9 pr-8 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white cursor-pointer"
-              >
-                <option value="">Todas las unidades</option>
-                {unidades.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.nombre}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* El filtro de unidad no sirve para un jefe de área: el
+                backend ya lo limita a su propia unidad (construirFiltros,
+                cronogramaVacaciones.routes.js), así que elegir cualquier
+                otra unidad siempre devuelve 0 resultados. Mostrarlo igual
+                invita a un jefe a pensar que puede ver otras unidades y a
+                reportar un "no carga nada" que en realidad es el filtro
+                funcionando como se espera — confunde sin aportar nada, así
+                que se oculta para quien no gestiona más de una unidad.
+                Jefe superior/gerente sí pueden tener varias a cargo. */}
+            {(!esJefeArea || esAdmin) && (
+              <div className="relative flex-1 md:flex-none">
+                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <select
+                  value={unidadFiltro}
+                  onChange={handleUnidad}
+                  className="w-full md:w-[240px] border-2 border-gray-200 rounded-xl pl-9 pr-8 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white cursor-pointer"
+                >
+                  <option value="">Todas las unidades</option>
+                  {unidades.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
