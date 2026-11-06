@@ -133,36 +133,48 @@ export default function Sidebar() {
       : esJefeArea
         ? [
             {
-              title: "Bandeja Permisos",
-              path: "/permisos/bandeja",
-              icon: <Bell size={20} />,
+              title: "Permisos",
+              icon: <GitBranch size={20} />,
+              submenu: [
+                {
+                  title: "Bandeja Permisos",
+                  path: "/permisos/bandeja",
+                  icon: <Bell size={16} />,
+                },
+                {
+                  title: "Mis Permisos",
+                  path: "/permisos/mis-permisos-jefe",
+                  icon: <ClipboardList size={16} />,
+                },
+              ],
             },
             {
-              title: "Mis Permisos",
-              path: "/permisos/mis-permisos-jefe",
-              icon: <ClipboardList size={20} />,
-            },
-            {
-              title: "Bandeja Vacaciones",
-              path: "/permisos/bandeja-vacaciones",
+              title: "Vacaciones",
               icon: <Umbrella size={20} />,
+              submenu: [
+                {
+                  title: "Bandeja Vacaciones",
+                  path: "/permisos/bandeja-vacaciones",
+                  icon: <Umbrella size={16} />,
+                },
+                {
+                  title: "Mis Vacaciones",
+                  path: "/permisos/mis-vacaciones",
+                  icon: <Calendar size={16} />,
+                },
+                // No todo "JEFE DE AREA" está asignado como jefe_id/jefe_superior_id
+                // de una unidad todavía — es_jefe lo confirma caso por caso.
+                ...(es_jefe || esAdmin
+                  ? [
+                      {
+                        title: "Cronograma de Vacaciones",
+                        path: "/permisos/cronograma-vacaciones",
+                        icon: <Calendar size={16} />,
+                      },
+                    ]
+                  : []),
+              ],
             },
-            {
-              title: "Mis Vacaciones",
-              path: "/permisos/mis-vacaciones",
-              icon: <Calendar size={20} />,
-            },
-            // No todo "JEFE DE AREA" está asignado como jefe_id/jefe_superior_id
-            // de una unidad todavía — es_jefe lo confirma caso por caso.
-            ...(es_jefe || esAdmin
-              ? [
-                  {
-                    title: "Cronograma de Vacaciones",
-                    path: "/permisos/cronograma-vacaciones",
-                    icon: <Umbrella size={20} />,
-                  },
-                ]
-              : []),
             {
               title: "Mis Acciones de Personal",
               path: "/servidor/acciones",
@@ -217,6 +229,12 @@ export default function Sidebar() {
                     path: "/permisos/mis-permisos-jefe",
                     icon: <ClipboardList size={16} />,
                   },
+                ],
+              },
+              {
+                title: "Vacaciones",
+                icon: <Umbrella size={20} />,
+                submenu: [
                   {
                     title: "Bandeja Vacaciones",
                     path: "/permisos/bandeja-vacaciones",
@@ -232,7 +250,7 @@ export default function Sidebar() {
                         {
                           title: "Cronograma de Vacaciones",
                           path: "/permisos/cronograma-vacaciones",
-                          icon: <Umbrella size={16} />,
+                          icon: <Calendar size={16} />,
                         },
                       ]
                     : []),
@@ -301,6 +319,22 @@ export default function Sidebar() {
                     path: "/permisos/mis-permisos-jefe",
                     icon: <ClipboardList size={16} />,
                   },
+                  // Bandeja permisos para jefes y para el admin
+                  ...(es_jefe || esAdmin
+                    ? [
+                        {
+                          title: "Bandeja de Aprobación",
+                          path: "/permisos/bandeja",
+                          icon: <Bell size={16} />,
+                        },
+                      ]
+                    : []),
+                ],
+              },
+              {
+                title: "Vacaciones",
+                icon: <Umbrella size={20} />,
+                submenu: [
                   // Reporte vacaciones para todos
                   {
                     title: "Reporte Vacaciones",
@@ -322,18 +356,13 @@ export default function Sidebar() {
                         },
                       ]
                     : []),
-                  // Bandeja permisos para jefes y para el admin
+                  // Cronograma para jefes y para el admin
                   ...(es_jefe || esAdmin
                     ? [
                         {
-                          title: "Bandeja de Aprobación",
-                          path: "/permisos/bandeja",
-                          icon: <Bell size={16} />,
-                        },
-                        {
                           title: "Cronograma de Vacaciones",
                           path: "/permisos/cronograma-vacaciones",
-                          icon: <Umbrella size={16} />,
+                          icon: <Calendar size={16} />,
                         },
                       ]
                     : []),
