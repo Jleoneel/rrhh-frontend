@@ -14,6 +14,7 @@ import {
   CalendarRange,
   AlertTriangle,
   Download,
+  CalendarDays,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import * as XLSX from "xlsx";
@@ -23,6 +24,8 @@ import "react-datepicker/dist/react-datepicker.css";
 import api from "../../../shared/api/axios";
 import StatCard from "../../../shared/components/ui/StatCard";
 import PageNumbers from "../../../shared/components/ui/PageNumbers";
+import { useAuth } from "../../auth/AuthContext";
+import CronogramaGanttModal from "../components/CronogramaGanttModal";
 import {
   getCronograma,
   getBloquesServidor,
@@ -57,6 +60,23 @@ function formatLocalDate(date) {
 
 export default function CronogramaVacaciones() {
   const { setHeaderConfig } = useOutletContext();
+
+  // "Ver calendario" (línea de tiempo de todo el personal) solo para jefe
+  // inmediato y Talento Humano — mismo criterio de cargo que usa el resto
+  // del sistema (Sidebar.jsx), no el es_jefe amplio que ya filtra el acceso
+  // al módulo completo (ese también deja entrar a jefe superior/gerente).
+  const { user: firmante } = useAuth();
+  const cargoNombre = firmante?.cargo_nombre || "";
+  const esAdmin = firmante?.es_admin === true;
+  const esJefeArea = cargoNombre === "JEFE DE AREA";
+  const esTalentoHumano = [
+    "ASISTENTE DE LA UATH",
+    "TRABAJADORA SOCIAL INSTITUCIONAL",
+    "ANALISTA DE TALENTO HUMANO",
+    "RESPONSABLE DE LA UATH",
+  ].includes(cargoNombre);
+  const puedeVerCalendario = esJefeArea || esTalentoHumano || esAdmin;
+  const [modalCalendario, setModalCalendario] = useState(false);
 
   useEffect(() => {
     setHeaderConfig({
@@ -497,6 +517,15 @@ export default function CronogramaVacaciones() {
                 className="w-full border-2 border-gray-200 rounded-xl pl-9 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               />
             </div>
+            {puedeVerCalendario && (
+              <button
+                onClick={() => setModalCalendario(true)}
+                className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-md text-sm font-medium shrink-0"
+              >
+                <CalendarDays size={16} />
+                <span className="hidden sm:inline">Ver calendario</span>
+              </button>
+            )}
             <button
               onClick={handleExportarExcel}
               className="flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all shadow-md text-sm font-medium shrink-0"
@@ -785,6 +814,14 @@ export default function CronogramaVacaciones() {
           </div>
         </div>
       )}
+
+      <CronogramaGanttModal
+        open={modalCalendario}
+        onClose={() => setModalCalendario(false)}
+        anio={anio}
+        unidadFiltro={unidadFiltro}
+        search={search}
+      />
     </div>
   );
 }
