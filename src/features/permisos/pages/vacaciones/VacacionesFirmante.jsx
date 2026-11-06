@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../auth/AuthContext";
 import api from "../../../../shared/api/axios";
 import FirmaDigitalModal from "../../../../shared/components/ui/FirmaDigitalModal";
@@ -86,6 +86,7 @@ export default function VacacionesFirmante() {
   }, [setHeaderConfig]);
 
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [saldo, setSaldo] = useState(null);
   const [vacaciones, setVacaciones] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -95,6 +96,7 @@ export default function VacacionesFirmante() {
   const [modalPassword, setModalPassword] = useState(false);
   const [passwordToken, setPasswordToken] = useState("");
   const [tieneCertificado, setTieneCertificado] = useState(false);
+  const [firmaObligatoria, setFirmaObligatoria] = useState(false);
   const [firmarElectronicamente, setFirmarElectronicamente] = useState(true);
 
   const cargarDatos = async () => {
@@ -117,7 +119,10 @@ export default function VacacionesFirmante() {
     cargarDatos();
     api
       .get("/firmas/mi-certificado")
-      .then((r) => setTieneCertificado(!!r.data?.tiene_certificado && !!r.data?.p12_activo))
+      .then((r) => {
+        setTieneCertificado(!!r.data?.tiene_certificado && !!r.data?.p12_activo);
+        setFirmaObligatoria(!!r.data?.firma_obligatoria);
+      })
       .catch(() => setTieneCertificado(false));
   }, []);
 
@@ -141,6 +146,26 @@ export default function VacacionesFirmante() {
   );
 
   const handleSubmit = async () => {
+    // Tu régimen laboral (LOSEP / Servicio Civil Público) exige firma
+    // electrónica — el backend repite esta misma validación
+    // (vac-solicitudes-firmante.routes.js); esto evita llegar hasta el
+    // modal de contraseña sin tener certificado.
+    if (firmaObligatoria && !tieneCertificado) {
+      const result = await Swal.fire({
+        icon: "warning",
+        title: "Firma electrónica obligatoria",
+        text: "Tu régimen laboral (Servicio Civil Público - LOSEP) exige firmar electrónicamente tu solicitud de vacaciones. Sube tu certificado .p12 en Mi Certificado antes de continuar.",
+        showCancelButton: true,
+        confirmButtonText: "Ir a Mi Certificado",
+        cancelButtonText: "Cerrar",
+        confirmButtonColor: "#3b82f6",
+      });
+      if (result.isConfirmed) {
+        navigate("/permisos/mi-certificado");
+      }
+      return;
+    }
+
     if (
       !form.tipo ||
       !form.fecha_inicio ||
@@ -780,18 +805,44 @@ export default function VacacionesFirmante() {
                 </div>
               )}
 
-              {/* Firma electrónica opcional — solo si tiene certificado
-                  P12 registrado. Si no tiene, se envía sin firma y la
-                  firman los jefes en la cadena normal. */}
+              {/* Tu régimen laboral (LOSEP/Servicio Civil Público) exige
+                  firma electrónica — sin certificado no se puede enviar. */}
+              {firmaObligatoria && !tieneCertificado && (
+                <div className="p-4 bg-red-50 rounded-xl border border-red-200">
+                  <p className="text-sm font-semibold text-red-800 flex items-center gap-1.5">
+                    <ShieldCheck size={15} className="text-red-600" />
+                    Firma electrónica obligatoria
+                  </p>
+                  <p className="text-xs text-red-700 mt-1">
+                    Tu régimen laboral (Servicio Civil Público - LOSEP) exige
+                    firmar electrónicamente tus solicitudes de vacaciones.
+                    Sube tu certificado .p12 en{" "}
+                    <button
+                      type="button"
+                      onClick={() => navigate("/permisos/mi-certificado")}
+                      className="underline font-semibold"
+                    >
+                      Mi Certificado
+                    </button>{" "}
+                    antes de continuar.
+                  </p>
+                </div>
+              )}
+
+              {/* Firma electrónica — opcional para quien no está obligado,
+                  fija (no se puede destildar) para quien sí lo está. */}
               {tieneCertificado && (
-                <label className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200 cursor-pointer">
+                <label
+                  className={`flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200 ${firmaObligatoria ? "" : "cursor-pointer"}`}
+                >
                   <input
                     type="checkbox"
                     checked={firmarElectronicamente}
+                    disabled={firmaObligatoria}
                     onChange={(e) =>
                       setFirmarElectronicamente(e.target.checked)
                     }
-                    className="w-5 h-5 accent-blue-600"
+                    className="w-5 h-5 accent-blue-600 disabled:opacity-70"
                   />
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-gray-800 flex items-center gap-1.5">
@@ -799,8 +850,9 @@ export default function VacacionesFirmante() {
                       Firmar electrónicamente esta solicitud
                     </p>
                     <p className="text-xs text-gray-500 mt-0.5">
-                      Se te pedirá la contraseña de tu certificado .p12 antes
-                      de enviar
+                      {firmaObligatoria
+                        ? "Obligatorio para tu régimen laboral (Servicio Civil Público - LOSEP)"
+                        : "Se te pedirá la contraseña de tu certificado .p12 antes de enviar"}
                     </p>
                   </div>
                 </label>
@@ -818,6 +870,7 @@ export default function VacacionesFirmante() {
                 onClick={handleSubmit}
                 disabled={
                   submitting ||
+                  (firmaObligatoria && !tieneCertificado) ||
                   parseFloat(form.dias_solicitados) >
                     parseFloat(saldo?.horas_disponibles || 0) / 8
                 }
