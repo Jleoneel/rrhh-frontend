@@ -22,7 +22,11 @@ import {
 } from "lucide-react";
 import api from "../../../../shared/api/axios";
 import Swal from "sweetalert2";
-import * as XLSX from "xlsx";
+// xlsx-js-style (no "xlsx" a secas, que ignora en silencio cualquier
+// estilo) — mismo fork que usa Cronograma de Vacaciones, para que el
+// Excel de este reporte tenga el mismo acabado (encabezado con color,
+// bordes, franjas alternadas) en vez de una hoja plana sin estilo.
+import * as XLSX from "xlsx-js-style";
 import StatCard from "../../../../shared/components/ui/StatCard";
 import PageNumbers from "../../../../shared/components/ui/PageNumbers";
 
@@ -67,6 +71,116 @@ const estadoBadge = (estado) => {
   );
 };
 
+// Nombre completo (no la abreviatura de la UI) para que se lea bien en la
+// celda del Excel, donde no hay ícono que acompañe al texto.
+const ESTADO_LABEL_EXCEL = {
+  PENDIENTE_JEFE: "Pendiente Jefe Inmediato",
+  PENDIENTE_GERENTE: "Pendiente Jefe Superior",
+  PENDIENTE_UATH: "Pendiente UATH",
+  APROBADO: "Aprobado",
+  NEGADO: "Negado",
+};
+
+// Mismos colores que el badge de estado en pantalla (map de arriba, en hex
+// de Tailwind) para que la columna Estado del Excel se lea igual de rápido
+// que en la UI.
+const ESTADO_ESTILO_EXCEL = {
+  PENDIENTE_JEFE: { bg: "FEF9C3", texto: "854D0E" },
+  PENDIENTE_GERENTE: { bg: "FFEDD5", texto: "9A3412" },
+  PENDIENTE_UATH: { bg: "DBEAFE", texto: "1E40AF" },
+  APROBADO: { bg: "DCFCE7", texto: "166534" },
+  NEGADO: { bg: "FEE2E2", texto: "991B1B" },
+};
+
+// Estilos del Excel exportado, calcados del mismo criterio que
+// CronogramaVacaciones.jsx (Calibri, títulos centrados con borde fino,
+// encabezado con relleno y franjas alternadas) pero en la paleta verde de
+// este módulo, para que el archivo se vea como una extensión del sistema.
+const BORDE_FINA = { style: "thin", color: { rgb: "94A3B8" } };
+const BORDE_COMPLETO = {
+  top: BORDE_FINA, bottom: BORDE_FINA, left: BORDE_FINA, right: BORDE_FINA,
+};
+const VERDE_TEXTO = "065F46";
+const VERDE_HEADER = "059669";
+const VERDE_SUBHEADER = "D1FAE5";
+const GRIS_ZEBRA = "F8FAFC";
+
+const COLUMNAS_EXCEL = [
+  "Servidor", "Cédula", "Unidad", "Tipo", "Fecha Solicitud",
+  "Fecha Inicio", "Fecha Fin", "Días", "Estado", "Jefe Inmediato",
+];
+
+function aplicarEstiloReporteVacaciones(ws, filas) {
+  const totalColumnas = COLUMNAS_EXCEL.length;
+  const totalFilas = 3 + filas.length; // 2 títulos + 1 encabezado + datos
+
+  for (let r = 0; r < totalFilas; r++) {
+    for (let c = 0; c < totalColumnas; c++) {
+      const ref = XLSX.utils.encode_cell({ r, c });
+      if (!ws[ref]) ws[ref] = { t: "s", v: "" };
+
+      if (r === 0) {
+        // Título del hospital
+        ws[ref].s = {
+          font: { name: "Calibri", sz: 14, bold: true, color: { rgb: "1E293B" } },
+          alignment: { horizontal: "center", vertical: "center" },
+          border: BORDE_COMPLETO,
+        };
+      } else if (r === 1) {
+        // "REPORTE DE VACACIONES" + descripción del filtro aplicado
+        ws[ref].s = {
+          font: { name: "Calibri", sz: 11, bold: true, color: { rgb: VERDE_TEXTO } },
+          alignment: { horizontal: "center", vertical: "center" },
+          border: BORDE_COMPLETO,
+          fill: { fgColor: { rgb: VERDE_SUBHEADER } },
+        };
+      } else if (r === 2) {
+        // Encabezados de columna
+        ws[ref].s = {
+          font: { name: "Calibri", sz: 10, bold: true, color: { rgb: "FFFFFF" } },
+          alignment: { horizontal: "center", vertical: "center", wrapText: true },
+          border: BORDE_COMPLETO,
+          fill: { fgColor: { rgb: VERDE_HEADER } },
+        };
+      } else {
+        // Filas de datos
+        const idxFila = r - 3;
+        const zebra = idxFila % 2 === 1;
+        const esTexto = c === 0 || c === 2 || c === 9; // Servidor/Unidad/Jefe
+        const esEstado = c === 8;
+        const esDias = c === 7;
+        const colorEstado = esEstado ? ESTADO_ESTILO_EXCEL[filas[idxFila].estado] : null;
+
+        ws[ref].s = {
+          font: {
+            name: "Calibri",
+            sz: 10,
+            bold: esDias || esEstado,
+            color: { rgb: colorEstado ? colorEstado.texto : "1E293B" },
+          },
+          alignment: {
+            horizontal: esTexto ? "left" : "center",
+            vertical: "center",
+            wrapText: esTexto,
+          },
+          border: BORDE_COMPLETO,
+          fill: {
+            fgColor: { rgb: colorEstado ? colorEstado.bg : zebra ? GRIS_ZEBRA : "FFFFFF" },
+          },
+        };
+      }
+    }
+  }
+
+  ws["!cols"] = [
+    { wch: 30 }, { wch: 14 }, { wch: 30 }, { wch: 18 }, { wch: 14 },
+    { wch: 13 }, { wch: 13 }, { wch: 8 }, { wch: 24 }, { wch: 28 },
+  ];
+  ws["!rows"] = [
+    { hpt: 26 }, { hpt: 22 }, { hpt: 24 },
+    ...Array.from({ length: filas.length }, () => ({ hpt: 20 })),
+  ];
+}
 
 export default function ReporteVacaciones() {
   const { setHeaderConfig } = useOutletContext();
@@ -290,23 +404,48 @@ export default function ReporteVacaciones() {
       return;
     }
 
-    const datos = datosExportar.map((v) => ({
-      Servidor: v.servidor_nombre,
-      Cédula: v.cedula,
-      Unidad: v.unidad_organica,
-      Tipo:
-        v.tipo === "VACACION_PROGRAMADA"
-          ? "Vacación Programada"
-          : "Permiso con Cargo",
-      "Fecha Solicitud": v.fecha_solicitud,
-      "Fecha Inicio": v.fecha_inicio,
-      "Fecha Fin": v.fecha_fin,
-      Días: v.dias_solicitados,
-      Estado: v.estado,
-      "Jefe Inmediato": v.jefe_nombre || "",
-    }));
+    // Línea de contexto bajo el título: qué filtro quedó aplicado al
+    // momento de exportar, para que el archivo tenga sentido por sí solo
+    // aunque se comparta fuera del sistema.
+    const partesFiltro = [];
+    partesFiltro.push(
+      verTodos
+        ? "Todas las solicitudes"
+        : `Fecha de solicitud: ${fechaDesde} → ${fechaHasta}`,
+    );
+    if (estado !== "TODOS") partesFiltro.push(estadoLabel[estado] || estado);
+    if (unidadFiltro) {
+      const nombreUnidad = unidades.find((u) => u.id === unidadFiltro)?.nombre;
+      if (nombreUnidad) partesFiltro.push(nombreUnidad);
+    }
+    if (search) partesFiltro.push(`Búsqueda: "${search}"`);
+    const subtitulo = `REPORTE DE VACACIONES — ${partesFiltro.join(" · ")}`;
 
-    const ws = XLSX.utils.json_to_sheet(datos);
+    const aoa = [
+      ["HOSPITAL PROVINCIAL DE PORTOVIEJO DR. VERDI CEVALLOS BALDA"],
+      [subtitulo],
+      COLUMNAS_EXCEL,
+      ...datosExportar.map((v) => [
+        v.servidor_nombre,
+        v.cedula,
+        v.unidad_organica,
+        v.tipo === "VACACION_PROGRAMADA" ? "Vacación Programada" : "Permiso con Cargo",
+        v.fecha_solicitud,
+        v.fecha_inicio,
+        v.fecha_fin,
+        v.dias_solicitados,
+        ESTADO_LABEL_EXCEL[v.estado] || v.estado,
+        v.jefe_nombre || "",
+      ]),
+    ];
+
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws["!merges"] = [
+      { s: { c: 0, r: 0 }, e: { c: COLUMNAS_EXCEL.length - 1, r: 0 } },
+      { s: { c: 0, r: 1 }, e: { c: COLUMNAS_EXCEL.length - 1, r: 1 } },
+    ];
+    aplicarEstiloReporteVacaciones(ws, datosExportar);
+
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Vacaciones");
     XLSX.writeFile(
