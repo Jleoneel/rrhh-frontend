@@ -20,7 +20,11 @@ import {
   CalendarDays,
 } from "lucide-react";
 import api from "../../../shared/api/axios";
-import * as XLSX from "xlsx";
+// xlsx-js-style (no "xlsx" a secas, que ignora en silencio cualquier
+// estilo) — mismo fork que Cronograma y Reporte de Vacaciones, para que
+// este Excel tenga el mismo acabado (encabezado con color, bordes,
+// franjas alternadas) en vez de una hoja plana sin estilo.
+import * as XLSX from "xlsx-js-style";
 import Swal from "sweetalert2";
 import { horasADias } from "../../../shared/utils/horasADias";
 import StatCard from "../../../shared/components/ui/StatCard";
@@ -50,6 +54,105 @@ const estadoBadge = (estado) => {
   );
 };
 
+// Mismos colores que el badge de estado en pantalla (map de arriba, en hex
+// de Tailwind) para que la columna Estado del Excel se lea igual de rápido
+// que en la UI.
+const ESTADO_ESTILO_EXCEL = {
+  PENDIENTE: { bg: "FEF9C3", texto: "854D0E" },
+  APROBADO: { bg: "DCFCE7", texto: "166534" },
+  RECHAZADO: { bg: "FEE2E2", texto: "991B1B" },
+  CANCELADO: { bg: "F3F4F6", texto: "4B5563" },
+};
+
+// Estilos del Excel exportado, mismo criterio que CronogramaVacaciones.jsx
+// y el Reporte de Vacaciones (Calibri, títulos centrados con borde fino,
+// encabezado con relleno y franjas alternadas) pero en la paleta azul de
+// este módulo, para que el archivo se vea como una extensión del sistema.
+const BORDE_FINA = { style: "thin", color: { rgb: "94A3B8" } };
+const BORDE_COMPLETO = {
+  top: BORDE_FINA, bottom: BORDE_FINA, left: BORDE_FINA, right: BORDE_FINA,
+};
+const AZUL_TEXTO = "1E3A8A";
+const AZUL_HEADER = "2563EB";
+const AZUL_SUBHEADER = "DBEAFE";
+const GRIS_ZEBRA = "F8FAFC";
+
+const COLUMNAS_EXCEL = [
+  "Servidor", "Cédula", "Unidad", "Tipo Permiso", "Fecha",
+  "Hora Salida", "Hora Regreso", "Horas", "Estado", "Observación", "Jefe",
+];
+
+function aplicarEstiloReportePermisos(ws, filas) {
+  const totalColumnas = COLUMNAS_EXCEL.length;
+  const totalFilas = 3 + filas.length; // 2 títulos + 1 encabezado + datos
+
+  for (let r = 0; r < totalFilas; r++) {
+    for (let c = 0; c < totalColumnas; c++) {
+      const ref = XLSX.utils.encode_cell({ r, c });
+      if (!ws[ref]) ws[ref] = { t: "s", v: "" };
+
+      if (r === 0) {
+        // Título del hospital
+        ws[ref].s = {
+          font: { name: "Calibri", sz: 14, bold: true, color: { rgb: "1E293B" } },
+          alignment: { horizontal: "center", vertical: "center" },
+          border: BORDE_COMPLETO,
+        };
+      } else if (r === 1) {
+        // "REPORTE DE PERMISOS" + descripción del filtro aplicado
+        ws[ref].s = {
+          font: { name: "Calibri", sz: 11, bold: true, color: { rgb: AZUL_TEXTO } },
+          alignment: { horizontal: "center", vertical: "center" },
+          border: BORDE_COMPLETO,
+          fill: { fgColor: { rgb: AZUL_SUBHEADER } },
+        };
+      } else if (r === 2) {
+        // Encabezados de columna
+        ws[ref].s = {
+          font: { name: "Calibri", sz: 10, bold: true, color: { rgb: "FFFFFF" } },
+          alignment: { horizontal: "center", vertical: "center", wrapText: true },
+          border: BORDE_COMPLETO,
+          fill: { fgColor: { rgb: AZUL_HEADER } },
+        };
+      } else {
+        // Filas de datos
+        const idxFila = r - 3;
+        const zebra = idxFila % 2 === 1;
+        const esTexto = c === 0 || c === 2 || c === 9 || c === 10; // Servidor/Unidad/Observación/Jefe
+        const esEstado = c === 8;
+        const esHoras = c === 7;
+        const colorEstado = esEstado ? ESTADO_ESTILO_EXCEL[filas[idxFila].estado] : null;
+
+        ws[ref].s = {
+          font: {
+            name: "Calibri",
+            sz: 10,
+            bold: esHoras || esEstado,
+            color: { rgb: colorEstado ? colorEstado.texto : "1E293B" },
+          },
+          alignment: {
+            horizontal: esTexto ? "left" : "center",
+            vertical: "center",
+            wrapText: esTexto,
+          },
+          border: BORDE_COMPLETO,
+          fill: {
+            fgColor: { rgb: colorEstado ? colorEstado.bg : zebra ? GRIS_ZEBRA : "FFFFFF" },
+          },
+        };
+      }
+    }
+  }
+
+  ws["!cols"] = [
+    { wch: 30 }, { wch: 14 }, { wch: 30 }, { wch: 20 }, { wch: 13 },
+    { wch: 12 }, { wch: 12 }, { wch: 9 }, { wch: 14 }, { wch: 28 }, { wch: 28 },
+  ];
+  ws["!rows"] = [
+    { hpt: 26 }, { hpt: 22 }, { hpt: 24 },
+    ...Array.from({ length: filas.length }, () => ({ hpt: 20 })),
+  ];
+}
 
 export default function ReportePermisos() {
   const { setHeaderConfig } = useOutletContext();
@@ -209,21 +312,45 @@ export default function ReportePermisos() {
       return;
     }
 
-    const datos = datosExportar.map((p) => ({
-      Servidor: p.servidor_nombre,
-      Cédula: p.cedula,
-      Unidad: p.unidad_organica,
-      "Tipo Permiso": p.tipo_permiso,
-      Fecha: p.fecha,
-      "Hora Salida": p.hora_salida,
-      "Hora Regreso": p.hora_regreso,
-      Horas: p.horas_solicitadas,
-      Estado: p.estado,
-      Observación: p.observacion_jefe || "",
-      Jefe: p.jefe_nombre || "",
-    }));
+    // Línea de contexto bajo el título: qué filtro quedó aplicado al
+    // momento de exportar, para que el archivo tenga sentido por sí solo
+    // aunque se comparta fuera del sistema.
+    const partesFiltro = [];
+    partesFiltro.push(verTodos ? "Todos los permisos registrados" : `Fecha: ${fecha}`);
+    if (estado !== "TODOS") partesFiltro.push(estado);
+    if (unidadFiltro) {
+      const nombreUnidad = unidades.find((u) => u.id === unidadFiltro)?.nombre;
+      if (nombreUnidad) partesFiltro.push(nombreUnidad);
+    }
+    if (search) partesFiltro.push(`Búsqueda: "${search}"`);
+    const subtitulo = `REPORTE DE PERMISOS — ${partesFiltro.join(" · ")}`;
 
-    const ws = XLSX.utils.json_to_sheet(datos);
+    const aoa = [
+      ["HOSPITAL PROVINCIAL DE PORTOVIEJO DR. VERDI CEVALLOS BALDA"],
+      [subtitulo],
+      COLUMNAS_EXCEL,
+      ...datosExportar.map((p) => [
+        p.servidor_nombre,
+        p.cedula,
+        p.unidad_organica,
+        p.tipo_permiso,
+        p.fecha,
+        p.hora_salida,
+        p.hora_regreso,
+        p.horas_solicitadas,
+        p.estado,
+        p.observacion_jefe || "",
+        p.jefe_nombre || "",
+      ]),
+    ];
+
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws["!merges"] = [
+      { s: { c: 0, r: 0 }, e: { c: COLUMNAS_EXCEL.length - 1, r: 0 } },
+      { s: { c: 0, r: 1 }, e: { c: COLUMNAS_EXCEL.length - 1, r: 1 } },
+    ];
+    aplicarEstiloReportePermisos(ws, datosExportar);
+
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Permisos");
     XLSX.writeFile(
