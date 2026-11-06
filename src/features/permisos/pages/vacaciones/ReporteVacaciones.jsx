@@ -113,10 +113,15 @@ export default function ReporteVacaciones() {
     };
     setLoading(true);
     try {
-      const params = new URLSearchParams({ page: p.page, limit: p.limit });
-      if (p.verTodos) {
-        params.append("todos", "true");
-      } else {
+      const params = new URLSearchParams({
+        page: p.page,
+        limit: p.limit,
+        // El backend solo filtra por fecha cuando "todos" llega como
+        // "false" literal — antes se omitía este parámetro en modo
+        // filtro, así que el filtro de fecha nunca se aplicaba.
+        todos: p.verTodos ? "true" : "false",
+      });
+      if (!p.verTodos) {
         params.append("fecha_desde", p.fechaDesde);
         params.append("fecha_hasta", p.fechaHasta);
       }
@@ -255,10 +260,12 @@ export default function ReporteVacaciones() {
   const handleExportarExcel = async () => {
     let datosExportar = data;
     try {
-      const params = new URLSearchParams({ page: 1, limit: 100000 });
-      if (verTodos) {
-        params.append("todos", "true");
-      } else {
+      const params = new URLSearchParams({
+        page: 1,
+        limit: 100000,
+        todos: verTodos ? "true" : "false",
+      });
+      if (!verTodos) {
         params.append("fecha_desde", fechaDesde);
         params.append("fecha_hasta", fechaHasta);
       }
