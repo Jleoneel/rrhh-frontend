@@ -8,3 +8,5 @@ export const cancelarPermiso = (id) => api.put(`/permisos/${id}/cancelar`).then(
 export const getMisVacaciones = () => api.get("/permisos/mis-vacaciones").then(r => r.data);
 export const solicitarVacacion = (data) => api.post("/permisos/solicitar-vacacion", data).then(r => r.data);
 export const cancelarVacacion = (id) => api.put(`/permisos/${id}/cancelar-vacacion`).then(r => r.data);
+export const getNotificacionesCronograma = () => api.get("/permisos/notificaciones/cronograma-servidor").then(r => r.data);
+export const marcarLeidaNotificacion = (id) => api.patch(`/permisos/notificaciones/${id}/leer`).then(r => r.data);

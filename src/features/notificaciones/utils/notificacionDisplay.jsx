@@ -18,6 +18,8 @@ export function renderIconoNotificacion(n) {
     return <FileSignature size={14} className="text-blue-500" />;
   if (n.categoria === "VACACION")
     return <Calendar size={14} className="text-green-500" />;
+  if (n.categoria === "CRONOGRAMA")
+    return <Calendar size={14} className="text-emerald-500" />;
   if (n.tipo === "APROBADO")
     return <CheckCircle size={14} className="text-green-500" />;
   if (n.tipo === "RECHAZADO")
@@ -85,6 +87,30 @@ export function renderMensajeNotificacion(n) {
       </>
     );
   }
+  if (n.categoria === "CRONOGRAMA") {
+    return (
+      <>
+        <p className="text-sm font-medium text-gray-800">
+          Tienes unas vacaciones programadas, ¿quieres solicitarlas?
+        </p>
+        {n.fecha_desde && (
+          <p className="text-xs text-gray-400">
+            {new Date(n.fecha_desde + "T12:00:00").toLocaleDateString(
+              "es-ES",
+              { day: "2-digit", month: "short" },
+            )}
+            {" → "}
+            {new Date(n.fecha_hasta + "T12:00:00").toLocaleDateString(
+              "es-ES",
+              { day: "2-digit", month: "short", year: "numeric" },
+            )}
+            {" · "}
+            {n.dias} días
+          </p>
+        )}
+      </>
+    );
+  }
   return (
     <>
       <p className="text-sm font-medium text-gray-800">
@@ -106,6 +132,8 @@ export function colorNotificacion(n) {
     return "bg-blue-100 border-l-4 border-blue-400";
   if (n.categoria === "VACACION")
     return "bg-green-50 border-l-4 border-green-400";
+  if (n.categoria === "CRONOGRAMA")
+    return "bg-emerald-50 border-l-4 border-emerald-400";
   if (n.tipo === "APROBADO") return "bg-green-50 border-l-4 border-green-400";
   if (n.tipo === "RECHAZADO") return "bg-red-50 border-l-4 border-red-400";
   return "bg-yellow-50 border-l-4 border-yellow-400";
@@ -122,5 +150,6 @@ export function rutaParaCategoria(categoria, tipoUsuario) {
     return esServidor ? "/servidor/permisos" : "/permisos/bandeja";
   if (categoria === "VACACION")
     return esServidor ? "/servidor/vacaciones" : "/permisos/bandeja-vacaciones";
+  if (categoria === "CRONOGRAMA") return "/servidor/vacaciones";
   return null;
 }

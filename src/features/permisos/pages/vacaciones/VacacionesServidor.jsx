@@ -6,6 +6,8 @@ import {
   getMisVacaciones,
   solicitarVacacion,
   cancelarVacacion,
+  getNotificacionesCronograma,
+  marcarLeidaNotificacion,
 } from "../../hooks/permisos.service";
 import {
   Clock,
@@ -91,6 +93,7 @@ export default function VacacionesServidor() {
   const [passwordToken, setPasswordToken] = useState("");
   const [tieneCertificado, setTieneCertificado] = useState(false);
   const [firmarElectronicamente, setFirmarElectronicamente] = useState(true);
+  const [cronogramaNotifs, setCronogramaNotifs] = useState([]);
 
   const cargarDatos = async () => {
     setLoading(true);
@@ -108,13 +111,51 @@ export default function VacacionesServidor() {
     }
   };
 
+  const cargarCronograma = async () => {
+    try {
+      setCronogramaNotifs(await getNotificacionesCronograma());
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     cargarDatos();
+    cargarCronograma();
     api
       .get("/firmas/mi-certificado")
       .then((r) => setTieneCertificado(!!r.data?.tiene_certificado && !!r.data?.p12_activo))
       .catch(() => setTieneCertificado(false));
   }, []);
+
+  // El jefe le programó estas fechas en el Cronograma de Vacaciones — abre
+  // el modal ya lleno con tipo/fechas/días, solo falta el teléfono. La
+  // notificación se da por atendida (leída) al abrir el formulario.
+  const handleSolicitarDesdeCronograma = async (n) => {
+    setForm({
+      ...initialForm,
+      tipo: "VACACION_PROGRAMADA",
+      fecha_inicio: n.fecha_desde,
+      fecha_fin: n.fecha_hasta,
+      dias_solicitados: n.dias,
+    });
+    setModalOpen(true);
+    setCronogramaNotifs((prev) => prev.filter((x) => x.id !== n.id));
+    try {
+      await marcarLeidaNotificacion(n.id);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDescartarCronograma = async (n) => {
+    setCronogramaNotifs((prev) => prev.filter((x) => x.id !== n.id));
+    try {
+      await marcarLeidaNotificacion(n.id);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // Calcular días automáticamente al cambiar fechas
   useEffect(() => {
@@ -375,6 +416,58 @@ export default function VacacionesServidor() {
           </div>
         ) : (
           <>
+            {/* Avisos de Cronograma de Vacaciones — bloques que un jefe
+                planificó y todavía no se han leído/solicitado. */}
+            {cronogramaNotifs.length > 0 && (
+              <div className="mb-8 space-y-3">
+                {cronogramaNotifs.map((n) => (
+                  <div
+                    key={n.id}
+                    className="flex items-center gap-4 bg-emerald-50 border border-emerald-200 rounded-2xl p-5"
+                  >
+                    <div className="p-3 bg-emerald-100 rounded-xl shrink-0">
+                      <Calendar className="h-6 w-6 text-emerald-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-emerald-900">
+                        Tienes una vacación programada del{" "}
+                        {new Date(
+                          n.fecha_desde + "T12:00:00",
+                        ).toLocaleDateString("es-ES", {
+                          day: "2-digit",
+                          month: "long",
+                        })}{" "}
+                        al{" "}
+                        {new Date(
+                          n.fecha_hasta + "T12:00:00",
+                        ).toLocaleDateString("es-ES", {
+                          day: "2-digit",
+                          month: "long",
+                          year: "numeric",
+                        })}{" "}
+                        ({n.dias} días). ¿Quieres solicitarla?
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => handleSolicitarDesdeCronograma(n)}
+                        className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition-all"
+                      >
+                        Sí, solicitar
+                      </button>
+                      <button
+                        onClick={() => handleDescartarCronograma(n)}
+                        title="Descartar"
+                        className="p-2 text-emerald-700 hover:bg-emerald-100 rounded-xl transition-all"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* Card saldo */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
               <div className="md:col-span-2 bg-white rounded-2xl shadow-xl border border-gray-200 p-6">

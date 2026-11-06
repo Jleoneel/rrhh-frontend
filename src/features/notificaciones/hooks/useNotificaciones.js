@@ -78,6 +78,11 @@ export function useNotificaciones() {
               (r) => r.data.map((n) => ({ ...n, categoria: "VACACION" })),
             ),
           );
+          promesas.push(
+            api.get("/permisos/notificaciones/cronograma-servidor").then(
+              (r) => r.data.map((n) => ({ ...n, categoria: "CRONOGRAMA" })),
+            ),
+          );
         }
 
         const resultados = await Promise.all(promesas);
@@ -248,6 +253,9 @@ export function useNotificaciones() {
       const tienePermisosServidor = notificaciones.some(
         (n) => n.categoria === "PERMISO" && esServidor,
       );
+      const tieneCronogramaServidor = notificaciones.some(
+        (n) => n.categoria === "CRONOGRAMA" && esServidor,
+      );
       const tieneRecepcion = notificaciones.some(
         (n) => n.categoria === "RECEPCION",
       );
@@ -260,15 +268,14 @@ export function useNotificaciones() {
         promesas.push(
           api.patch("/permisos/notificaciones/leer-todas-firmante"),
         );
-      if (tienePermisosServidor)
-        promesas.push(
-          api.patch("/permisos/notificaciones/leer-todas-servidor"),
-        );
       if (tieneVacacionesFirmante)
         promesas.push(
           api.patch("/permisos/notificaciones/leer-todas-firmante"),
         );
-      if (tieneVacacionesServidor)
+      // leer-todas-servidor marca TODO lo pendiente de ese servidor (sin
+      // filtrar por tipo), así que basta con dispararla una sola vez si
+      // hay cualquiera de estas tres categorías.
+      if (tienePermisosServidor || tieneVacacionesServidor || tieneCronogramaServidor)
         promesas.push(
           api.patch("/permisos/notificaciones/leer-todas-servidor"),
         );
