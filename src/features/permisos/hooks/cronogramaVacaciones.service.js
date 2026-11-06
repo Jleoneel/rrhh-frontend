@@ -23,3 +23,8 @@ export const getCronogramaParaExportar = (params = {}) => {
   const query = new URLSearchParams(params).toString();
   return api.get(`/cronograma-vacaciones/exportar?${query}`).then((r) => r.data);
 };
+
+export const getUnidadesResumen = (anio) =>
+  api
+    .get(`/cronograma-vacaciones/unidades-resumen?anio=${anio}`)
+    .then((r) => r.data);

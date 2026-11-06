@@ -25,7 +25,6 @@ import * as XLSX from "xlsx-js-style";
 import DatePicker, { registerLocale } from "react-datepicker";
 import { es } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
-import api from "../../../shared/api/axios";
 import StatCard from "../../../shared/components/ui/StatCard";
 import PageNumbers from "../../../shared/components/ui/PageNumbers";
 import { useAuth } from "../../auth/AuthContext";
@@ -37,6 +36,7 @@ import {
   actualizarBloque,
   eliminarBloque,
   getCronogramaParaExportar,
+  getUnidadesResumen,
 } from "../hooks/cronogramaVacaciones.service";
 
 registerLocale("es", es);
@@ -250,11 +250,10 @@ export default function CronogramaVacaciones() {
 
   useEffect(() => {
     if (esJefeArea && !esAdmin) return; // no hay filtro de unidad que llenar
-    api
-      .get("/catalogos/unidades-organicas")
-      .then((r) => setUnidades(r.data))
+    getUnidadesResumen(anio)
+      .then(setUnidades)
       .catch(() => setUnidades([]));
-  }, [esJefeArea, esAdmin]);
+  }, [esJefeArea, esAdmin, anio]);
 
   const handleUnidad = (e) => {
     setUnidadFiltro(e.target.value);
@@ -617,7 +616,7 @@ export default function CronogramaVacaciones() {
                   <option value="">Todas las unidades</option>
                   {unidades.map((u) => (
                     <option key={u.id} value={u.id}>
-                      {u.nombre}
+                      {u.nombre} ({u.con_cronograma}/{u.total_servidores})
                     </option>
                   ))}
                 </select>
