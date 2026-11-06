@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { X, Loader2, CalendarDays } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion"; // eslint-disable-line no-unused-vars
 import { getCronogramaParaExportar } from "../hooks/cronogramaVacaciones.service";
 
 const MESES_CORTOS = [
@@ -37,6 +38,16 @@ function offsetsMeses(anio) {
   });
 }
 
+function formatearRango(fechaDesde, fechaHasta) {
+  const opciones = { day: "numeric", month: "long" };
+  const desde = parseLocalDate(fechaDesde).toLocaleDateString("es-ES", opciones);
+  const hasta = parseLocalDate(fechaHasta).toLocaleDateString("es-ES", {
+    ...opciones,
+    year: "numeric",
+  });
+  return `${desde} – ${hasta}`;
+}
+
 // Vista "línea de tiempo" (Gantt) de todo el personal visible para quien
 // consulta (mismo scoping que la tabla/export: unidad propia para jefe de
 // área, todo el hospital para UATH/admin) — una fila por servidor con sus
@@ -48,10 +59,14 @@ export default function CronogramaGanttModal({
   const [cargando, setCargando] = useState(false);
   const [filas, setFilas] = useState([]);
   const [soloConVacaciones, setSoloConVacaciones] = useState(true);
+  // Clave `${servidor_id}-${indice del bloque}` de la barra con el popover
+  // abierto, o null si ninguna. Solo una a la vez.
+  const [popoverActivo, setPopoverActivo] = useState(null);
 
   useEffect(() => {
     if (!open) return;
     setCargando(true);
+    setPopoverActivo(null);
     const params = { anio };
     if (unidadFiltro) params.unidad_organica_id = unidadFiltro;
     if (search) params.search = search;
@@ -107,11 +122,14 @@ export default function CronogramaGanttModal({
             Mostrar solo quienes tienen vacaciones planificadas
           </label>
           <span className="text-xs text-gray-400">
-            Pasa el cursor sobre una barra para ver las fechas exactas
+            Haz clic en una barra para ver las fechas exactas
           </span>
         </div>
 
-        <div className="overflow-auto flex-1">
+        <div
+          className="overflow-auto flex-1"
+          onClick={() => setPopoverActivo(null)}
+        >
           {cargando ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
@@ -172,13 +190,54 @@ export default function CronogramaGanttModal({
                             ((fin - inicio + 1) / totalDiasAnio) * 100,
                             0.8,
                           );
+                          const clave = `${f.servidor_id}-${i}`;
+                          const abierto = popoverActivo === clave;
                           return (
                             <div
                               key={i}
-                              title={`${b.fecha_desde} → ${b.fecha_hasta} (${b.dias} días)`}
-                              className="absolute top-0 h-6 bg-blue-500 hover:bg-blue-600 rounded-md shadow-sm transition-colors cursor-default"
+                              className="absolute top-0"
                               style={{ left: `${left}%`, width: `${width}%` }}
-                            />
+                            >
+                              <motion.div
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPopoverActivo(abierto ? null : clave);
+                                }}
+                                whileHover={{ scale: 1.08 }}
+                                whileTap={{ scale: 0.95 }}
+                                animate={abierto ? { scale: 1.08 } : { scale: 1 }}
+                                transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                                className={`h-6 rounded-md shadow-sm cursor-pointer ${
+                                  abierto ? "bg-blue-700 ring-2 ring-blue-300" : "bg-blue-500"
+                                }`}
+                              />
+                              <AnimatePresence>
+                                {abierto && (
+                                  <motion.div
+                                    initial={{ opacity: 0, y: -6, scale: 0.9 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: -6, scale: 0.9 }}
+                                    transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className={`absolute top-full mt-2 z-20 w-56 bg-gray-900 text-white rounded-xl shadow-xl px-4 py-3 ${
+                                      left > 60 ? "right-0" : "left-0"
+                                    }`}
+                                  >
+                                    <div
+                                      className={`absolute -top-1.5 w-3 h-3 bg-gray-900 rotate-45 ${
+                                        left > 60 ? "right-3" : "left-3"
+                                      }`}
+                                    />
+                                    <p className="text-sm font-semibold leading-snug">
+                                      {formatearRango(b.fecha_desde, b.fecha_hasta)}
+                                    </p>
+                                    <p className="text-xs text-blue-300 font-medium mt-1">
+                                      {b.dias} días de vacación
+                                    </p>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
                           );
                         })}
                       </div>
