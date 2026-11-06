@@ -17,7 +17,11 @@ import {
   CalendarDays,
 } from "lucide-react";
 import Swal from "sweetalert2";
-import * as XLSX from "xlsx";
+// xlsx-js-style (no "xlsx" a secas): la versión gratuita de SheetJS escribe
+// el archivo pero IGNORA en silencio cualquier estilo (negrita, bordes,
+// relleno) — se probó antes de elegir y el .xlsx resultante no tenía nada
+// de eso aplicado. Este fork mantiene la misma API pero sí lo escribe.
+import * as XLSX from "xlsx-js-style";
 import DatePicker, { registerLocale } from "react-datepicker";
 import { es } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
@@ -56,6 +60,104 @@ function formatLocalDate(date) {
   const m = String(date.getMonth() + 1).padStart(2, "0");
   const d = String(date.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
+}
+
+// Estilos del Excel exportado, calcados de la plantilla oficial del
+// hospital (FILES/CRONOGRAMA DE VACACIONES 2025-2026.xls: Calibri, títulos
+// y encabezados en negrita centrados con borde fino, columnas anchas para
+// nombres/denominación) — más un repintado liviano (relleno azul en
+// encabezados, franjas alternadas, resaltado naranja en el tope de 30 días)
+// usando los mismos colores que ya tiene la UI, para que el archivo se vea
+// como una extensión del sistema y no como una hoja plana.
+const BORDE_FINA = { style: "thin", color: { rgb: "94A3B8" } };
+const BORDE_COMPLETO = {
+  top: BORDE_FINA, bottom: BORDE_FINA, left: BORDE_FINA, right: BORDE_FINA,
+};
+const AZUL_TEXTO = "1E3A8A";
+const AZUL_HEADER = "DBEAFE";
+const AZUL_SUBHEADER = "EFF6FF";
+const GRIS_ZEBRA = "F8FAFC";
+const NARANJA_FONDO = "FFEDD5";
+const NARANJA_TEXTO = "9A3412";
+
+const COL_PRIMER_MES = 4;
+const COL_TOTAL_GENERAL = COL_PRIMER_MES + MESES.length * 3; // 40
+
+function aplicarEstiloCronograma(ws, cantidadFilas, topeDiasAnual, filas) {
+  const totalColumnas = COL_TOTAL_GENERAL + 1;
+  const totalFilas = 4 + cantidadFilas; // 2 títulos + 2 encabezados + datos
+
+  for (let r = 0; r < totalFilas; r++) {
+    for (let c = 0; c < totalColumnas; c++) {
+      const ref = XLSX.utils.encode_cell({ r, c });
+      if (!ws[ref]) ws[ref] = { t: "s", v: "" };
+
+      if (r <= 1) {
+        // Título del hospital / "CRONOGRAMA DE VACACIONES – AÑO X"
+        ws[ref].s = {
+          font: { name: "Calibri", sz: 14, bold: true, color: { rgb: "1E293B" } },
+          alignment: { horizontal: "center", vertical: "center" },
+          border: BORDE_COMPLETO,
+        };
+      } else if (r === 2) {
+        // Nro./Nombres/Denominación/Cédula/ENERO/FEBRERO/.../TOTAL DÍAS
+        ws[ref].s = {
+          font: { name: "Calibri", sz: 11, bold: true, color: { rgb: AZUL_TEXTO } },
+          alignment: { horizontal: "center", vertical: "center", wrapText: true },
+          border: BORDE_COMPLETO,
+          fill: { fgColor: { rgb: AZUL_HEADER } },
+        };
+      } else if (r === 3) {
+        // DESDE / HASTA / TOTAL DIAS por mes
+        ws[ref].s = {
+          font: { name: "Calibri", sz: 10, bold: true, color: { rgb: AZUL_TEXTO } },
+          alignment: { horizontal: "center", vertical: "center", wrapText: true },
+          border: BORDE_COMPLETO,
+          fill: { fgColor: { rgb: AZUL_SUBHEADER } },
+        };
+      } else {
+        // Filas de datos
+        const idxFila = r - 4;
+        const zebra = idxFila % 2 === 1;
+        const esNombreODenominacion = c === 1 || c === 2;
+        const esColumnaTotal = c === COL_TOTAL_GENERAL;
+        const totalAnio = esColumnaTotal
+          ? filas[idxFila].bloques.reduce((acc, b) => acc + b.dias, 0)
+          : 0;
+        const enTope = esColumnaTotal && totalAnio >= topeDiasAnual;
+
+        ws[ref].s = {
+          font: {
+            name: "Calibri",
+            sz: 10,
+            bold: esColumnaTotal,
+            color: { rgb: enTope ? NARANJA_TEXTO : "1E293B" },
+          },
+          alignment: {
+            horizontal: esNombreODenominacion ? "left" : "center",
+            vertical: "center",
+            wrapText: esNombreODenominacion,
+          },
+          border: BORDE_COMPLETO,
+          fill: {
+            fgColor: { rgb: enTope ? NARANJA_FONDO : zebra ? GRIS_ZEBRA : "FFFFFF" },
+          },
+        };
+      }
+    }
+  }
+
+  // Más espaciado: columnas anchas para nombres/denominación (como en la
+  // plantilla original) y filas con más aire que el alto por defecto.
+  ws["!cols"] = [
+    { wch: 6 }, { wch: 34 }, { wch: 34 }, { wch: 13 },
+    ...MESES.flatMap(() => [{ wch: 11 }, { wch: 11 }, { wch: 10 }]),
+    { wch: 13 },
+  ];
+  ws["!rows"] = [
+    { hpt: 26 }, { hpt: 24 }, { hpt: 32 }, { hpt: 26 },
+    ...Array.from({ length: cantidadFilas }, () => ({ hpt: 20 })),
+  ];
 }
 
 export default function CronogramaVacaciones() {
@@ -273,6 +375,8 @@ export default function CronogramaVacaciones() {
       })),
       { s: { c: 40, r: 2 }, e: { c: 40, r: 3 } },
     ];
+
+    aplicarEstiloCronograma(ws, filas.length, topeDiasAnual, filas);
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "CRONOGRAMA");
