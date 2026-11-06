@@ -23,7 +23,15 @@ import {
 import Swal from "sweetalert2";
 import { horasADias } from "../../../../shared/utils/horasADias";
 
-const estadoBadge = (estado) => {
+// Nombre del firmante responsable de aprobar cada estado pendiente — para
+// que quien solicita sepa a quién consultar si la solicitud se demora.
+const NOMBRE_APROBADOR_POR_ESTADO = {
+  PENDIENTE_JEFE: "jefe_nombre",
+  PENDIENTE_GERENTE: "gerente_nombre",
+  PENDIENTE_UATH: "uath_nombre",
+};
+
+const estadoBadge = (estado, solicitud = {}) => {
   const map = {
     PENDIENTE_JEFE: "bg-yellow-100 text-yellow-800 border border-yellow-200",
     PENDIENTE_GERENTE: "bg-orange-100 text-orange-800 border border-orange-200",
@@ -45,11 +53,14 @@ const estadoBadge = (estado) => {
     APROBADO: <CheckCircle2 size={11} />,
     NEGADO: <XCircle size={11} />,
   };
+  const campoAprobador = NOMBRE_APROBADOR_POR_ESTADO[estado];
+  const nombreAprobador = campoAprobador ? solicitud[campoAprobador] : null;
   return (
     <span
       className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${map[estado] || "bg-gray-100 text-gray-600"}`}
     >
       {icons[estado]} {labels[estado] || estado}
+      {nombreAprobador && ` (${nombreAprobador})`}
     </span>
   );
 };
@@ -483,7 +494,7 @@ export default function VacacionesFirmante() {
                                   ? "Vacación Programada"
                                   : "Permiso con Cargo"}
                               </p>
-                              {estadoBadge(v.estado)}
+                              {estadoBadge(v.estado, v)}
                             </div>
                             <p className="text-sm text-gray-500">
                               Solicitado el{" "}
