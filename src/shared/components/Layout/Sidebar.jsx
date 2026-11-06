@@ -356,8 +356,11 @@ export default function Sidebar() {
                         },
                       ]
                     : []),
-                  // Cronograma para jefes y para el admin
-                  ...(es_jefe || esAdmin
+                  // Cronograma para jefes, UATH (asistente/analista),
+                  // Responsable UATH y el admin — mismo criterio de acceso
+                  // total que ya usa el backend (tieneAccesoTotal en
+                  // cronogramaVacaciones.routes.js).
+                  ...(es_jefe || esAdmin || esAsistenteUATH || esResponsableUATH
                     ? [
                         {
                           title: "Cronograma de Vacaciones",
