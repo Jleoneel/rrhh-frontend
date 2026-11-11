@@ -29,6 +29,7 @@ import Swal from "sweetalert2";
 import * as XLSX from "xlsx-js-style";
 import StatCard from "../../../../shared/components/ui/StatCard";
 import PageNumbers from "../../../../shared/components/ui/PageNumbers";
+import ObservacionPopover from "../../../../shared/components/ui/ObservacionPopover";
 
 const ESTADOS = [
   "TODOS",
@@ -107,7 +108,7 @@ const GRIS_ZEBRA = "F8FAFC";
 
 const COLUMNAS_EXCEL = [
   "Servidor", "Cédula", "Unidad", "Tipo", "Fecha Solicitud",
-  "Fecha Inicio", "Fecha Fin", "Días", "Estado", "Jefe Inmediato",
+  "Fecha Inicio", "Fecha Fin", "Días", "Estado", "Jefe Inmediato", "Observación",
 ];
 
 function aplicarEstiloReporteVacaciones(ws, filas) {
@@ -146,7 +147,7 @@ function aplicarEstiloReporteVacaciones(ws, filas) {
         // Filas de datos
         const idxFila = r - 3;
         const zebra = idxFila % 2 === 1;
-        const esTexto = c === 0 || c === 2 || c === 9; // Servidor/Unidad/Jefe
+        const esTexto = c === 0 || c === 2 || c === 9 || c === 10; // Servidor/Unidad/Jefe/Observación
         const esEstado = c === 8;
         const esDias = c === 7;
         const colorEstado = esEstado ? ESTADO_ESTILO_EXCEL[filas[idxFila].estado] : null;
@@ -174,7 +175,7 @@ function aplicarEstiloReporteVacaciones(ws, filas) {
 
   ws["!cols"] = [
     { wch: 30 }, { wch: 14 }, { wch: 30 }, { wch: 18 }, { wch: 14 },
-    { wch: 13 }, { wch: 13 }, { wch: 8 }, { wch: 24 }, { wch: 28 },
+    { wch: 13 }, { wch: 13 }, { wch: 8 }, { wch: 24 }, { wch: 28 }, { wch: 40 },
   ];
   ws["!rows"] = [
     { hpt: 26 }, { hpt: 22 }, { hpt: 24 },
@@ -325,19 +326,50 @@ export default function ReporteVacaciones() {
     negados: resumen.NEGADO,
   };
 
+  // Cada etapa de la cadena firma sobre el archivo de la etapa anterior
+  // (archivo_jefe → archivo_superior → archivo_uath, ver
+  // confirmar-firma-jefe/superior/uath en vac-firmas.routes.js), así que
+  // el tipo correcto a descargar es el de la ÚLTIMA firma ya puesta, no
+  // siempre el mismo PDF en blanco: con el jefe pendiente aún no hay
+  // ninguna firma (se descarga lo que el propio servidor firmó, si lo
+  // hizo); con el gerente pendiente ya firmó el jefe; con UATH pendiente
+  // ya firmaron jefe y gerente; aprobado trae las tres.
+  const tipoPdfParaEstado = (estado) => {
+    switch (estado) {
+      case "PENDIENTE_JEFE":
+        return "solicitante";
+      case "PENDIENTE_GERENTE":
+        return "jefe";
+      case "PENDIENTE_UATH":
+        return "superior";
+      case "APROBADO":
+        return "uath";
+      default:
+        return null; // NEGADO y otros: PDF simple generado al vuelo
+    }
+  };
+
   const handleDescargarPdf = async (v) => {
     try {
       const token = localStorage.getItem("token");
+      const base = import.meta.env.VITE_API_URL;
+      const tipo = tipoPdfParaEstado(v.estado);
+      const url = tipo
+        ? `${base}/api/permisos/${v.id}/descargar-vacacion/${tipo}`
+        : `${base}/api/permisos/${v.id}/pdf-vacacion`;
 
-      // Si está aprobado, descargar el PDF final firmado por UATH
-      const url =
-        v.estado === "APROBADO" && v.archivo_uath
-          ? `${import.meta.env.VITE_API_URL}/api/permisos/${v.id}/descargar-vacacion/uath`
-          : `${import.meta.env.VITE_API_URL}/api/permisos/${v.id}/pdf-vacacion`;
-
-      const response = await fetch(url, {
+      let response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      // Si todavía no existe ese archivo (ej. el servidor no firmó su
+      // propia solicitud al crearla, es opcional), cae al PDF simple
+      // generado al vuelo con los datos actuales en vez de fallar.
+      if (!response.ok && tipo) {
+        response = await fetch(`${base}/api/permisos/${v.id}/pdf-vacacion`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
 
       if (!response.ok) throw new Error("Error generando PDF");
 
@@ -436,6 +468,7 @@ export default function ReporteVacaciones() {
         v.dias_solicitados,
         ESTADO_LABEL_EXCEL[v.estado] || v.estado,
         v.jefe_nombre || "",
+        v.observacion || "",
       ]),
     ];
 
@@ -666,6 +699,7 @@ export default function ReporteVacaciones() {
                 <thead>
                   <tr className="bg-linear-to-r from-gray-100 to-gray-50 border-b border-gray-200">
                     {[
+                      "Fecha Solicitud",
                       "Servidor",
                       "Cédula",
                       "Unidad",
@@ -674,6 +708,7 @@ export default function ReporteVacaciones() {
                       "Días",
                       "Jefe",
                       "Estado",
+                      "Observación",
                       "PDF",
                     ].map((h) => (
                       <th
@@ -691,6 +726,17 @@ export default function ReporteVacaciones() {
                       key={v.id}
                       className="hover:bg-linear-to-r hover:from-green-50/50 hover:to-transparent transition-all duration-200 group"
                     >
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-gray-600 font-medium">
+                          {new Date(
+                            v.fecha_solicitud + "T12:00:00",
+                          ).toLocaleDateString("es-ES", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </span>
+                      </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -763,16 +809,20 @@ export default function ReporteVacaciones() {
                       </td>
                       <td className="px-6 py-4">{estadoBadge(v.estado)}</td>
                       <td className="px-6 py-4">
-                        {v.estado === "APROBADO" && (
+                        <ObservacionPopover texto={v.observacion} />
+                      </td>
+                      <td className="px-6 py-4">
+                        {v.estado.startsWith("PENDIENTE") ||
+                        v.estado === "APROBADO" ? (
                           <button
                             onClick={() => handleDescargarPdf(v)}
                             className="flex items-center gap-1.5 px-3 py-1.5 bg-linear-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-md hover:shadow-lg text-xs font-medium"
-                            title="Descargar PDF de vacaciones"
+                            title="Descargar PDF con las firmas puestas hasta ahora"
                           >
                             <Download size={13} />
                             PDF
                           </button>
-                        )}
+                        ) : null}
                       </td>
                     </tr>
                   ))}

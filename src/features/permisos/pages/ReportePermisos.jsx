@@ -29,6 +29,7 @@ import Swal from "sweetalert2";
 import { horasADias } from "../../../shared/utils/horasADias";
 import StatCard from "../../../shared/components/ui/StatCard";
 import PageNumbers from "../../../shared/components/ui/PageNumbers";
+import ObservacionPopover from "../../../shared/components/ui/ObservacionPopover";
 
 const ESTADOS = ["TODOS", "PENDIENTE", "APROBADO", "RECHAZADO", "CANCELADO"];
 
@@ -603,6 +604,7 @@ export default function ReportePermisos() {
                 <thead>
                   <tr className="bg-linear-to-r from-gray-100 to-gray-50 border-b border-gray-200">
                     {[
+                      "Fecha",
                       "Servidor",
                       "Cédula",
                       "Unidad",
@@ -611,6 +613,7 @@ export default function ReportePermisos() {
                       "Horas",
                       "Jefe",
                       "Estado",
+                      "Observación",
                       "Acciones",
                     ].map((h) => (
                       <th
@@ -628,6 +631,14 @@ export default function ReportePermisos() {
                       key={p.id}
                       className="hover:bg-linear-to-r hover:from-blue-50/50 hover:to-transparent transition-all duration-200 group"
                     >
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-gray-600 font-medium">
+                          {new Date(p.fecha + "T12:00:00").toLocaleDateString(
+                            "es-ES",
+                            { day: "2-digit", month: "short", year: "numeric" },
+                          )}
+                        </span>
+                      </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -674,6 +685,9 @@ export default function ReportePermisos() {
                         </div>
                       </td>
                       <td className="px-6 py-4">{estadoBadge(p.estado)}</td>
+                      <td className="px-6 py-4">
+                        <ObservacionPopover texto={p.observacion_jefe} />
+                      </td>
                       <td className="px-6 py-4">
                         {p.tipo_permiso === "Calamidad Doméstica" &&
                         p.archivo_evidencia ? (
