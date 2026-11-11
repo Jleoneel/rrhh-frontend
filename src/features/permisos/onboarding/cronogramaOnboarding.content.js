@@ -13,7 +13,8 @@ import {
 // Cronograma y quieras que el aviso vuelva a aparecer (aunque el usuario ya
 // haya visto una versión anterior). El backend guarda, por usuario, la
 // última versión que vio (ver src/shared/api/onboarding.service.js).
-export const CRONOGRAMA_ONBOARDING_VERSION = 1;
+// v2: se agregó el botón "Ver mi cronograma" del lado del servidor.
+export const CRONOGRAMA_ONBOARDING_VERSION = 2;
 export const CRONOGRAMA_ONBOARDING_MODULO = "cronograma_vacaciones";
 
 export const SLIDES_JEFE = [
@@ -79,5 +80,11 @@ export const SLIDES_SERVIDOR = [
     titulo: "El mismo proceso de siempre",
     descripcion:
       "Una vez que solicitas, la petición sigue el mismo flujo de firmas (jefe, jefe superior, UATH) de cualquier vacación.",
+  },
+  {
+    icon: CalendarRange,
+    titulo: '"Ver mi cronograma"',
+    descripcion:
+      'En la parte superior de esta página tienes el botón "Ver mi cronograma", donde puedes consultar en cualquier momento qué fechas te ha planificado tu jefe, por año — aunque todavía no hayas solicitado nada.',
   },
 ];

@@ -28,3 +28,9 @@ export const getUnidadesResumen = (anio) =>
   api
     .get(`/cronograma-vacaciones/unidades-resumen?anio=${anio}`)
     .then((r) => r.data);
+
+// Solo lectura: el propio servidor consultando sus bloques planificados.
+export const getMiCronograma = (anio) =>
+  api
+    .get(`/cronograma-vacaciones/mi-cronograma?anio=${anio}`)
+    .then((r) => r.data);

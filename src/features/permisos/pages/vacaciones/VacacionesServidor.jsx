@@ -9,6 +9,7 @@ import {
   getNotificacionesCronograma,
   marcarLeidaNotificacion,
 } from "../../hooks/permisos.service";
+import { getMiCronograma } from "../../hooks/cronogramaVacaciones.service";
 import {
   Clock,
   Calendar,
@@ -23,8 +24,12 @@ import {
   X,
   Trash2,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Download,
   ShieldCheck,
+  CalendarRange,
+  CalendarDays,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import { horasADias } from "../../../../shared/utils/horasADias";
@@ -172,6 +177,25 @@ export default function VacacionesServidor() {
       () => {},
     );
   };
+
+  // "Ver mi cronograma" — solo lectura: el servidor consulta los bloques que
+  // su jefe le planificó, igual que el jefe los ve, pero sin poder
+  // crear/editar/eliminar (eso sigue siendo exclusivo del jefe).
+  const [modalCronograma, setModalCronograma] = useState(false);
+  const [anioCronograma, setAnioCronograma] = useState(
+    new Date().getFullYear() + 1,
+  );
+  const [miCronograma, setMiCronograma] = useState(null);
+  const [cargandoCronograma, setCargandoCronograma] = useState(false);
+
+  useEffect(() => {
+    if (!modalCronograma) return;
+    setCargandoCronograma(true);
+    getMiCronograma(anioCronograma)
+      .then(setMiCronograma)
+      .catch(() => setMiCronograma(null))
+      .finally(() => setCargandoCronograma(false));
+  }, [modalCronograma, anioCronograma]);
 
   // El jefe le programó estas fechas en el Cronograma de Vacaciones — abre
   // el modal ya lleno con tipo/fechas/días, solo falta el teléfono. La
@@ -462,19 +486,28 @@ export default function VacacionesServidor() {
     <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-10 flex items-center gap-4">
-          <div className="p-4 bg-linear-to-br from-green-600 to-green-700 rounded-2xl shadow-xl">
-            <Calendar className="h-8 w-8 text-white" />
+        <div className="mb-10 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-4">
+            <div className="p-4 bg-linear-to-br from-green-600 to-green-700 rounded-2xl shadow-xl">
+              <Calendar className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900">Mis Vacaciones</h1>
+              <p className="text-gray-500 mt-1">
+                Bienvenido,{" "}
+                <span className="font-semibold text-green-600">
+                  {user?.nombre}
+                </span>
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900">Mis Vacaciones</h1>
-            <p className="text-gray-500 mt-1">
-              Bienvenido,{" "}
-              <span className="font-semibold text-green-600">
-                {user?.nombre}
-              </span>
-            </p>
-          </div>
+          <button
+            onClick={() => setModalCronograma(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-green-200 text-green-700 rounded-xl font-medium hover:bg-green-50 transition-all shadow-sm"
+          >
+            <CalendarRange size={18} />
+            Ver mi cronograma
+          </button>
         </div>
 
         {loading ? (
@@ -1061,6 +1094,136 @@ export default function VacacionesServidor() {
         slides={SLIDES_SERVIDOR}
         tema="blue"
       />
+
+      {/* "Ver mi cronograma" — solo lectura, sin crear/editar/eliminar */}
+      {modalCronograma && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setModalCronograma(false)}
+          />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="bg-linear-to-r from-green-600 to-green-700 text-white px-6 py-5 shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/10 rounded-lg">
+                    <CalendarRange className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold">Mi Cronograma</h2>
+                    <p className="text-sm text-green-100">
+                      Vacaciones planificadas por tu jefe
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setModalCronograma(false)}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-all hover:rotate-90"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 overflow-y-auto">
+              {/* Selector de año */}
+              <div className="flex items-center justify-center gap-4 mb-6">
+                <button
+                  onClick={() => setAnioCronograma((a) => a - 1)}
+                  className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-all"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <span className="font-bold text-lg text-gray-900">
+                  {anioCronograma}
+                </span>
+                <button
+                  onClick={() => setAnioCronograma((a) => a + 1)}
+                  className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-all"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+
+              {cargandoCronograma ? (
+                <div className="flex items-center justify-center py-10">
+                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                </div>
+              ) : (
+                <>
+                  <div
+                    className={`mb-6 p-4 rounded-xl border-2 flex items-center justify-between ${
+                      (miCronograma?.total_dias ?? 0) >=
+                      (miCronograma?.tope_dias_anual ?? 30)
+                        ? "bg-orange-50 border-orange-200"
+                        : "bg-green-50 border-green-200"
+                    }`}
+                  >
+                    <span className="text-sm font-medium text-gray-700">
+                      Total planificado en {anioCronograma}
+                    </span>
+                    <span
+                      className={`text-2xl font-bold ${
+                        (miCronograma?.total_dias ?? 0) >=
+                        (miCronograma?.tope_dias_anual ?? 30)
+                          ? "text-orange-700"
+                          : "text-green-700"
+                      }`}
+                    >
+                      {miCronograma?.total_dias ?? 0} /{" "}
+                      {miCronograma?.tope_dias_anual ?? 30} días
+                    </span>
+                  </div>
+
+                  {miCronograma?.bloques?.length > 0 ? (
+                    <div className="space-y-2">
+                      {miCronograma.bloques.map((b) => (
+                        <div
+                          key={b.id}
+                          className="flex items-center gap-3 p-3 rounded-xl border border-gray-200 bg-gray-50"
+                        >
+                          <CalendarDays
+                            size={16}
+                            className="text-green-600 shrink-0"
+                          />
+                          <div className="text-sm text-gray-700">
+                            <strong className="text-gray-900">
+                              {new Date(
+                                b.fecha_desde + "T12:00:00",
+                              ).toLocaleDateString("es-ES", {
+                                day: "2-digit",
+                                month: "short",
+                              })}
+                            </strong>{" "}
+                            →{" "}
+                            <strong className="text-gray-900">
+                              {new Date(
+                                b.fecha_hasta + "T12:00:00",
+                              ).toLocaleDateString("es-ES", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              })}
+                            </strong>{" "}
+                            <span className="text-gray-500">
+                              ({b.dias} días)
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-center text-sm text-gray-400 py-6">
+                      Tu jefe todavía no te ha planificado vacaciones para{" "}
+                      {anioCronograma}.
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
