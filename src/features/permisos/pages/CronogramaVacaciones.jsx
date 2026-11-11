@@ -27,8 +27,18 @@ import { es } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
 import StatCard from "../../../shared/components/ui/StatCard";
 import PageNumbers from "../../../shared/components/ui/PageNumbers";
+import OnboardingModal from "../../../shared/components/ui/OnboardingModal";
 import { useAuth } from "../../auth/AuthContext";
 import CronogramaGanttModal from "../components/CronogramaGanttModal";
+import {
+  getVersionVista,
+  marcarVisto,
+} from "../../../shared/api/onboarding.service";
+import {
+  SLIDES_JEFE,
+  CRONOGRAMA_ONBOARDING_MODULO,
+  CRONOGRAMA_ONBOARDING_VERSION,
+} from "../onboarding/cronogramaOnboarding.content";
 import {
   getCronograma,
   getBloquesServidor,
@@ -190,6 +200,25 @@ export default function CronogramaVacaciones() {
       onNewAction: null,
     });
   }, [setHeaderConfig]);
+
+  // Tour de bienvenida: se muestra una sola vez por usuario (se recuerda en
+  // base de datos, no en localStorage, porque varias personas comparten PC
+  // por turno). Si suma una funcionalidad nueva al módulo, sube
+  // CRONOGRAMA_ONBOARDING_VERSION para que vuelva a aparecer.
+  const [mostrarOnboarding, setMostrarOnboarding] = useState(false);
+  useEffect(() => {
+    getVersionVista(CRONOGRAMA_ONBOARDING_MODULO)
+      .then((version) => {
+        if (version < CRONOGRAMA_ONBOARDING_VERSION) setMostrarOnboarding(true);
+      })
+      .catch(() => {}); // si falla la consulta, simplemente no se muestra
+  }, []);
+  const cerrarOnboarding = () => {
+    setMostrarOnboarding(false);
+    marcarVisto(CRONOGRAMA_ONBOARDING_MODULO, CRONOGRAMA_ONBOARDING_VERSION).catch(
+      () => {},
+    );
+  };
 
   // La planificación es para el año siguiente al actual (así es como lo
   // describieron: a inicio de año se arma el cronograma del año que viene),
@@ -944,6 +973,13 @@ export default function CronogramaVacaciones() {
         anio={anio}
         unidadFiltro={unidadFiltro}
         search={search}
+      />
+
+      <OnboardingModal
+        open={mostrarOnboarding}
+        onFinish={cerrarOnboarding}
+        slides={SLIDES_JEFE}
+        tema="green"
       />
     </div>
   );

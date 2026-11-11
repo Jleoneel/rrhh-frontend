@@ -30,6 +30,16 @@ import Swal from "sweetalert2";
 import { horasADias } from "../../../../shared/utils/horasADias";
 import api from "../../../../shared/api/axios";
 import FirmaDigitalModal from "../../../../shared/components/ui/FirmaDigitalModal";
+import OnboardingModal from "../../../../shared/components/ui/OnboardingModal";
+import {
+  getVersionVista,
+  marcarVisto,
+} from "../../../../shared/api/onboarding.service";
+import {
+  SLIDES_SERVIDOR,
+  CRONOGRAMA_ONBOARDING_MODULO,
+  CRONOGRAMA_ONBOARDING_VERSION,
+} from "../../onboarding/cronogramaOnboarding.content";
 
 // Nombre del firmante responsable de aprobar cada estado pendiente — para
 // que el servidor sepa a quién consultar si la solicitud se demora.
@@ -143,6 +153,25 @@ export default function VacacionesServidor() {
       })
       .catch(() => setTieneCertificado(false));
   }, []);
+
+  // Tour de bienvenida para la parte del Cronograma de Vacaciones que le
+  // toca al servidor (ver los avisos de abajo). Se recuerda en base de
+  // datos, no en localStorage, porque varias personas comparten PC por
+  // turno en el hospital.
+  const [mostrarOnboarding, setMostrarOnboarding] = useState(false);
+  useEffect(() => {
+    getVersionVista(CRONOGRAMA_ONBOARDING_MODULO)
+      .then((version) => {
+        if (version < CRONOGRAMA_ONBOARDING_VERSION) setMostrarOnboarding(true);
+      })
+      .catch(() => {});
+  }, []);
+  const cerrarOnboarding = () => {
+    setMostrarOnboarding(false);
+    marcarVisto(CRONOGRAMA_ONBOARDING_MODULO, CRONOGRAMA_ONBOARDING_VERSION).catch(
+      () => {},
+    );
+  };
 
   // El jefe le programó estas fechas en el Cronograma de Vacaciones — abre
   // el modal ya lleno con tipo/fechas/días, solo falta el teléfono. La
@@ -1024,6 +1053,13 @@ export default function VacacionesServidor() {
         submitting={submitting}
         submitLabel="Firmar y enviar"
         color="green"
+      />
+
+      <OnboardingModal
+        open={mostrarOnboarding}
+        onFinish={cerrarOnboarding}
+        slides={SLIDES_SERVIDOR}
+        tema="blue"
       />
     </div>
   );
