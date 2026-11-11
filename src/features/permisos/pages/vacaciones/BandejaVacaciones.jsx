@@ -649,8 +649,16 @@ export default function BandejaVacaciones() {
                         </button>
                       )}
 
-                      {/* Negar */}
-                      {v.estado === "PENDIENTE_JEFE" && (
+                      {/* Negar — antes solo se mostraba en PENDIENTE_JEFE;
+                          el jefe superior y UATH no tenían forma de negar
+                          desde la UI (había que hacerlo a mano por base de
+                          datos). El backend (responder-vacacion) ya maneja
+                          los tres casos; si un registro en PENDIENTE_GERENTE/
+                          PENDIENTE_UATH aparece en esta bandeja es porque el
+                          query ya lo scopeó a quien corresponde (gerente_id/
+                          uath_id = este firmante), así que no hace falta otro
+                          chequeo aquí. */}
+                      {v.estado.startsWith("PENDIENTE") && v.es_mi_turno && (
                         <button
                           onClick={() => abrirModal(v, false)}
                           className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-600 border border-red-200 rounded-xl hover:bg-red-100 transition-all text-sm font-medium"
