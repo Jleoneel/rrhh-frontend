@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion"; // eslint-disable-line no-unused-vars
-import { X } from "lucide-react";
 import Modal from "./Modal";
 
 const TEMAS = {
@@ -19,9 +18,9 @@ const TEMAS = {
 };
 
 // Carrusel de bienvenida tipo "qué hay de nuevo": una tarjeta por
-// funcionalidad, con "Siguiente" para avanzar. Cerrarlo (con la X o en la
-// última tarjeta) cuenta como "ya lo vi" — el llamador decide qué hacer con
-// eso (guardar la versión vista en base de datos).
+// funcionalidad, con "Siguiente" para avanzar. Es obligatorio recorrerlo —
+// sin X, sin cerrar con click afuera ni con Escape (onClose es un no-op) —
+// solo se cuenta como "ya lo vi" al llegar al final y tocar "Entendido".
 export default function OnboardingModal({
   open,
   onFinish,
@@ -50,16 +49,8 @@ export default function OnboardingModal({
   const Icono = slide.icon;
 
   return (
-    <Modal open={open} onClose={cerrar} size="sm">
+    <Modal open={open} onClose={() => {}} size="sm">
       <div className="relative overflow-hidden rounded-2xl">
-        <button
-          onClick={cerrar}
-          className="absolute top-4 right-4 z-10 text-gray-400 hover:text-gray-600 transition-colors"
-          title="Cerrar"
-        >
-          <X size={20} />
-        </button>
-
         <div className={`px-8 pt-10 pb-6 ${colores.fondo}`}>
           <AnimatePresence mode="wait">
             <motion.div
