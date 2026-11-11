@@ -83,7 +83,7 @@ const NARANJA_TEXTO = "9A3412";
 const COL_PRIMER_MES = 4;
 const COL_TOTAL_GENERAL = COL_PRIMER_MES + MESES.length * 3; // 40
 
-function aplicarEstiloCronograma(ws, cantidadFilas, topeDiasAnual, filas) {
+function aplicarEstiloCronograma(ws, cantidadFilas, filas) {
   const totalColumnas = COL_TOTAL_GENERAL + 1;
   const totalFilas = 4 + cantidadFilas; // 2 títulos + 2 encabezados + datos
 
@@ -124,7 +124,10 @@ function aplicarEstiloCronograma(ws, cantidadFilas, topeDiasAnual, filas) {
         const totalAnio = esColumnaTotal
           ? filas[idxFila].bloques.reduce((acc, b) => acc + b.dias, 0)
           : 0;
-        const enTope = esColumnaTotal && totalAnio >= topeDiasAnual;
+        // Tope propio de este servidor (core.servidor.dias_vacacion_anual,
+        // 30 por defecto) — ya no un único número para toda la hoja.
+        const enTope =
+          esColumnaTotal && totalAnio >= filas[idxFila].tope_dias_anual;
 
         ws[ref].s = {
           font: {
@@ -223,7 +226,11 @@ export default function CronogramaVacaciones() {
       if (p.search) params.search = p.search;
       const res = await getCronograma(params);
       setData(res.data);
-      setTopeDiasAnual(res.tope_dias_anual);
+      // El tope ya no es único para todo el personal: cada fila de
+      // res.data trae el suyo (tope_dias_anual, desde
+      // core.servidor.dias_vacacion_anual). `topeDiasAnual` (estado) queda
+      // reservado solo para el modal de un servidor puntual — no lo toca
+      // el listado, para no pisar el valor que puso abrirModalServidor.
       setTotal(res.total);
       setTotalPages(res.totalPages);
       setResumen(res.resumen);
@@ -375,7 +382,7 @@ export default function CronogramaVacaciones() {
       { s: { c: 40, r: 2 }, e: { c: 40, r: 3 } },
     ];
 
-    aplicarEstiloCronograma(ws, filas.length, topeDiasAnual, filas);
+    aplicarEstiloCronograma(ws, filas.length, filas);
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "CRONOGRAMA");
@@ -547,8 +554,9 @@ export default function CronogramaVacaciones() {
                   Cronograma de Vacaciones
                 </h1>
                 <p className="text-gray-500 mt-1">
-                  Planifica cuándo se va de vacaciones tu personal — máximo{" "}
-                  {topeDiasAnual} días al año por persona
+                  Planifica cuándo se va de vacaciones tu personal — el tope
+                  anual (30 días por defecto) puede variar según cada
+                  servidor
                 </p>
               </div>
             </div>
@@ -585,7 +593,7 @@ export default function CronogramaVacaciones() {
               color="green"
             />
             <StatCard
-              label={`En el tope (${topeDiasAnual} días)`}
+              label="En su tope anual"
               value={stats.enTope}
               icon={AlertTriangle}
               color="orange"
@@ -686,7 +694,7 @@ export default function CronogramaVacaciones() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {data.map((sv) => {
-                    const enTope = sv.dias_planificados >= topeDiasAnual;
+                    const enTope = sv.dias_planificados >= sv.tope_dias_anual;
                     return (
                       <tr key={sv.servidor_id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 text-sm font-medium text-gray-900">
@@ -709,7 +717,7 @@ export default function CronogramaVacaciones() {
                                   : "bg-gray-100 text-gray-500 border border-gray-200"
                             }`}
                           >
-                            {sv.dias_planificados} / {topeDiasAnual}
+                            {sv.dias_planificados} / {sv.tope_dias_anual}
                           </span>
                         </td>
                         <td className="px-6 py-4">
