@@ -18,14 +18,13 @@ import {
   X,
   Send,
   ShieldCheck,
-  Filter,
-  ChevronDown,
   CheckSquare,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import api from "../../../../shared/api/axios";
 import FirmaDigitalModal from "../../../../shared/components/ui/FirmaDigitalModal";
 import StatCard from "../../../../shared/components/ui/StatCard";
+import FiltrosListado from "../../../../shared/components/ui/FiltrosListado";
 
 const estadoBadge = (estado) => {
   const map = {
@@ -74,6 +73,12 @@ export default function BandejaVacaciones() {
   const [vacaciones, setVacaciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtroEstado, setFiltroEstado] = useState("PENDIENTE");
+  const hoy = new Date().toISOString().split("T")[0];
+  const [verTodos, setVerTodos] = useState(true);
+  const [fechaDesde, setFechaDesde] = useState(hoy);
+  const [fechaHasta, setFechaHasta] = useState(hoy);
+  const [unidadFiltro, setUnidadFiltro] = useState("");
+  const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [selected, setSelected] = useState(null);
   const [observacion, setObservacion] = useState("");
@@ -110,12 +115,36 @@ export default function BandejaVacaciones() {
     [vacaciones],
   );
 
+  // Unidades presentes en esta bandeja (no el catálogo completo del
+  // hospital): un jefe normal casi siempre ve una sola, pero un
+  // gerente/UATH puede tener solicitudes de varias unidades distintas.
+  const opcionesUnidad = useMemo(() => {
+    const nombres = [...new Set(vacaciones.map((v) => v.unidad_organica))]
+      .filter(Boolean)
+      .sort();
+    return nombres.map((n) => ({ value: n, label: n }));
+  }, [vacaciones]);
+
   const vacacionesFiltradas = useMemo(() => {
-    if (filtroEstado === "TODOS") return vacaciones;
-    if (filtroEstado === "PENDIENTE")
-      return vacaciones.filter((v) => v.estado.startsWith("PENDIENTE"));
-    return vacaciones.filter((v) => v.estado === filtroEstado);
-  }, [vacaciones, filtroEstado]);
+    return vacaciones.filter((v) => {
+      if (filtroEstado === "PENDIENTE" && !v.estado.startsWith("PENDIENTE"))
+        return false;
+      if (filtroEstado !== "TODOS" && filtroEstado !== "PENDIENTE" && v.estado !== filtroEstado)
+        return false;
+      if (!verTodos && (v.fecha_solicitud < fechaDesde || v.fecha_solicitud > fechaHasta))
+        return false;
+      if (unidadFiltro && v.unidad_organica !== unidadFiltro) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        if (
+          !v.servidor_nombre?.toLowerCase().includes(q) &&
+          !v.cedula?.includes(q)
+        )
+          return false;
+      }
+      return true;
+    });
+  }, [vacaciones, filtroEstado, verTodos, fechaDesde, fechaHasta, unidadFiltro, search]);
 
   const abrirModal = (vacacion, aprobado) => {
     setSelected({ ...vacacion, accion: aprobado });
@@ -423,29 +452,39 @@ export default function BandejaVacaciones() {
         </div>
 
         {/* Filtros */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="relative">
-            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <select
-              value={filtroEstado}
-              onChange={(e) => setFiltroEstado(e.target.value)}
-              className="border-2 border-gray-200 rounded-xl pl-10 pr-10 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent appearance-none bg-white cursor-pointer min-w-45"
-            >
-              <option value="TODOS">Todos los estados</option>
-              <option value="PENDIENTE">Pendientes</option>
-              <option value="APROBADO">Aprobados</option>
-              <option value="NEGADO">Negados</option>
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-          </div>
-          <div className="flex items-center gap-2">
+        <FiltrosListado
+          color="green"
+          verTodos={verTodos}
+          onToggleVerTodos={() => setVerTodos((v) => !v)}
+          labelFiltrar="Filtrar por fecha de solicitud"
+          labelVerTodos="Ver todas las solicitudes"
+          fechaDesde={fechaDesde}
+          onFechaDesde={(e) => setFechaDesde(e.target.value)}
+          fechaHasta={fechaHasta}
+          onFechaHasta={(e) => setFechaHasta(e.target.value)}
+          fechaHelpText="Filtra por la fecha en que se hizo la solicitud, no por el período de vacación."
+          estado={filtroEstado}
+          onEstadoChange={(e) => setFiltroEstado(e.target.value)}
+          opcionesEstado={[
+            { value: "TODOS", label: "Todos los estados" },
+            { value: "PENDIENTE", label: "Pendientes" },
+            { value: "APROBADO", label: "Aprobados" },
+            { value: "NEGADO", label: "Negados" },
+          ]}
+          unidadFiltro={unidadFiltro}
+          onUnidadChange={(e) => setUnidadFiltro(e.target.value)}
+          opcionesUnidad={opcionesUnidad}
+          search={search}
+          onSearchChange={(e) => setSearch(e.target.value)}
+        >
+          <div className="flex items-center gap-2 shrink-0 px-2">
             <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-500 whitespace-nowrap">
               {vacacionesFiltradas.length} solicitud
               {vacacionesFiltradas.length !== 1 ? "es" : ""}
             </span>
           </div>
-        </div>
+        </FiltrosListado>
 
         {/* Lista de solicitudes */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">

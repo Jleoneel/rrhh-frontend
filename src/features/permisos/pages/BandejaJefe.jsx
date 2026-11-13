@@ -10,8 +10,6 @@ import {
   User,
   Calendar,
   FileText,
-  Filter,
-  ChevronDown,
   CheckSquare,
   AlertCircle,
   TrendingUp,
@@ -23,6 +21,7 @@ import Swal from "sweetalert2";
 import api from "../../../shared/api/axios";
 import { horasADias } from "../../../shared/utils/horasADias";
 import StatCard from "../../../shared/components/ui/StatCard";
+import FiltrosListado from "../../../shared/components/ui/FiltrosListado";
 
 const estadoBadge = (estado) => {
   const map = {
@@ -59,6 +58,11 @@ export default function BandejaJefe() {
   const [permisos, setPermisos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtroEstado, setFiltroEstado] = useState("PENDIENTE");
+  const hoy = new Date().toISOString().split("T")[0];
+  const [verTodos, setVerTodos] = useState(true);
+  const [fecha, setFecha] = useState(hoy);
+  const [unidadFiltro, setUnidadFiltro] = useState("");
+  const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [selected, setSelected] = useState(null);
   const [observacion, setObservacion] = useState("");
@@ -91,10 +95,32 @@ export default function BandejaJefe() {
     cargarPermisos();
   }, []);
 
+  // Unidades presentes en esta bandeja (no el catálogo completo del
+  // hospital): un jefe normal casi siempre ve una sola.
+  const opcionesUnidad = useMemo(() => {
+    const nombres = [...new Set(permisos.map((p) => p.unidad_organica))]
+      .filter(Boolean)
+      .sort();
+    return nombres.map((n) => ({ value: n, label: n }));
+  }, [permisos]);
+
   const permisosFiltrados = useMemo(() => {
-    if (filtroEstado === "TODOS") return permisos;
-    return permisos.filter((p) => p.estado === filtroEstado);
-  }, [permisos, filtroEstado]);
+    return permisos.filter((p) => {
+      if (filtroEstado !== "TODOS" && p.estado !== filtroEstado) return false;
+      const diaPermiso = p.fecha?.slice(0, 10);
+      if (!verTodos && diaPermiso !== fecha) return false;
+      if (unidadFiltro && p.unidad_organica !== unidadFiltro) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        if (
+          !p.servidor_nombre?.toLowerCase().includes(q) &&
+          !p.cedula?.includes(q)
+        )
+          return false;
+      }
+      return true;
+    });
+  }, [permisos, filtroEstado, verTodos, fecha, unidadFiltro, search]);
 
   const stats = useMemo(
     () => ({
@@ -279,29 +305,38 @@ export default function BandejaJefe() {
         </div>
 
         {/* Filtros */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="relative">
-            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <select
-              value={filtroEstado}
-              onChange={(e) => setFiltroEstado(e.target.value)}
-              className="border-2 border-gray-200 rounded-xl pl-10 pr-10 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white cursor-pointer min-w-45"
-            >
-              <option value="TODOS">Todos los estados</option>
-              <option value="PENDIENTE">Pendientes</option>
-              <option value="APROBADO">Aprobados</option>
-              <option value="RECHAZADO">Rechazados</option>
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-          </div>
-          <div className="flex items-center gap-2">
+        <FiltrosListado
+          color="blue"
+          verTodos={verTodos}
+          onToggleVerTodos={() => setVerTodos((v) => !v)}
+          labelFiltrar="Ver por día"
+          labelVerTodos="Ver todos los permisos"
+          modoFecha="dia"
+          fechaDesde={fecha}
+          onFechaDesde={(e) => setFecha(e.target.value)}
+          estado={filtroEstado}
+          onEstadoChange={(e) => setFiltroEstado(e.target.value)}
+          opcionesEstado={[
+            { value: "TODOS", label: "Todos los estados" },
+            { value: "PENDIENTE", label: "Pendientes" },
+            { value: "APROBADO", label: "Aprobados" },
+            { value: "RECHAZADO", label: "Rechazados" },
+            { value: "CANCELADO", label: "Cancelados" },
+          ]}
+          unidadFiltro={unidadFiltro}
+          onUnidadChange={(e) => setUnidadFiltro(e.target.value)}
+          opcionesUnidad={opcionesUnidad}
+          search={search}
+          onSearchChange={(e) => setSearch(e.target.value)}
+        >
+          <div className="flex items-center gap-2 shrink-0 px-2">
             <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-500 whitespace-nowrap">
               {permisosFiltrados.length} solicitud
               {permisosFiltrados.length !== 1 ? "es" : ""}
             </span>
           </div>
-        </div>
+        </FiltrosListado>
 
         {/* Lista de permisos */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
