@@ -50,6 +50,14 @@ export const toggleActivoUnidad = (unidadId, activo) =>
   api
     .patch(`/permisos/unidades-organicas/${unidadId}/activo`, { activo })
     .then((r) => r.data);
+// Salta temporalmente el jefe superior en el flujo de vacaciones de esta
+// unidad (jefe inmediato -> UATH directo), sin tocar jefe_superior_id.
+export const toggleOmitirJefeSuperior = (unidadId, omitir) =>
+  api
+    .patch(`/permisos/unidades-organicas/${unidadId}/omitir-jefe-superior`, {
+      omitir,
+    })
+    .then((r) => r.data);
 export const asignarServidorAUnidad = (unidadId, servidorId) =>
   api
     .post(`/permisos/unidades-organicas/${unidadId}/asignar-servidor`, {

@@ -20,6 +20,7 @@ import {
   Power,
   Settings,
   Mail,
+  SkipForward,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import api from "../../../shared/api/axios";
@@ -30,6 +31,7 @@ import {
   asignarServidorAUnidad,
   getServidoresDeUnidad,
   toggleActivoUnidad,
+  toggleOmitirJefeSuperior,
   actualizarDiasVacacionServidor,
   getPosiblesDuplicados,
   descartarDuplicado,
@@ -70,6 +72,7 @@ export default function GestionJefes() {
   const [search, setSearch] = useState("");
   const [mostrarTodas, setMostrarTodas] = useState(false);
   const [togglingActivoId, setTogglingActivoId] = useState(null);
+  const [togglingOmitirId, setTogglingOmitirId] = useState(null);
 
   // Configurar días de vacación anuales por servidor (override individual)
   const [modalDiasVacacionServidor, setModalDiasVacacionServidor] =
@@ -210,6 +213,41 @@ export default function GestionJefes() {
       });
     } finally {
       setTogglingActivoId(null);
+    }
+  };
+
+  // Disposición temporal: salta el jefe superior en el flujo de
+  // vacaciones de esta unidad (jefe inmediato -> UATH directo) sin tocar
+  // quién es su jefe superior reglamentario. Solo afecta a las
+  // solicitudes de vacaciones que se creen de ahora en adelante.
+  const handleToggleOmitirJefeSuperior = async (unidad) => {
+    setTogglingOmitirId(unidad.id);
+    try {
+      await toggleOmitirJefeSuperior(unidad.id, !unidad.omitir_jefe_superior);
+      Swal.fire({
+        toast: true,
+        icon: "success",
+        text: unidad.omitir_jefe_superior
+          ? "El jefe superior vuelve a formar parte del flujo de vacaciones"
+          : "El jefe superior se omitirá temporalmente en vacaciones de esta unidad",
+        timer: 2500,
+        showConfirmButton: false,
+        position: "top-end",
+        background: "#ffffff",
+        color: "#1f2937",
+      });
+      cargarDatos();
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: err.response?.data?.message || "Error actualizando la unidad",
+        confirmButtonColor: "#ef4444",
+        background: "#ffffff",
+        color: "#1f2937",
+      });
+    } finally {
+      setTogglingOmitirId(null);
     }
   };
 
@@ -743,13 +781,27 @@ export default function GestionJefes() {
                             <p className="text-xs text-gray-400 uppercase tracking-wide">
                               Jefe Superior
                             </p>
-                            <p className={`text-sm font-medium mt-0.5 ${u.jefe_superior_nombre ? "text-gray-800" : "text-red-400 italic"}`}>
+                            <p
+                              className={`text-sm font-medium mt-0.5 ${
+                                u.omitir_jefe_superior
+                                  ? "text-gray-500"
+                                  : u.jefe_superior_nombre
+                                    ? "text-gray-800"
+                                    : "text-red-400 italic"
+                              }`}
+                            >
                               {u.jefe_superior_nombre || "Sin asignar"}
                             </p>
-                            {u.jefe_superior_nombre && (
-                              <Badge variant="info" className="mt-1">
-                                <Shield size={10} /> Aprobador nivel 2
+                            {u.omitir_jefe_superior ? (
+                              <Badge variant="warning" className="mt-1">
+                                <SkipForward size={10} /> Omitido temporalmente
                               </Badge>
+                            ) : (
+                              u.jefe_superior_nombre && (
+                                <Badge variant="info" className="mt-1">
+                                  <Shield size={10} /> Aprobador nivel 2
+                                </Badge>
+                              )
                             )}
                           </div>
                         </div>
@@ -770,6 +822,26 @@ export default function GestionJefes() {
                         title="Asignar servidor a esta unidad"
                       >
                         <UserPlus size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleToggleOmitirJefeSuperior(u)}
+                        disabled={togglingOmitirId === u.id}
+                        className={`p-3 rounded-xl transition-all hover:scale-110 group-hover:shadow-md disabled:opacity-50 disabled:hover:scale-100 ${
+                          u.omitir_jefe_superior
+                            ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                            : "bg-purple-50 text-purple-600 hover:bg-purple-100"
+                        }`}
+                        title={
+                          u.omitir_jefe_superior
+                            ? "Volver a incluir al jefe superior en vacaciones"
+                            : "Saltar temporalmente al jefe superior en vacaciones (jefe inmediato → UATH)"
+                        }
+                      >
+                        {togglingOmitirId === u.id ? (
+                          <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                          <SkipForward size={16} />
+                        )}
                       </button>
                       <button
                         onClick={() => handleToggleActivo(u)}
