@@ -19,6 +19,7 @@ import {
   Umbrella,
   ListFilter,
   CalendarDays,
+  FileArchive,
 } from "lucide-react";
 import api from "../../../../shared/api/axios";
 import Swal from "sweetalert2";
@@ -213,6 +214,7 @@ export default function ReporteVacaciones() {
     APROBADO: 0,
     NEGADO: 0,
   });
+  const [descargandoZip, setDescargandoZip] = useState(false);
 
   const cargarReporte = async (overrides = {}) => {
     const p = {
@@ -487,6 +489,63 @@ export default function ReporteVacaciones() {
     );
   };
 
+  // Descarga en un solo .zip el PDF de cada solicitud que cumple los
+  // MISMOS filtros que el reporte en pantalla (no solo la página actual),
+  // igual que "Exportar Excel" — el backend arma el zip completo, así que
+  // aquí solo hay que armar la misma query y bajar el archivo resultante.
+  const handleDescargarTodosPdf = async () => {
+    setDescargandoZip(true);
+    try {
+      const params = new URLSearchParams({
+        todos: verTodos ? "true" : "false",
+      });
+      if (!verTodos) {
+        params.append("fecha_desde", fechaDesde);
+        params.append("fecha_hasta", fechaHasta);
+      }
+      if (estado !== "TODOS") params.append("estado", estado);
+      if (unidadFiltro) params.append("unidad_organica_id", unidadFiltro);
+      if (search) params.append("search", search);
+
+      const response = await api.get(
+        `/permisos/reporte-vacaciones/zip?${params}`,
+        { responseType: "blob" },
+      );
+
+      const a = document.createElement("a");
+      a.href = window.URL.createObjectURL(response.data);
+      a.download = `vacaciones_pdfs_${new Date().toISOString().split("T")[0]}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(a.href);
+      }, 100);
+    } catch (err) {
+      // Con responseType "blob", un error del backend (ej. 404 sin
+      // solicitudes) también llega como Blob, no como JSON ya parseado.
+      let mensaje = "Error descargando los PDF";
+      if (err.response?.data instanceof Blob) {
+        try {
+          const texto = await err.response.data.text();
+          mensaje = JSON.parse(texto)?.message || mensaje;
+        } catch {
+          /* se queda con el mensaje genérico */
+        }
+      }
+      Swal.fire({
+        toast: true,
+        icon: "warning",
+        text: mensaje,
+        timer: 2500,
+        showConfirmButton: false,
+        position: "top-end",
+      });
+    } finally {
+      setDescargandoZip(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-green-50 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
@@ -653,6 +712,24 @@ export default function ReporteVacaciones() {
             >
               <Download size={16} />
               <span className="hidden sm:inline">Exportar Excel</span>
+            </button>
+
+            {/* Descargar todos los PDF (de las solicitudes que cumplen los
+                filtros actuales) en un solo .zip */}
+            <button
+              onClick={handleDescargarTodosPdf}
+              disabled={descargandoZip}
+              title="Descarga en un .zip el PDF de cada solicitud filtrada"
+              className="flex items-center gap-2 px-4 py-2.5 bg-slate-700 text-white rounded-xl hover:bg-slate-800 transition-all shadow-md text-sm font-medium disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {descargandoZip ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <FileArchive size={16} />
+              )}
+              <span className="hidden sm:inline">
+                {descargandoZip ? "Armando ZIP..." : "Descargar todos los PDF"}
+              </span>
             </button>
           </div>
         </div>
