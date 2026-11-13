@@ -335,7 +335,9 @@ export default function Sidebar() {
                 title: "Vacaciones",
                 icon: <Umbrella size={20} />,
                 submenu: [
-                  // Reporte vacaciones para todos
+                  // Visible para todos los firmantes, pero el backend acota
+                  // los resultados a su propia unidad salvo UATH/Admin (ver
+                  // tieneAccesoTotal en vac-bandeja.routes.js)
                   {
                     title: "Reporte Vacaciones",
                     path: "/permisos/reporte-vacaciones",
