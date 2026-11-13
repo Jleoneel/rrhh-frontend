@@ -25,6 +25,7 @@ import api from "../../../../shared/api/axios";
 import FirmaDigitalModal from "../../../../shared/components/ui/FirmaDigitalModal";
 import StatCard from "../../../../shared/components/ui/StatCard";
 import FiltrosListado from "../../../../shared/components/ui/FiltrosListado";
+import PageNumbers from "../../../../shared/components/ui/PageNumbers";
 
 const estadoBadge = (estado) => {
   const map = {
@@ -79,6 +80,8 @@ export default function BandejaVacaciones() {
   const [fechaHasta, setFechaHasta] = useState(hoy);
   const [unidadFiltro, setUnidadFiltro] = useState("");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const LIMIT = 10;
   const [modalOpen, setModalOpen] = useState(false);
   const [selected, setSelected] = useState(null);
   const [observacion, setObservacion] = useState("");
@@ -145,6 +148,18 @@ export default function BandejaVacaciones() {
       return true;
     });
   }, [vacaciones, filtroEstado, verTodos, fechaDesde, fechaHasta, unidadFiltro, search]);
+
+  // Vuelve a la página 1 cada vez que cambia algún filtro, para no quedar
+  // parado en una página que ya no existe para el nuevo resultado.
+  useEffect(() => {
+    setPage(1);
+  }, [filtroEstado, verTodos, fechaDesde, fechaHasta, unidadFiltro, search]);
+
+  const totalPaginas = Math.max(1, Math.ceil(vacacionesFiltradas.length / LIMIT));
+  const vacacionesPaginadas = useMemo(
+    () => vacacionesFiltradas.slice((page - 1) * LIMIT, page * LIMIT),
+    [vacacionesFiltradas, page],
+  );
 
   const abrirModal = (vacacion, aprobado) => {
     setSelected({ ...vacacion, accion: aprobado });
@@ -519,7 +534,7 @@ export default function BandejaVacaciones() {
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
-              {vacacionesFiltradas.map((v) => (
+              {vacacionesPaginadas.map((v) => (
                 <div
                   key={v.id}
                   className="p-6 hover:bg-linear-to-r hover:from-green-50/50 hover:to-transparent transition-all duration-300 group"
@@ -710,6 +725,22 @@ export default function BandejaVacaciones() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Paginación */}
+          {!loading && vacacionesFiltradas.length > 0 && totalPaginas > 1 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
+              <span className="text-sm text-gray-500">
+                Mostrando <b className="text-gray-900">{vacacionesPaginadas.length}</b> de{" "}
+                <b className="text-gray-900">{vacacionesFiltradas.length}</b> solicitudes
+              </span>
+              <PageNumbers
+                page={page}
+                totalPages={totalPaginas}
+                onPageChange={setPage}
+                color="green"
+              />
             </div>
           )}
         </div>

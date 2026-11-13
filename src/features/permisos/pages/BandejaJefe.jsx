@@ -22,6 +22,7 @@ import api from "../../../shared/api/axios";
 import { horasADias } from "../../../shared/utils/horasADias";
 import StatCard from "../../../shared/components/ui/StatCard";
 import FiltrosListado from "../../../shared/components/ui/FiltrosListado";
+import PageNumbers from "../../../shared/components/ui/PageNumbers";
 
 const estadoBadge = (estado) => {
   const map = {
@@ -63,6 +64,8 @@ export default function BandejaJefe() {
   const [fecha, setFecha] = useState(hoy);
   const [unidadFiltro, setUnidadFiltro] = useState("");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const LIMIT = 10;
   const [modalOpen, setModalOpen] = useState(false);
   const [selected, setSelected] = useState(null);
   const [observacion, setObservacion] = useState("");
@@ -121,6 +124,17 @@ export default function BandejaJefe() {
       return true;
     });
   }, [permisos, filtroEstado, verTodos, fecha, unidadFiltro, search]);
+
+  // Vuelve a la página 1 cada vez que cambia algún filtro.
+  useEffect(() => {
+    setPage(1);
+  }, [filtroEstado, verTodos, fecha, unidadFiltro, search]);
+
+  const totalPaginas = Math.max(1, Math.ceil(permisosFiltrados.length / LIMIT));
+  const permisosPaginados = useMemo(
+    () => permisosFiltrados.slice((page - 1) * LIMIT, page * LIMIT),
+    [permisosFiltrados, page],
+  );
 
   const stats = useMemo(
     () => ({
@@ -366,7 +380,7 @@ export default function BandejaJefe() {
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
-              {permisosFiltrados.map((p) => (
+              {permisosPaginados.map((p) => (
                 <div
                   key={p.id}
                   className="p-6 hover:bg-linear-to-r hover:from-blue-50/50 hover:to-transparent transition-all duration-300 group"
@@ -479,6 +493,22 @@ export default function BandejaJefe() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Paginación */}
+          {!loading && permisosFiltrados.length > 0 && totalPaginas > 1 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
+              <span className="text-sm text-gray-500">
+                Mostrando <b className="text-gray-900">{permisosPaginados.length}</b> de{" "}
+                <b className="text-gray-900">{permisosFiltrados.length}</b> solicitudes
+              </span>
+              <PageNumbers
+                page={page}
+                totalPages={totalPaginas}
+                onPageChange={setPage}
+                color="blue"
+              />
             </div>
           )}
         </div>
