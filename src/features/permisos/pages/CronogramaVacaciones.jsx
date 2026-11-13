@@ -90,8 +90,15 @@ const GRIS_ZEBRA = "F8FAFC";
 const NARANJA_FONDO = "FFEDD5";
 const NARANJA_TEXTO = "9A3412";
 
-const COL_PRIMER_MES = 4;
-const COL_TOTAL_GENERAL = COL_PRIMER_MES + MESES.length * 3; // 40
+// Columnas antes de que empiecen los meses — actualizado en nov/2026 para
+// calcar la plantilla vigente (FILES/cronograma_de_vacaciones_2027_
+// GESTION_TICS.xls): además de Nombres/Denominación/Cédula, ahora trae
+// Régimen Laboral, Fecha de Ingreso, Dirección (la unidad orgánica) y
+// Grupo Ocupacional, Saldo de Vacaciones — datos que ya existían en la
+// base, solo faltaba traerlos a este export (ver /exportar en
+// cronogramaVacaciones.routes.js).
+const COL_PRIMER_MES = 9;
+const COL_TOTAL_GENERAL = COL_PRIMER_MES + MESES.length * 3; // 45
 
 function aplicarEstiloCronograma(ws, cantidadFilas, filas) {
   const totalColumnas = COL_TOTAL_GENERAL + 1;
@@ -129,7 +136,10 @@ function aplicarEstiloCronograma(ws, cantidadFilas, filas) {
         // Filas de datos
         const idxFila = r - 4;
         const zebra = idxFila % 2 === 1;
-        const esNombreODenominacion = c === 1 || c === 2;
+        // Columnas de texto libre (régimen, denominación, nombres,
+        // dirección, grupo ocupacional) — alineadas a la izquierda con
+        // wrap, igual que antes se hacía solo con nombres/denominación.
+        const esTexto = [1, 2, 5, 6, 7].includes(c);
         const esColumnaTotal = c === COL_TOTAL_GENERAL;
         const totalAnio = esColumnaTotal
           ? filas[idxFila].bloques.reduce((acc, b) => acc + b.dias, 0)
@@ -147,9 +157,9 @@ function aplicarEstiloCronograma(ws, cantidadFilas, filas) {
             color: { rgb: enTope ? NARANJA_TEXTO : "1E293B" },
           },
           alignment: {
-            horizontal: esNombreODenominacion ? "left" : "center",
+            horizontal: esTexto ? "left" : "center",
             vertical: "center",
-            wrapText: esNombreODenominacion,
+            wrapText: esTexto,
           },
           border: BORDE_COMPLETO,
           fill: {
@@ -163,9 +173,17 @@ function aplicarEstiloCronograma(ws, cantidadFilas, filas) {
   // Más espaciado: columnas anchas para nombres/denominación (como en la
   // plantilla original) y filas con más aire que el alto por defecto.
   ws["!cols"] = [
-    { wch: 6 }, { wch: 34 }, { wch: 34 }, { wch: 13 },
+    { wch: 6 },   // Nro.
+    { wch: 24 },  // Régimen Laboral
+    { wch: 28 },  // Denominación Puesto
+    { wch: 14 },  // Fecha de Ingreso
+    { wch: 13 },  // Cédula
+    { wch: 32 },  // Apellidos y Nombres
+    { wch: 30 },  // Dirección (unidad orgánica)
+    { wch: 22 },  // Grupo Ocupacional
+    { wch: 12 },  // Saldo de Vacaciones
     ...MESES.flatMap(() => [{ wch: 11 }, { wch: 11 }, { wch: 10 }]),
-    { wch: 13 },
+    { wch: 13 },  // Total Días
   ];
   ws["!rows"] = [
     { hpt: 26 }, { hpt: 24 }, { hpt: 32 }, { hpt: 26 },
@@ -359,12 +377,14 @@ export default function CronogramaVacaciones() {
       ["", "HOSPITAL PROVINCIAL DE PORTOVIEJO DR. VERDI CEVALLOS BALDA"],
       ["", `CRONOGRAMA DE VACACIONES – AÑO ${anio}`],
       [
-        "Nro.", "APELLIDOS Y NOMBRES", "DENOMINACIÓN", "CÉDULA",
+        "Nro.", "RÉGIMEN LABORAL", "DENOMINACIÓN PUESTO",
+        "FECHA DE INGRESO", "CÉDULA", "APELLIDOS Y NOMBRES", "DIRECCIÓN",
+        "GRUPO OCUPACIONAL", "SALDO DE VACACIONES",
         ...MESES.flatMap((m) => [m, "", ""]),
         "TOTAL DÍAS",
       ],
       [
-        "", "", "", "",
+        "", "", "", "", "", "", "", "", "",
         ...MESES.flatMap(() => ["DESDE", "HASTA", "TOTAL DIAS"]),
         "",
       ],
@@ -373,7 +393,11 @@ export default function CronogramaVacaciones() {
     filas.forEach((f, idx) => {
       const porMes = Array.from({ length: 12 }, () => null);
       f.bloques.forEach((b) => {
-        const mes = new Date(b.fecha_desde).getMonth();
+        // parseLocalDate, no new Date(string): este último parsea como
+        // UTC medianoche y en Ecuador (UTC-5) corre la fecha al día/mes
+        // anterior al leerla de vuelta en local — ubicaría el bloque en
+        // la columna del mes equivocado cerca de un cambio de mes.
+        const mes = parseLocalDate(b.fecha_desde).getMonth();
         if (!porMes[mes]) {
           porMes[mes] = { desde: b.fecha_desde, hasta: b.fecha_hasta, dias: b.dias };
         } else {
@@ -388,9 +412,14 @@ export default function CronogramaVacaciones() {
 
       aoa.push([
         idx + 1,
-        f.nombres,
+        f.regimen_laboral || "",
         f.denominacion || "",
+        f.fecha_ingreso || "",
         f.cedula,
+        f.nombres,
+        f.unidad_organica || "",
+        f.grupo_ocupacional || "",
+        f.saldo_dias ?? "",
         ...porMes.flatMap((m) => (m ? [m.desde, m.hasta, m.dias] : ["", "", ""])),
         totalAnio,
       ]);
@@ -398,17 +427,17 @@ export default function CronogramaVacaciones() {
 
     const ws = XLSX.utils.aoa_to_sheet(aoa);
     ws["!merges"] = [
-      { s: { c: 1, r: 0 }, e: { c: 40, r: 0 } },
-      { s: { c: 1, r: 1 }, e: { c: 40, r: 1 } },
-      { s: { c: 0, r: 2 }, e: { c: 0, r: 3 } },
-      { s: { c: 1, r: 2 }, e: { c: 1, r: 3 } },
-      { s: { c: 2, r: 2 }, e: { c: 2, r: 3 } },
-      { s: { c: 3, r: 2 }, e: { c: 3, r: 3 } },
-      ...MESES.map((_, i) => ({
-        s: { c: 4 + i * 3, r: 2 },
-        e: { c: 6 + i * 3, r: 2 },
+      { s: { c: 1, r: 0 }, e: { c: COL_TOTAL_GENERAL, r: 0 } },
+      { s: { c: 1, r: 1 }, e: { c: COL_TOTAL_GENERAL, r: 1 } },
+      ...Array.from({ length: COL_PRIMER_MES }, (_, c) => ({
+        s: { c, r: 2 },
+        e: { c, r: 3 },
       })),
-      { s: { c: 40, r: 2 }, e: { c: 40, r: 3 } },
+      ...MESES.map((_, i) => ({
+        s: { c: COL_PRIMER_MES + i * 3, r: 2 },
+        e: { c: COL_PRIMER_MES + i * 3 + 2, r: 2 },
+      })),
+      { s: { c: COL_TOTAL_GENERAL, r: 2 }, e: { c: COL_TOTAL_GENERAL, r: 3 } },
     ];
 
     aplicarEstiloCronograma(ws, filas.length, filas);
