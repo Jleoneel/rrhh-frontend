@@ -51,10 +51,10 @@ const TIPO_MOVIMIENTO_LABEL = {
   DESCUENTO: "Descuento",
 };
 
-const TIPO_MOVIMIENTO_COLOR = {
-  INICIALIZACION: "text-green-400",
-  AJUSTE: "text-amber-400",
-  DESCUENTO: "text-red-400",
+const TIPO_MOVIMIENTO_BADGE = {
+  INICIALIZACION: "bg-green-100 text-green-700",
+  AJUSTE: "bg-amber-100 text-amber-700",
+  DESCUENTO: "bg-red-100 text-red-700",
 };
 
 export default function GestionPermisos() {
@@ -93,6 +93,7 @@ export default function GestionPermisos() {
 
   // Modales
   const [modalSaldo, setModalSaldo] = useState(false);
+  const [modalHistorial, setModalHistorial] = useState(null);
   const [modalUsuario, setModalUsuario] = useState(false);
   const [servidorSeleccionado, setServidorSeleccionado] = useState(null);
   const [submittingReset, setSubmittingReset] = useState(false);
@@ -1209,54 +1210,13 @@ export default function GestionPermisos() {
                               </td>
                               <td className="px-6 py-4">
                                 {s.movimientos?.length > 0 ? (
-                                  <div className="relative group inline-flex">
-                                    <History
-                                      size={16}
-                                      className="text-gray-400 hover:text-blue-600 cursor-help"
-                                    />
-                                    <div className="absolute right-0 bottom-full mb-2 w-80 max-h-72 overflow-y-auto p-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20 shadow-xl">
-                                      <p className="font-semibold text-gray-300 mb-2">
-                                        Historial de movimientos
-                                      </p>
-                                      <div className="space-y-2">
-                                        {s.movimientos.map((m, i) => (
-                                          <div
-                                            key={i}
-                                            className="border-b border-gray-700 pb-2 last:border-0 last:pb-0"
-                                          >
-                                            <div className="flex items-center justify-between gap-2">
-                                              <span
-                                                className={
-                                                  TIPO_MOVIMIENTO_COLOR[
-                                                    m.tipo
-                                                  ] || "text-gray-300"
-                                                }
-                                              >
-                                                {TIPO_MOVIMIENTO_LABEL[
-                                                  m.tipo
-                                                ] || m.tipo}
-                                              </span>
-                                              <span className="text-gray-400 whitespace-nowrap">
-                                                {horasADias(m.horas)}
-                                              </span>
-                                            </div>
-                                            <p className="text-gray-200 mt-0.5">
-                                              {m.descripcion || "—"}
-                                            </p>
-                                            <p className="text-gray-500 mt-0.5">
-                                              {new Date(
-                                                m.created_at,
-                                              ).toLocaleDateString("es-EC", {
-                                                day: "2-digit",
-                                                month: "short",
-                                                year: "numeric",
-                                              })}
-                                            </p>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  </div>
+                                  <button
+                                    onClick={() => setModalHistorial(s)}
+                                    className="p-2 bg-gray-100 text-gray-500 hover:bg-blue-100 hover:text-blue-600 rounded-lg transition-all hover:scale-110"
+                                    title="Ver historial de movimientos"
+                                  >
+                                    <History size={16} />
+                                  </button>
                                 ) : (
                                   <span className="text-gray-300">—</span>
                                 )}
@@ -1514,6 +1474,73 @@ export default function GestionPermisos() {
                   Asignar Saldo
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal historial de movimientos */}
+      {modalHistorial && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setModalHistorial(null)}
+          />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden max-h-[85vh] flex flex-col">
+            <div className="bg-linear-to-r from-gray-900 to-gray-800 text-white px-6 py-5 shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/10 rounded-lg">
+                    <History className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold">
+                      Historial de movimientos
+                    </h2>
+                    <p className="text-sm text-gray-300">
+                      {modalHistorial.nombres} — {modalHistorial.cedula}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setModalHistorial(null)}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-all"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+            <div className="p-6 overflow-y-auto space-y-3">
+              {modalHistorial.movimientos.map((m, i) => (
+                <div
+                  key={i}
+                  className="border border-gray-200 rounded-xl p-4"
+                >
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span
+                      className={`px-2 py-1 rounded-lg text-xs font-semibold ${
+                        TIPO_MOVIMIENTO_BADGE[m.tipo] ||
+                        "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {TIPO_MOVIMIENTO_LABEL[m.tipo] || m.tipo}
+                    </span>
+                    <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">
+                      {horasADias(m.horas)}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    {m.descripcion || "—"}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {new Date(m.created_at).toLocaleDateString("es-EC", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
