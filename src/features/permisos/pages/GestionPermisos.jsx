@@ -1595,6 +1595,10 @@ export default function GestionPermisos() {
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Total (días)
+                    <span className="font-normal text-gray-400">
+                      {" "}
+                      — tope: {saldoEditando.tope_dias ?? 60} días
+                    </span>
                   </label>
                   <input
                     type="number"
@@ -1608,7 +1612,7 @@ export default function GestionPermisos() {
                     }
                     className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
                     min={0}
-                    max={60}
+                    max={saldoEditando.tope_dias ?? 60}
                     step={0.5}
                   />
                 </div>
@@ -1628,7 +1632,7 @@ export default function GestionPermisos() {
                     }
                     className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
                     min={0}
-                    max={60}
+                    max={saldoEditando.tope_dias ?? 60}
                     step={0.5}
                   />
                 </div>
