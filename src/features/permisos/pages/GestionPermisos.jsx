@@ -74,6 +74,8 @@ export default function GestionPermisos() {
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [totalServidores, setTotalServidores] = useState(0);
+  const [conUsuario, setConUsuario] = useState(0);
+  const [sinUsuario, setSinUsuario] = useState(0);
   const [loadingTabla, setLoadingTabla] = useState(false);
 
   // Datos
@@ -173,6 +175,8 @@ export default function GestionPermisos() {
       setServidores(result.data);
       setTotalPages(result.totalPages);
       setTotalServidores(result.total);
+      setConUsuario(result.con_usuario);
+      setSinUsuario(result.sin_usuario);
     } catch (err) {
       console.error(err);
     } finally {
@@ -205,11 +209,11 @@ export default function GestionPermisos() {
   const stats = useMemo(
     () => ({
       total: totalServidores,
-      conUsuario: servidores.filter((s) => s.usuario_id).length,
-      sinUsuario: servidores.filter((s) => !s.usuario_id).length,
+      conUsuario,
+      sinUsuario,
       conSaldo: saldos.length,
     }),
-    [totalServidores, servidores, saldos],
+    [totalServidores, conUsuario, sinUsuario, saldos],
   );
 
   const handleCrearUsuario = async () => {
@@ -797,24 +801,37 @@ export default function GestionPermisos() {
               value={stats.total}
               icon={Users}
               color="blue"
+              onClick={() => {
+                setTab("usuarios");
+                handleFiltro("todos");
+              }}
             />
             <StatCard
               label="Con Usuario"
               value={stats.conUsuario}
               icon={CheckCircle}
               color="green"
+              onClick={() => {
+                setTab("usuarios");
+                handleFiltro("con_usuario");
+              }}
             />
             <StatCard
               label="Sin Usuario"
               value={stats.sinUsuario}
               icon={AlertCircle}
               color="yellow"
+              onClick={() => {
+                setTab("usuarios");
+                handleFiltro("sin_usuario");
+              }}
             />
             <StatCard
               label="Con Saldo"
               value={stats.conSaldo}
               icon={TrendingUp}
               color="purple"
+              onClick={() => setTab("saldos")}
             />
           </div>
         </div>
