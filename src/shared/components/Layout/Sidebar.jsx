@@ -404,9 +404,10 @@ export default function Sidebar() {
   // Auditoría: exclusivo del rol Administrador del Sistema, sin importar
   // en cuál de las 4 variantes de menú de arriba haya caído (servidor,
   // jefe de área, gerente, o el resto) — se agrega una sola vez acá para
-  // no duplicar la entrada en cada rama.
+  // no duplicar la entrada en cada rama. Se inserta ANTES de
+  // "Configuración" (el último ítem en las 4 variantes), no al final.
   if (esAdmin) {
-    menuItems.push({
+    menuItems.splice(menuItems.length - 1, 0, {
       title: "Auditoría",
       path: "/auditoria",
       icon: <History size={20} />,
