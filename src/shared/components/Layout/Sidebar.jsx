@@ -16,6 +16,7 @@ import {
   Bell,
   GitBranch,
   ShieldCheck,
+  History,
 } from "lucide-react";
 import LogoutButton from "./logoutButton";
 import { useAuth } from "../../../features/auth/AuthContext";
@@ -399,6 +400,18 @@ export default function Sidebar() {
                 ],
               },
             ];
+
+  // Auditoría: exclusivo del rol Administrador del Sistema, sin importar
+  // en cuál de las 4 variantes de menú de arriba haya caído (servidor,
+  // jefe de área, gerente, o el resto) — se agrega una sola vez acá para
+  // no duplicar la entrada en cada rama.
+  if (esAdmin) {
+    menuItems.push({
+      title: "Auditoría",
+      path: "/auditoria",
+      icon: <History size={20} />,
+    });
+  }
 
   return (
     <aside

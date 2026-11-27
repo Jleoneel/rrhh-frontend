@@ -19,6 +19,7 @@ import VacacionesFirmante from "./features/permisos/pages/vacaciones/VacacionesF
 import MiCertificado from "./features/permisos/pages/MiCertificado";
 import CronogramaVacaciones from "./features/permisos/pages/CronogramaVacaciones";
 import AccionesRecepcionServidor from "./features/acciones/pages/AccionesRecepcionServidor";
+import Auditoria from "./features/auditoria/pages/Auditoria";
 
 
 export default function App() {
@@ -48,6 +49,7 @@ export default function App() {
         <Route path="/permisos/reporte-vacaciones" element={<ReporteVacaciones />} />
         <Route path="/permisos/mis-vacaciones" element={<VacacionesFirmante />} />
         <Route path="/permisos/cronograma-vacaciones" element={<CronogramaVacaciones />} />
+        <Route path="/auditoria" element={<Auditoria />} />
       </Route>
 
       {/* RUTAS SERVIDORES */}
