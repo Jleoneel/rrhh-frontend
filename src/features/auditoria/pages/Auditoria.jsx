@@ -83,6 +83,7 @@ export default function Auditoria() {
 
   const [q, setQ] = useState("");
   const [accion, setAccion] = useState("");
+  const [grupo, setGrupo] = useState("");
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
 
@@ -91,7 +92,15 @@ export default function Auditoria() {
   const cargar = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getAuditoria({ page, limit, q, accion, desde, hasta });
+      const data = await getAuditoria({
+        page,
+        limit,
+        q,
+        accion,
+        grupo,
+        desde,
+        hasta,
+      });
       setRegistros(data.data);
       setTotal(data.total);
       setPorAccion(data.por_accion || {});
@@ -100,7 +109,7 @@ export default function Auditoria() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, q, accion, desde, hasta]);
+  }, [page, limit, q, accion, grupo, desde, hasta]);
 
   useEffect(() => {
     cargar();
@@ -109,12 +118,19 @@ export default function Auditoria() {
   const limpiarFiltros = () => {
     setQ("");
     setAccion("");
+    setGrupo("");
     setDesde("");
     setHasta("");
     setPage(1);
   };
 
-  const hayFiltros = q || accion || desde || hasta;
+  const filtrarPorGrupo = (g) => {
+    setGrupo(g);
+    setAccion("");
+    setPage(1);
+  };
+
+  const hayFiltros = q || accion || grupo || desde || hasta;
 
   const totalSaldos =
     (porAccion.SALDO_ASIGNADO || 0) + (porAccion.SALDO_CORREGIDO || 0);
@@ -130,30 +146,57 @@ export default function Auditoria() {
   // agregados en el servidor (por_accion) sobre el MISMO filtro activo,
   // no solo de la página actual.
   return (
-    <div className="p-6 space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard
-          label="Registros (filtro actual)"
-          value={total}
-          icon={ShieldCheck}
-          color="indigo"
-        />
-        <StatCard label="Saldos" value={totalSaldos} icon={Wallet} color="blue" />
-        <StatCard
-          label="Vacaciones"
-          value={totalVacaciones}
-          icon={Umbrella}
-          color="green"
-        />
-        <StatCard
-          label="Permisos"
-          value={totalPermisos}
-          icon={ClipboardCheck}
-          color="amber"
-        />
-      </div>
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 p-4 sm:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-10">
+          <div className="flex items-center gap-4">
+            <div className="p-4 bg-linear-to-br from-blue-600 to-blue-700 rounded-2xl shadow-xl shadow-blue-200">
+              <ShieldCheck className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+                Auditoría del Sistema
+              </h1>
+              <p className="text-gray-500 mt-1">
+                Registro de acciones sensibles: saldos, vacaciones y permisos
+              </p>
+            </div>
+          </div>
+        </div>
 
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <StatCard
+            label="Registros (filtro actual)"
+            value={total}
+            icon={ShieldCheck}
+            color="indigo"
+            onClick={() => filtrarPorGrupo("")}
+          />
+          <StatCard
+            label="Saldos"
+            value={totalSaldos}
+            icon={Wallet}
+            color="blue"
+            onClick={() => filtrarPorGrupo("SALDOS")}
+          />
+          <StatCard
+            label="Vacaciones"
+            value={totalVacaciones}
+            icon={Umbrella}
+            color="green"
+            onClick={() => filtrarPorGrupo("VACACIONES")}
+          />
+          <StatCard
+            label="Permisos"
+            value={totalPermisos}
+            onClick={() => filtrarPorGrupo("PERMISOS")}
+            icon={ClipboardCheck}
+            color="amber"
+          />
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
         <div className="flex flex-col lg:flex-row gap-4 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -172,6 +215,7 @@ export default function Auditoria() {
             value={accion}
             onChange={(e) => {
               setAccion(e.target.value);
+              setGrupo("");
               setPage(1);
             }}
             className="border-2 border-gray-200 rounded-xl px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -309,6 +353,7 @@ export default function Auditoria() {
             <PageNumbers page={page} totalPages={totalPages} onPageChange={setPage} />
           </div>
         )}
+      </div>
       </div>
     </div>
   );
