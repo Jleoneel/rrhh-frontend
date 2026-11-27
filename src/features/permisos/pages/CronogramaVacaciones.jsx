@@ -263,14 +263,24 @@ export default function CronogramaVacaciones() {
   const [formBloque, setFormBloque] = useState({ fecha_desde: "", fecha_hasta: "" });
   const [editandoId, setEditandoId] = useState(null);
   const [guardandoBloque, setGuardandoBloque] = useState(false);
+  const [estadoCronograma, setEstadoCronograma] = useState("");
 
   const cargar = async (overrides = {}) => {
-    const p = { anio, unidadFiltro, search, page, limit, ...overrides };
+    const p = {
+      anio,
+      unidadFiltro,
+      search,
+      page,
+      limit,
+      estadoCronograma,
+      ...overrides,
+    };
     setLoading(true);
     try {
       const params = { anio: p.anio, page: p.page, limit: p.limit };
       if (p.unidadFiltro) params.unidad_organica_id = p.unidadFiltro;
       if (p.search) params.search = p.search;
+      if (p.estadoCronograma) params.estado_cronograma = p.estadoCronograma;
       const res = await getCronograma(params);
       setData(res.data);
       // El tope ya no es único para todo el personal: cada fila de
@@ -598,13 +608,13 @@ export default function CronogramaVacaciones() {
   const excedeTope = proyectado > topeDiasAnual;
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-green-50 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-10">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-4">
-              <div className="p-4 bg-linear-to-br from-blue-600 to-blue-700 rounded-2xl shadow-xl shadow-blue-200">
+              <div className="p-4 bg-linear-to-br from-green-600 to-green-700 rounded-2xl shadow-xl shadow-green-200">
                 <Umbrella className="h-8 w-8 text-white" />
               </div>
               <div>
@@ -643,18 +653,33 @@ export default function CronogramaVacaciones() {
               value={stats.totalPersonas}
               icon={Umbrella}
               color="blue"
+              onClick={() => {
+                setEstadoCronograma("");
+                setPage(1);
+                cargar({ estadoCronograma: "", page: 1 });
+              }}
             />
             <StatCard
               label="Con vacaciones planificadas"
               value={stats.conVacacionesPlanificadas}
               icon={CalendarRange}
               color="green"
+              onClick={() => {
+                setEstadoCronograma("con_vacaciones");
+                setPage(1);
+                cargar({ estadoCronograma: "con_vacaciones", page: 1 });
+              }}
             />
             <StatCard
               label="En su tope anual"
               value={stats.enTope}
               icon={AlertTriangle}
               color="orange"
+              onClick={() => {
+                setEstadoCronograma("en_tope");
+                setPage(1);
+                cargar({ estadoCronograma: "en_tope", page: 1 });
+              }}
             />
           </div>
         </div>
@@ -701,7 +726,7 @@ export default function CronogramaVacaciones() {
             {puedeVerCalendario && (
               <button
                 onClick={() => setModalCalendario(true)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-md text-sm font-medium shrink-0"
+                className="flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all shadow-md text-sm font-medium shrink-0"
               >
                 <CalendarDays size={16} />
                 <span className="hidden sm:inline">Ver calendario</span>
@@ -721,7 +746,7 @@ export default function CronogramaVacaciones() {
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
-              <Loader2 className="h-12 w-12 text-blue-600 animate-spin mb-4" />
+              <Loader2 className="h-12 w-12 text-green-600 animate-spin mb-4" />
               <p className="text-gray-500 font-medium">Cargando cronograma...</p>
             </div>
           ) : data.length === 0 ? (
@@ -771,7 +796,7 @@ export default function CronogramaVacaciones() {
                               enTope
                                 ? "bg-orange-100 text-orange-800 border border-orange-200"
                                 : sv.dias_planificados > 0
-                                  ? "bg-blue-100 text-blue-800 border border-blue-200"
+                                  ? "bg-green-100 text-green-800 border border-green-200"
                                   : "bg-gray-100 text-gray-500 border border-gray-200"
                             }`}
                           >
@@ -781,7 +806,7 @@ export default function CronogramaVacaciones() {
                         <td className="px-6 py-4">
                           <button
                             onClick={() => abrirModalServidor(sv)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm font-medium transition-all"
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg text-sm font-medium transition-all"
                           >
                             <CalendarRange size={14} />
                             Planificar
@@ -828,7 +853,7 @@ export default function CronogramaVacaciones() {
             onClick={cerrarModal}
           />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="bg-linear-to-r from-blue-600 to-blue-700 text-white px-6 py-5 shrink-0">
+            <div className="bg-linear-to-r from-green-600 to-green-700 text-white px-6 py-5 shrink-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-white/10 rounded-lg">
@@ -836,7 +861,7 @@ export default function CronogramaVacaciones() {
                   </div>
                   <div>
                     <h2 className="text-xl font-bold">{modalServidor.nombres}</h2>
-                    <p className="text-sm text-blue-100">
+                    <p className="text-sm text-green-100">
                       {modalServidor.cedula} — Vacaciones {anio}
                     </p>
                   </div>
@@ -861,7 +886,7 @@ export default function CronogramaVacaciones() {
                     className={`mb-6 p-4 rounded-xl border-2 flex items-center justify-between ${
                       totalDiasModal >= topeDiasAnual
                         ? "bg-orange-50 border-orange-200"
-                        : "bg-blue-50 border-blue-200"
+                        : "bg-green-50 border-green-200"
                     }`}
                   >
                     <span className="text-sm font-medium text-gray-700">
@@ -869,7 +894,7 @@ export default function CronogramaVacaciones() {
                     </span>
                     <span
                       className={`text-2xl font-bold ${
-                        totalDiasModal >= topeDiasAnual ? "text-orange-700" : "text-blue-700"
+                        totalDiasModal >= topeDiasAnual ? "text-orange-700" : "text-green-700"
                       }`}
                     >
                       {totalDiasModal} / {topeDiasAnual} días
@@ -884,7 +909,7 @@ export default function CronogramaVacaciones() {
                           key={b.id}
                           className={`flex items-center justify-between p-3 rounded-xl border ${
                             editandoId === b.id
-                              ? "border-blue-400 bg-blue-50"
+                              ? "border-green-400 bg-green-50"
                               : "border-gray-200 bg-gray-50"
                           }`}
                         >
@@ -901,7 +926,7 @@ export default function CronogramaVacaciones() {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleEditarBloque(b)}
-                              className="p-1.5 hover:bg-white rounded-lg text-blue-600 transition-all"
+                              className="p-1.5 hover:bg-white rounded-lg text-green-600 transition-all"
                               title="Editar"
                             >
                               <Pencil size={15} />
@@ -967,7 +992,7 @@ export default function CronogramaVacaciones() {
                       <button
                         onClick={handleGuardarBloque}
                         disabled={guardandoBloque || !formBloque.fecha_desde || !formBloque.fecha_hasta}
-                        className="px-5 py-2.5 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shrink-0"
+                        className="px-5 py-2.5 bg-linear-to-r from-green-600 to-green-700 text-white rounded-xl font-medium hover:from-green-700 hover:to-green-800 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shrink-0"
                       >
                         {guardandoBloque ? (
                           <Loader2 size={16} className="animate-spin" />
