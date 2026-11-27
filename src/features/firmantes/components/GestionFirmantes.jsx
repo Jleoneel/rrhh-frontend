@@ -453,6 +453,7 @@ export default function GestionFirmantesUATH() {
               color="blue"
               trend="Registros históricos"
               large
+              onClick={() => setFilterActivo("todos")}
             />
             <StatCard
               label="Activos"
@@ -461,6 +462,7 @@ export default function GestionFirmantesUATH() {
               color="green"
               trend="Con permisos especiales"
               large
+              onClick={() => setFilterActivo("activos")}
             />
             <StatCard
               label="Inactivos"
@@ -469,6 +471,7 @@ export default function GestionFirmantesUATH() {
               color="red"
               trend="Sin acceso al sistema"
               large
+              onClick={() => setFilterActivo("inactivos")}
             />
           </div>
 

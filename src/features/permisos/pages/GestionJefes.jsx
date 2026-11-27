@@ -162,11 +162,21 @@ export default function GestionJefes() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mostrarTodas]);
 
+  const [filtroJefe, setFiltroJefe] = useState("todos");
+
   const unidadesFiltradas = useMemo(() => {
-    return unidades.filter((u) =>
-      u.unidad_organica.toLowerCase().includes(search.toLowerCase()),
-    );
-  }, [unidades, search]);
+    return unidades
+      .filter((u) =>
+        u.unidad_organica.toLowerCase().includes(search.toLowerCase()),
+      )
+      .filter((u) => {
+        if (filtroJefe === "con_jefe") return !!u.jefe_id;
+        if (filtroJefe === "con_jefe_superior") return !!u.jefe_superior_id;
+        if (filtroJefe === "completas")
+          return !!u.jefe_id && !!u.jefe_superior_id;
+        return true;
+      });
+  }, [unidades, search, filtroJefe]);
 
   const stats = useMemo(() => {
     const total = unidades.length;
@@ -599,10 +609,34 @@ export default function GestionJefes() {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <StatCard label="Total Unidades" value={stats.total} icon={Building2} color="blue" />
-            <StatCard label="Con Jefe Inmediato" value={stats.conJefe} icon={UserCheck} color="green" />
-            <StatCard label="Con Jefe Superior" value={stats.conJefeSuperior} icon={Users} color="purple" />
-            <StatCard label="Completas" value={stats.completas} icon={CheckCircle} color="orange" />
+            <StatCard
+              label="Total Unidades"
+              value={stats.total}
+              icon={Building2}
+              color="blue"
+              onClick={() => setFiltroJefe("todos")}
+            />
+            <StatCard
+              label="Con Jefe Inmediato"
+              value={stats.conJefe}
+              icon={UserCheck}
+              color="green"
+              onClick={() => setFiltroJefe("con_jefe")}
+            />
+            <StatCard
+              label="Con Jefe Superior"
+              value={stats.conJefeSuperior}
+              icon={Users}
+              color="purple"
+              onClick={() => setFiltroJefe("con_jefe_superior")}
+            />
+            <StatCard
+              label="Completas"
+              value={stats.completas}
+              icon={CheckCircle}
+              color="orange"
+              onClick={() => setFiltroJefe("completas")}
+            />
           </div>
         </div>
 

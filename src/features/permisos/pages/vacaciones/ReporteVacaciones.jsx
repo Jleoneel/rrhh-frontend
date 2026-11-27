@@ -581,24 +581,28 @@ export default function ReporteVacaciones() {
               value={stats.total}
               icon={Users}
               color="blue"
+              onClick={() => handleEstado({ target: { value: "TODOS" } })}
             />
             <StatCard
               label="Aprobadas"
               value={stats.aprobados}
               icon={CheckCircle}
               color="green"
+              onClick={() => handleEstado({ target: { value: "APROBADO" } })}
             />
             <StatCard
               label="Pendientes"
               value={stats.pendientes}
               icon={Clock}
               color="yellow"
+              onClick={() => handleEstado({ target: { value: "PENDIENTE" } })}
             />
             <StatCard
               label="Negadas"
               value={stats.negados}
               icon={XCircle}
               color="red"
+              onClick={() => handleEstado({ target: { value: "NEGADO" } })}
             />
           </div>
         </div>

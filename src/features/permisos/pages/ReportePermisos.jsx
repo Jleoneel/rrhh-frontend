@@ -421,24 +421,28 @@ export default function ReportePermisos() {
               value={stats.total}
               icon={TrendingUp}
               color="blue"
+              onClick={() => handleEstado({ target: { value: "TODOS" } })}
             />
             <StatCard
               label="Aprobados"
               value={stats.aprobados}
               icon={CheckCircle}
               color="green"
+              onClick={() => handleEstado({ target: { value: "APROBADO" } })}
             />
             <StatCard
               label="Pendientes"
               value={stats.pendientes}
               icon={Clock}
               color="yellow"
+              onClick={() => handleEstado({ target: { value: "PENDIENTE" } })}
             />
             <StatCard
               label="Rechazados"
               value={stats.rechazados}
               icon={XCircle}
               color="red"
+              onClick={() => handleEstado({ target: { value: "RECHAZADO" } })}
             />
           </div>
         </div>
